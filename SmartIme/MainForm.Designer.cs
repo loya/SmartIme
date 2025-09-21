@@ -37,10 +37,10 @@ namespace SmartIme
             // lblCurrentIme
             // 
             this.lblCurrentIme.AutoSize = true;
-            this.lblCurrentIme.Font = new System.Drawing.Font("Microsoft YaHei", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.lblCurrentIme.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.lblCurrentIme.Location = new System.Drawing.Point(20, 20);
             this.lblCurrentIme.Name = "lblCurrentIme";
-            this.lblCurrentIme.Size = new System.Drawing.Size(120, 22);
+            this.lblCurrentIme.Size = new System.Drawing.Size(106, 22);
             this.lblCurrentIme.TabIndex = 0;
             this.lblCurrentIme.Text = "当前输入法：";
             // 
@@ -122,9 +122,11 @@ namespace SmartIme
             this.Controls.Add(this.btnSwitchIme);
             this.Controls.Add(this.lblCurrentIme);
             this.Name = "MainForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "输入法智能切换助手";
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
     }
 }

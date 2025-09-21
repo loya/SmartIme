@@ -162,6 +162,7 @@ namespace SmartIme
         private void cmbType_SelectedIndexChanged(object sender, EventArgs e)
         {
             btnSelectProcess.Text = cmbType.SelectedIndex == 1 ? "选择窗口标题" : "选择应用程序";
+            btnSelectProcess.Visible = cmbType.SelectedIndex == 1 || cmbType.SelectedIndex == 2;
             
             // 当切换到窗口标题规则时，自动显示选择窗口标题对话框
             if (cmbType.SelectedIndex == 1 && !string.IsNullOrEmpty(txtPattern.Text))

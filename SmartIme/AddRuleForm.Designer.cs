@@ -117,6 +117,7 @@ namespace SmartIme
             this.btnSelectProcess.TabIndex = 8;
             this.btnSelectProcess.Text = "选择进程";
             this.btnSelectProcess.UseVisualStyleBackColor = true;
+            this.btnSelectProcess.Visible = false;
             this.btnSelectProcess.Click += new System.EventHandler(this.btnSelectProcess_Click);
             // 
             // btnOk
