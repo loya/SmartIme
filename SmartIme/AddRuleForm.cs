@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 
@@ -12,6 +13,9 @@ namespace SmartIme
 {
     public partial class AddRuleForm : Form
     {
+        [DllImport("user32.dll")]
+        private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
+
         public Rule CreatedRule { get; private set; }
         public string AppName { get; set; }
 
@@ -45,9 +49,14 @@ namespace SmartIme
             if (cmbType.SelectedIndex == 1) // 窗口标题规则
             {
                 ShowWindowTitlesSelection();
-            }else if (cmbType.SelectedIndex == 2) // 控件类型规则
+            }
+            else if (cmbType.SelectedIndex == 2) // 控件类型规则
             {
-                SelectControlClass();
+                string controlClass = SelectControlClass();
+                if (!string.IsNullOrEmpty(controlClass))
+                {
+                    txtPattern.Text = controlClass;
+                }
             }
             else // 程序名称规则
             {
@@ -55,33 +64,38 @@ namespace SmartIme
             }
         }
 
-        private void SelectControlClass()
+        [DllImport("user32.dll")]
+        private static extern IntPtr WindowFromPoint(Point pt);
+        
+        [DllImport("user32.dll")]
+        private static extern bool GetCursorPos(out Point lpPoint);
+        
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        private string SelectControlClass()
         {
+            // 提示用户选择控件
+            var result = MessageBox.Show("请将鼠标移动到目标控件上，然后点击确定", 
+                "选择控件", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
+            
+            if (result != DialogResult.OK)
+                return null;
 
-            // 如果是控件类型规则，添加控件选择功能
-            var controlForm = new Form()
-            {
-                Text = "选择控件",
-                Size = new System.Drawing.Size(400, 300),
-                FormBorderStyle = FormBorderStyle.FixedDialog
-            };
+            // 获取鼠标位置
+            Point mousePos;
+            GetCursorPos(out mousePos);
 
-            var btnSelect = new Button()
-            {
-                Text = "点击控件进行选择",
-                Dock = DockStyle.Fill
-            };
+            // 获取鼠标下的窗口句柄
+            IntPtr hWnd = WindowFromPoint(mousePos);
+            if (hWnd == IntPtr.Zero)
+                return null;
 
-            btnSelect.Click += (s, args) =>
-            {
-                // 这里需要实现控件选择逻辑
-                // 实际应用中需要使用Windows API获取当前焦点控件信息
-                txtPattern.Text = "Edit"; // 示例值，实际应为选择的控件类名
-                controlForm.Close();
-            };
-
-            controlForm.Controls.Add(btnSelect);
-            controlForm.ShowDialog(this);
+            // 获取控件类名
+            var className = new System.Text.StringBuilder(256);
+            GetClassName(hWnd, className, className.Capacity);
+            
+            return className.ToString();
         }
 
         private void ShowProcessSelection()
