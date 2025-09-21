@@ -1,0 +1,9 @@
+.vs
+.vscode
+.code-workspace
+.codebuddy
+bin
+obj
+SmartIme/.vs
+SmartIme/bin
+SmartIme/obj
