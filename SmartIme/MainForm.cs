@@ -9,7 +9,7 @@ namespace SmartIme
 {
     public partial class MainForm : Form
     {
-        private List<Rule> rules = new List<Rule>();
+        private List<AppRuleGroup> appRuleGroups = new List<AppRuleGroup>();
         private Timer monitorTimer;
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayMenu;
@@ -79,28 +79,56 @@ namespace SmartIme
         
         private string SerializeRules()
         {
-            var entries = rules.Select(r => $"{r.Name}|{(int)r.Type}|{r.Pattern}|{r.InputMethod}");
-            return string.Join(";", entries);
+            var groupEntries = new List<string>();
+            
+            foreach (var group in appRuleGroups)
+            {
+                var ruleEntries = group.Rules.Select(r => $"{r.Name}|{(int)r.Type}|{r.Pattern}|{r.InputMethod}");
+                var rulesStr = string.Join(",", ruleEntries);
+                groupEntries.Add($"{group.AppName}|{group.DisplayName}|{rulesStr}");
+            }
+            
+            return string.Join(";", groupEntries);
         }
         
         private void DeserializeRules(string data)
         {
             if (!string.IsNullOrEmpty(data))
             {
-                var entries = data.Split(';');
-                foreach (var entry in entries)
+                var groupEntries = data.Split(';');
+                foreach (var groupEntry in groupEntries)
                 {
-                    var parts = entry.Split('|');
-                    if (parts.Length == 4)
+                    var parts = groupEntry.Split('|');
+                    if (parts.Length >= 3)
                     {
-                        string name = parts[0];
-                        RuleType type = (RuleType)int.Parse(parts[1]);
-                        string pattern = parts[2];
-                        string inputMethod = parts[3];
+                        string appName = parts[0];
+                        string displayName = parts[1];
                         
-                        var rule = new Rule(name, type, pattern, inputMethod);
-                        rules.Add(rule);
-                        lstApps.Items.Add(rule);
+                        var group = new AppRuleGroup(appName, displayName);
+                        
+                        // 解析规则
+                        string rulesStr = string.Join("|", parts.Skip(2));
+                        if (!string.IsNullOrEmpty(rulesStr))
+                        {
+                            var ruleEntries = rulesStr.Split(',');
+                            foreach (var ruleEntry in ruleEntries)
+                            {
+                                var ruleParts = ruleEntry.Split('|');
+                                if (ruleParts.Length == 4)
+                                {
+                                    string name = ruleParts[0];
+                                    RuleType type = (RuleType)int.Parse(ruleParts[1]);
+                                    string pattern = ruleParts[2];
+                                    string inputMethod = ruleParts[3];
+                                    
+                                    var rule = new Rule(name, type, pattern, inputMethod);
+                                    group.AddRule(rule);
+                                }
+                            }
+                        }
+                        
+                        appRuleGroups.Add(group);
+                        lstApps.Items.Add(group);
                     }
                 }
             }
@@ -154,15 +182,11 @@ namespace SmartIme
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string appName = process.ProcessName;
                 
-                // 如果是同一个应用程序，检查是否有基于窗口标题或控件类型的规则
+                // 如果是同一个应用程序，检查是否有针对该应用的规则
                 if (appName == lastActiveApp)
                 {
-                    // 检查是否存在针对该应用的规则
-                    bool hasRulesForThisApp = rules.Any(r => 
-                        // 检查程序规则
-                        (r.Type == RuleType.Program && Regex.IsMatch(appName, r.Pattern)) ||
-                        // 或者存在标题或控件规则
-                        (r.Type == RuleType.Title || r.Type == RuleType.Control));
+                    // 检查是否存在针对该应用的规则组
+                    bool hasRulesForThisApp = appRuleGroups.Any(g => Regex.IsMatch(appName, g.AppName));
                     
                     // 如果没有针对该应用的规则，则不重复切换输入法
                     if (!hasRulesForThisApp)
@@ -226,28 +250,19 @@ namespace SmartIme
         
         private Rule FindMatchingRule(string appName, string windowTitle, string controlClass)
         {
-            // 按优先级排序规则
-            var sortedRules = rules.OrderByDescending(r => r.Priority).ToList();
-            
-            // 先检查控件规则
-            foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Control))
+            // 查找匹配的应用规则组
+            foreach (var group in appRuleGroups)
             {
-                if (Regex.IsMatch(controlClass, rule.Pattern))
-                    return rule;
-            }
-            
-            // 再检查标题规则
-            foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Title))
-            {
-                if (Regex.IsMatch(windowTitle, rule.Pattern))
-                    return rule;
-            }
-            
-            // 最后检查程序规则
-            foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Program))
-            {
-                if (Regex.IsMatch(appName, rule.Pattern))
-                    return rule;
+                // 检查应用名称是否匹配
+                if (Regex.IsMatch(appName, group.AppName))
+                {
+                    // 在应用规则组中查找匹配的规则
+                    var rule = group.FindMatchingRule(appName, windowTitle, controlClass);
+                    if (rule != null)
+                    {
+                        return rule;
+                    }
+                }
             }
             
             return null;
@@ -276,16 +291,69 @@ namespace SmartIme
 
         private void btnAddApp_Click(object sender, EventArgs e)
         {
-            using (var addRuleForm = new AddRuleForm(cmbDefaultIme.Items.Cast<object>(), cmbDefaultIme.SelectedIndex))
+            // 创建进程选择窗口
+            var processSelectForm = new Form();
+            processSelectForm.Text = "选择应用程序";
+            processSelectForm.Size = new System.Drawing.Size(400, 300);
+            processSelectForm.StartPosition = FormStartPosition.CenterParent;
+            processSelectForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            processSelectForm.MaximizeBox = false;
+            processSelectForm.MinimizeBox = false;
+            
+            var lstProcesses = new ListBox();
+            lstProcesses.Dock = DockStyle.Fill;
+            lstProcesses.FormattingEnabled = true;
+            
+            var btnSelect = new Button();
+            btnSelect.Text = "选择";
+            btnSelect.DialogResult = DialogResult.OK;
+            btnSelect.Dock = DockStyle.Bottom;
+            
+            processSelectForm.Controls.Add(lstProcesses);
+            processSelectForm.Controls.Add(btnSelect);
+            
+            // 获取所有进程
+            var processes = System.Diagnostics.Process.GetProcesses()
+                .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
+                .OrderBy(p => p.ProcessName)
+                .ToList();
+            
+            // 添加到列表
+            foreach (var process in processes)
             {
-                if (addRuleForm.ShowDialog(this) == DialogResult.OK)
+                lstProcesses.Items.Add($"{process.ProcessName} - {process.MainWindowTitle}");
+            }
+            
+            // 显示窗口
+            if (processSelectForm.ShowDialog(this) == DialogResult.OK && lstProcesses.SelectedIndex >= 0)
+            {
+                var selectedProcess = processes[lstProcesses.SelectedIndex];
+                string appName = selectedProcess.ProcessName;
+                string displayName = $"{appName} - {selectedProcess.MainWindowTitle}";
+                
+                // 检查是否已存在该应用
+                var existingGroup = appRuleGroups.FirstOrDefault(g => g.AppName == appName);
+                if (existingGroup != null)
                 {
-                    var rule = addRuleForm.CreatedRule;
-                    if (rule != null)
-                    {
-                        rules.Add(rule);
-                        lstApps.Items.Add(rule);
-                    }
+                    MessageBox.Show("该应用已存在规则组中，请双击编辑。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+                
+                // 创建新的应用规则组
+                var newGroup = new AppRuleGroup(appName, displayName);
+                
+                // 添加默认规则
+                var defaultRule = new Rule(appName, RuleType.Program, appName, cmbDefaultIme.Text);
+                newGroup.AddRule(defaultRule);
+                
+                // 添加到列表
+                appRuleGroups.Add(newGroup);
+                lstApps.Items.Add(newGroup);
+                
+                // 打开编辑窗口
+                using (var editAppRulesForm = new EditAppRulesForm(newGroup, cmbDefaultIme.Items.Cast<object>()))
+                {
+                    editAppRulesForm.ShowDialog(this);
                 }
             }
         }
@@ -294,11 +362,11 @@ namespace SmartIme
         {
             if (lstApps.SelectedItem != null)
             {
-                var rule = lstApps.SelectedItem as Rule;
-                if (rule != null)
+                var group = lstApps.SelectedItem as AppRuleGroup;
+                if (group != null)
                 {
-                    rules.Remove(rule);
-                    lstApps.Items.Remove(rule);
+                    appRuleGroups.Remove(group);
+                    lstApps.Items.Remove(group);
                 }
             }
         }
@@ -307,20 +375,12 @@ namespace SmartIme
         {
             if (lstApps.SelectedItem != null)
             {
-                var rule = lstApps.SelectedItem as Rule;
-                if (rule != null)
+                var group = lstApps.SelectedItem as AppRuleGroup;
+                if (group != null)
                 {
-                    using (var editRuleForm = new EditRuleForm(rule, cmbDefaultIme.Items.Cast<object>()))
+                    using (var editAppRulesForm = new EditAppRulesForm(group, cmbDefaultIme.Items.Cast<object>()))
                     {
-                        if (editRuleForm.ShowDialog(this) == DialogResult.OK)
-                        {
-                            // 刷新列表显示
-                            int index = lstApps.Items.IndexOf(rule);
-                            if (index >= 0)
-                            {
-                                lstApps.Items[index] = rule;
-                            }
-                        }
+                        editAppRulesForm.ShowDialog(this);
                     }
                 }
             }
