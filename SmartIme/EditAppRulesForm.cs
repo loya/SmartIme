@@ -41,6 +41,8 @@ namespace SmartIme
                     var rule = addRuleForm.CreatedRule;
                     if (rule != null)
                     {
+                        
+
                         appRuleGroup.AddRule(rule);
                         RefreshRulesList();
                     }

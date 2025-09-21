@@ -37,6 +37,9 @@ namespace SmartIme
         [DllImport("user32.dll")]
         private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
 
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetFocus();
+
         public MainForm()
         {
             InitializeComponent();
@@ -202,9 +205,10 @@ namespace SmartIme
                 GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
                 string windowTitle = titleBuilder.ToString();
                 
-                // 获取控件类名
+                // 获取当前焦点控件类名
+                IntPtr focusedHandle = GetFocus();
                 var classBuilder = new System.Text.StringBuilder(256);
-                GetClassName(hWnd, classBuilder, classBuilder.Capacity);
+                GetClassName(focusedHandle != IntPtr.Zero ? focusedHandle : hWnd, classBuilder, classBuilder.Capacity);
                 string controlClass = classBuilder.ToString();
                 
                 // 按优先级查找匹配的规则

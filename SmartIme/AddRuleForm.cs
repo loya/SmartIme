@@ -45,11 +45,43 @@ namespace SmartIme
             if (cmbType.SelectedIndex == 1) // 窗口标题规则
             {
                 ShowWindowTitlesSelection();
+            }else if (cmbType.SelectedIndex == 2) // 控件类型规则
+            {
+                SelectControlClass();
             }
             else // 程序名称规则
             {
                 ShowProcessSelection();
             }
+        }
+
+        private void SelectControlClass()
+        {
+
+            // 如果是控件类型规则，添加控件选择功能
+            var controlForm = new Form()
+            {
+                Text = "选择控件",
+                Size = new System.Drawing.Size(400, 300),
+                FormBorderStyle = FormBorderStyle.FixedDialog
+            };
+
+            var btnSelect = new Button()
+            {
+                Text = "点击控件进行选择",
+                Dock = DockStyle.Fill
+            };
+
+            btnSelect.Click += (s, args) =>
+            {
+                // 这里需要实现控件选择逻辑
+                // 实际应用中需要使用Windows API获取当前焦点控件信息
+                txtPattern.Text = "Edit"; // 示例值，实际应为选择的控件类名
+                controlForm.Close();
+            };
+
+            controlForm.Controls.Add(btnSelect);
+            controlForm.ShowDialog(this);
         }
 
         private void ShowProcessSelection()
