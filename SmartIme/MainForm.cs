@@ -3,12 +3,13 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SmartIme
 {
     public partial class MainForm : Form
     {
-        private Dictionary<string, string> appImeRules = new Dictionary<string, string>();
+        private List<Rule> rules = new List<Rule>();
         private Timer monitorTimer;
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayMenu;
@@ -29,6 +30,12 @@ namespace SmartIme
         
         [DllImport("user32.dll")]
         private static extern IntPtr GetKeyboardLayout(uint idThread);
+        
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
+        
+        [DllImport("user32.dll")]
+        private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
 
         public MainForm()
         {
@@ -72,7 +79,8 @@ namespace SmartIme
         
         private string SerializeRules()
         {
-            return string.Join(";", appImeRules.Select(x => $"{x.Key},{x.Value}"));
+            var entries = rules.Select(r => $"{r.Name}|{(int)r.Type}|{r.Pattern}|{r.InputMethod}");
+            return string.Join(";", entries);
         }
         
         private void DeserializeRules(string data)
@@ -82,11 +90,17 @@ namespace SmartIme
                 var entries = data.Split(';');
                 foreach (var entry in entries)
                 {
-                    var parts = entry.Split(',');
-                    if (parts.Length == 2)
+                    var parts = entry.Split('|');
+                    if (parts.Length == 4)
                     {
-                        appImeRules[parts[0]] = parts[1];
-                        lstApps.Items.Add(parts[0]);
+                        string name = parts[0];
+                        RuleType type = (RuleType)int.Parse(parts[1]);
+                        string pattern = parts[2];
+                        string inputMethod = parts[3];
+                        
+                        var rule = new Rule(name, type, pattern, inputMethod);
+                        rules.Add(rule);
+                        lstApps.Items.Add(rule);
                     }
                 }
             }
@@ -125,12 +139,24 @@ namespace SmartIme
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string appName = process.ProcessName;
                 
-                // 检查是否有对应的输入法规则
-                if (appImeRules.ContainsKey(appName))
+                // 获取窗口标题
+                var titleBuilder = new System.Text.StringBuilder(256);
+                GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
+                string windowTitle = titleBuilder.ToString();
+                
+                // 获取控件类名
+                var classBuilder = new System.Text.StringBuilder(256);
+                GetClassName(hWnd, classBuilder, classBuilder.Capacity);
+                string controlClass = classBuilder.ToString();
+                
+                // 按优先级查找匹配的规则
+                Rule matchedRule = FindMatchingRule(appName, windowTitle, controlClass);
+                
+                if (matchedRule != null)
                 {
                     // 切换输入法
-                    string targetIme = appImeRules[appName];
-                    lblCurrentIme.Text = "当前输入法：" + targetIme;
+                    string targetIme = matchedRule.InputMethod;
+                    lblCurrentIme.Text = "当前输入法：" + targetIme + " (规则：" + matchedRule.Name + ")";
                     
                     // 获取所有输入法列表
                     var inputLanguages = InputLanguage.InstalledInputLanguages;
@@ -149,7 +175,7 @@ namespace SmartIme
                 else
                 {
                     // 使用默认输入法
-                    lblCurrentIme.Text = "当前输入法：" + cmbDefaultIme.Text;
+                    lblCurrentIme.Text = "当前输入法：" + cmbDefaultIme.Text + " (默认)";
                     // 切换到默认输入法
                     var inputLanguages = InputLanguage.InstalledInputLanguages;
                     if (cmbDefaultIme.SelectedIndex >= 0 && cmbDefaultIme.SelectedIndex < inputLanguages.Count)
@@ -162,6 +188,35 @@ namespace SmartIme
                 }
             }
             catch { }
+        }
+        
+        private Rule FindMatchingRule(string appName, string windowTitle, string controlClass)
+        {
+            // 按优先级排序规则
+            var sortedRules = rules.OrderByDescending(r => r.Priority).ToList();
+            
+            // 先检查控件规则
+            foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Control))
+            {
+                if (Regex.IsMatch(controlClass, rule.Pattern))
+                    return rule;
+            }
+            
+            // 再检查标题规则
+            foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Title))
+            {
+                if (Regex.IsMatch(windowTitle, rule.Pattern))
+                    return rule;
+            }
+            
+            // 最后检查程序规则
+            foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Program))
+            {
+                if (Regex.IsMatch(appName, rule.Pattern))
+                    return rule;
+            }
+            
+            return null;
         }
 
         private void btnSwitchIme_Click(object sender, EventArgs e)
@@ -187,102 +242,30 @@ namespace SmartIme
 
         private void btnAddApp_Click(object sender, EventArgs e)
         {
-            var processForm = new Form()
+            using (var addRuleForm = new AddRuleForm(cmbDefaultIme.Items.Cast<object>(), cmbDefaultIme.SelectedIndex))
             {
-                Text = "选择运行中的应用程序",
-                Size = new System.Drawing.Size(400, 500),
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                StartPosition = FormStartPosition.CenterParent
-            };
-
-            var listBox = new ListBox()
-            {
-                Dock = DockStyle.Fill,
-                SelectionMode = SelectionMode.One
-            };
-
-            var btnSelect = new Button()
-            {
-                Text = "选择",
-                Dock = DockStyle.Bottom,
-                Height = 40
-            };
-
-            // 获取所有非系统进程
-            var processes = System.Diagnostics.Process.GetProcesses()
-                .Where(p => !string.IsNullOrEmpty(p.ProcessName) && p.MainWindowHandle != IntPtr.Zero)
-                .Select(p => p.ProcessName)
-                .Distinct()
-                .OrderBy(p => p);
-
-            listBox.Items.AddRange(processes.ToArray());
-
-            btnSelect.Click += (s, args) => 
-            {
-                if (listBox.SelectedItem != null)
+                if (addRuleForm.ShowDialog(this) == DialogResult.OK)
                 {
-                    string appName = listBox.SelectedItem.ToString();
-                    if (!appImeRules.ContainsKey(appName))
+                    var rule = addRuleForm.CreatedRule;
+                    if (rule != null)
                     {
-                        // 弹出规则配置对话框
-                        var ruleForm = new Form()
-                        {
-                            Text = "配置输入法规则 - " + appName,
-                            Size = new System.Drawing.Size(300, 200),
-                            FormBorderStyle = FormBorderStyle.FixedDialog,
-                            StartPosition = FormStartPosition.CenterParent
-                        };
-
-                        var label = new Label()
-                        {
-                            Text = "选择默认输入法:",
-                            Location = new System.Drawing.Point(20, 20),
-                            AutoSize = true
-                        };
-
-                        var combo = new ComboBox()
-                        {
-                            DropDownStyle = ComboBoxStyle.DropDownList,
-                            Location = new System.Drawing.Point(20, 50),
-                            Width = 250
-                        };
-                        combo.Items.AddRange(cmbDefaultIme.Items.Cast<object>().ToArray());
-                        combo.SelectedIndex = cmbDefaultIme.SelectedIndex;
-
-                        var btnOk = new Button()
-                        {
-                            Text = "确定",
-                            DialogResult = DialogResult.OK,
-                            Location = new System.Drawing.Point(120, 100)
-                        };
-
-                        ruleForm.Controls.Add(label);
-                        ruleForm.Controls.Add(combo);
-                        ruleForm.Controls.Add(btnOk);
-                        ruleForm.AcceptButton = btnOk;
-
-                        if (ruleForm.ShowDialog(this) == DialogResult.OK)
-                        {
-                            appImeRules[appName] = combo.Text;
-                            lstApps.Items.Add(appName);
-                        }
+                        rules.Add(rule);
+                        lstApps.Items.Add(rule);
                     }
-                    processForm.Close();
                 }
-            };
-
-            processForm.Controls.Add(listBox);
-            processForm.Controls.Add(btnSelect);
-            processForm.ShowDialog(this);
+            }
         }
 
         private void btnRemoveApp_Click(object sender, EventArgs e)
         {
             if (lstApps.SelectedItem != null)
             {
-                string appName = lstApps.SelectedItem.ToString();
-                appImeRules.Remove(appName);
-                lstApps.Items.Remove(appName);
+                var rule = lstApps.SelectedItem as Rule;
+                if (rule != null)
+                {
+                    rules.Remove(rule);
+                    lstApps.Items.Remove(rule);
+                }
             }
         }
 
@@ -290,48 +273,21 @@ namespace SmartIme
         {
             if (lstApps.SelectedItem != null)
             {
-                string appName = lstApps.SelectedItem.ToString();
-                
-                // 弹出规则编辑对话框
-                var ruleForm = new Form()
+                var rule = lstApps.SelectedItem as Rule;
+                if (rule != null)
                 {
-                    Text = "编辑输入法规则 - " + appName,
-                    Size = new System.Drawing.Size(300, 200),
-                    FormBorderStyle = FormBorderStyle.FixedDialog,
-                    StartPosition = FormStartPosition.CenterParent
-                };
-
-                var label = new Label()
-                {
-                    Text = "选择默认输入法:",
-                    Location = new System.Drawing.Point(20, 20),
-                    AutoSize = true
-                };
-
-                var combo = new ComboBox()
-                {
-                    DropDownStyle = ComboBoxStyle.DropDownList,
-                    Location = new System.Drawing.Point(20, 50),
-                    Width = 250
-                };
-                combo.Items.AddRange(cmbDefaultIme.Items.Cast<object>().ToArray());
-                combo.SelectedItem = appImeRules[appName];
-
-                var btnOk = new Button()
-                {
-                    Text = "确定",
-                    DialogResult = DialogResult.OK,
-                    Location = new System.Drawing.Point(120, 100)
-                };
-
-                ruleForm.Controls.Add(label);
-                ruleForm.Controls.Add(combo);
-                ruleForm.Controls.Add(btnOk);
-                ruleForm.AcceptButton = btnOk;
-
-                if (ruleForm.ShowDialog(this) == DialogResult.OK)
-                {
-                    appImeRules[appName] = combo.Text;
+                    using (var editRuleForm = new EditRuleForm(rule, cmbDefaultIme.Items.Cast<object>()))
+                    {
+                        if (editRuleForm.ShowDialog(this) == DialogResult.OK)
+                        {
+                            // 刷新列表显示
+                            int index = lstApps.Items.IndexOf(rule);
+                            if (index >= 0)
+                            {
+                                lstApps.Items[index] = rule;
+                            }
+                        }
+                    }
                 }
             }
         }

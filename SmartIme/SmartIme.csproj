@@ -51,6 +51,18 @@
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="AddRuleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AddRuleForm.Designer.cs">
+      <DependentUpon>AddRuleForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EditRuleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EditRuleForm.Designer.cs">
+      <DependentUpon>EditRuleForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
@@ -61,6 +73,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Rule.cs" />
     <None Include="app.config" />
     <None Include="app.manifest" />
     <None Include="app.ico">
