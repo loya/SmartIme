@@ -120,15 +120,30 @@ namespace SmartIme
             }
         }
 
+        private IntPtr lastActiveWindow = IntPtr.Zero;
+        private string lastActiveApp = string.Empty;
+
         private void SetupMonitor()
         {
             monitorTimer = new Timer();
-            monitorTimer.Interval = 500;
-            monitorTimer.Tick += MonitorActiveApp;
+            monitorTimer.Interval = 300;
+            monitorTimer.Tick += CheckActiveWindowChanged;
             monitorTimer.Start();
         }
 
-        private void MonitorActiveApp(object sender, EventArgs e)
+        private void CheckActiveWindowChanged(object sender, EventArgs e)
+        {
+            IntPtr currentWindow = GetForegroundWindow();
+            
+            // 只有当活动窗口变化时才处理
+            if (currentWindow != lastActiveWindow)
+            {
+                lastActiveWindow = currentWindow;
+                MonitorActiveApp();
+            }
+        }
+
+        private void MonitorActiveApp()
         {
             IntPtr hWnd = GetForegroundWindow();
             uint processId;
@@ -138,6 +153,25 @@ namespace SmartIme
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string appName = process.ProcessName;
+                
+                // 如果是同一个应用程序，检查是否有基于窗口标题或控件类型的规则
+                if (appName == lastActiveApp)
+                {
+                    // 检查是否存在针对该应用的规则
+                    bool hasRulesForThisApp = rules.Any(r => 
+                        // 检查程序规则
+                        (r.Type == RuleType.Program && Regex.IsMatch(appName, r.Pattern)) ||
+                        // 或者存在标题或控件规则
+                        (r.Type == RuleType.Title || r.Type == RuleType.Control));
+                    
+                    // 如果没有针对该应用的规则，则不重复切换输入法
+                    if (!hasRulesForThisApp)
+                    {
+                        return;
+                    }
+                }
+                
+                lastActiveApp = appName;
                 
                 // 获取窗口标题
                 var titleBuilder = new System.Text.StringBuilder(256);
