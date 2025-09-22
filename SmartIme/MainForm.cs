@@ -196,6 +196,7 @@ namespace SmartIme
                     {
                         return;
                     }
+                    // 如果有规则，继续处理以检查控件级别的规则
                 }
                 
                 lastActiveApp = appName;

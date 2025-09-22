@@ -129,56 +129,11 @@ namespace SmartIme
         {
             if (e.Button == MouseButtons.Left)
             {
-                // 获取鼠标位置
-                Point mousePos;
-                GetCursorPos(out mousePos);
-
-                // 尝试获取焦点控件
-                IntPtr hFocus = GetFocus();
-                IntPtr hWnd;
-                
-                if (hFocus != IntPtr.Zero)
-                {
-                    // 使用焦点控件
-                    hWnd = hFocus;
-                }
-                else
-                {
-                    // 如果没有焦点控件，使用鼠标下的窗口
-                    hWnd = WindowFromPoint(mousePos);
-                    
-                    // 尝试获取更精确的子控件
-                    IntPtr hParent = GetForegroundWindow();
-                    if (hParent != IntPtr.Zero)
-                    {
-                        // 将屏幕坐标转换为窗口客户区坐标
-                        POINT clientPoint = new POINT { x = mousePos.X, y = mousePos.Y };
-                        ScreenToClient(hParent, ref clientPoint);
-                        
-                        // 获取指定坐标下的子控件
-                        IntPtr hChild = ChildWindowFromPointEx(hParent, 
-                            new Point(clientPoint.x, clientPoint.y), CWP_SKIPINVISIBLE);
-                        
-                        if (hChild != IntPtr.Zero && hChild != hParent)
-                        {
-                            hWnd = hChild;
-                        }
-                    }
-                }
-
-                if (hWnd != IntPtr.Zero)
-                {
-                    // 获取控件类名
-                    selectedControlClass = ControlHelper.GetWindowClassName(hWnd);
-                    
-                    // 显示控件信息
-                }
+                // 使用ControlHelper获取焦点控件类名
+                selectedControlClass = ControlHelper.GetFocusedControlClassName();
                 
                 mouseClicked = true;
-
                 selectForm.Close();
-                //MessageBox.Show($"已选择控件类名: {selectedControlClass}",
-                //    "控件选择", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
