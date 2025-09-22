@@ -205,7 +205,7 @@ namespace SmartIme
                 GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
                 string windowTitle = titleBuilder.ToString();
                 
-                // 获取当前焦点控件类名
+                // 获取当前焦点控件名称
                 IntPtr focusedHandle = GetFocus();
                 var classBuilder = new System.Text.StringBuilder(256);
                 GetClassName(focusedHandle != IntPtr.Zero ? focusedHandle : hWnd, classBuilder, classBuilder.Capacity);

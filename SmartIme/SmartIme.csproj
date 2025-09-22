@@ -67,7 +67,9 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="AppRuleGroup.cs" />
-    <Compile Include="EditAppRulesForm.cs" />
+    <Compile Include="EditAppRulesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="EditAppRulesForm.Designer.cs">
       <DependentUpon>EditAppRulesForm.cs</DependentUpon>
     </Compile>
