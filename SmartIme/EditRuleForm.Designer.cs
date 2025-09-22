@@ -116,7 +116,7 @@ namespace SmartIme
             this.btnOk.TabIndex = 8;
             this.btnOk.Text = "确定";
             this.btnOk.UseVisualStyleBackColor = true;
-            this.btnOk.Click += new System.EventHandler(this.btnOk_Click);
+            this.btnOk.Click += new System.EventHandler(this.BtnOk_Click);
             // 
             // btnCancel
             // 

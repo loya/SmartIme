@@ -18,7 +18,13 @@ namespace SmartIme
         private static extern IntPtr GetForegroundWindow();
 
         [DllImport("user32.dll")]
-        private static extern IntPtr GetActiveWindow();
+        public static extern IntPtr GetActiveWindow();
+
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
 
         [DllImport("user32.dll")]
         private static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
@@ -45,60 +51,60 @@ namespace SmartIme
         /// 获取当前焦点控件的类名
         /// </summary>
         /// <returns>控件类名，如果获取失败返回空字符串</returns>
-        public static string GetFocusedControlClassName()
+        public static string GetFocusedControlName()
         {
             try
             {
-                // 获取鼠标位置
-                Point mousePos;
-                GetCursorPos(out mousePos);
+                //// 获取鼠标位置
+                //Point mousePos;
+                //GetCursorPos(out mousePos);
 
-                // 尝试获取焦点控件
-                IntPtr hFocus = GetFocus();
-                IntPtr hWnd;
+                //// 尝试获取焦点控件
+                //IntPtr hFocus = GetFocus();
+                //IntPtr hWnd;
 
-                if (hFocus != IntPtr.Zero)
-                {
-                    // 使用焦点控件
-                    hWnd = hFocus;
-                }
-                else
-                {
-                    // 如果没有焦点控件，使用鼠标下的窗口
-                    hWnd = WindowFromPoint(mousePos);
+                //if (hFocus != IntPtr.Zero)
+                //{
+                //    // 使用焦点控件
+                //    hWnd = hFocus;
+                //}
+                //else
+                //{
+                //    // 如果没有焦点控件，使用鼠标下的窗口
+                //    hWnd = WindowFromPoint(mousePos);
 
-                    // 尝试获取更精确的子控件
-                    IntPtr hParent = GetActiveWindow();
-                    if (hParent != IntPtr.Zero)
-                    {
-                        // 将屏幕坐标转换为窗口客户区坐标
-                        POINT clientPoint = new POINT { x = mousePos.X, y = mousePos.Y };
-                        ScreenToClient(hParent, ref clientPoint);
+                //    // 尝试获取更精确的子控件
+                //    IntPtr hParent = GetActiveWindow();
+                //    if (hParent != IntPtr.Zero)
+                //    {
+                //        // 将屏幕坐标转换为窗口客户区坐标
+                //        POINT clientPoint = new POINT { x = mousePos.X, y = mousePos.Y };
+                //        ScreenToClient(hParent, ref clientPoint);
 
-                        // 获取指定坐标下的子控件
-                        IntPtr hChild = ChildWindowFromPointEx(hParent,
-                            new Point(clientPoint.x, clientPoint.y), CWP_SKIPINVISIBLE);
+                //        // 获取指定坐标下的子控件
+                //        IntPtr hChild = ChildWindowFromPointEx(hParent,
+                //            new Point(clientPoint.x, clientPoint.y), CWP_SKIPINVISIBLE);
 
-                        if (hChild != IntPtr.Zero && hChild != hParent)
-                        {
-                            hWnd = hChild;
-                        }
-                    }
-                }
+                //        if (hChild != IntPtr.Zero && hChild != hParent)
+                //        {
+                //            hWnd = hChild;
+                //        }
+                //    }
+                //}
 
-                if (hWnd != IntPtr.Zero)
-                {
-                    var element= new CUIAutomation().GetFocusedElement();
-                    var automationId = string.IsNullOrEmpty(element.CurrentAutomationId)?null:element.CurrentAutomationId;
-                    var classname = string.IsNullOrEmpty(element.CurrentClassName)?null:element.CurrentClassName;
-                    var name = element.CurrentName;
-                    return automationId??name??classname;
+                //if (hWnd != IntPtr.Zero)
+                //{
+                var element = new CUIAutomation().GetFocusedElement();
+                var automationId = string.IsNullOrEmpty(element.CurrentAutomationId) ? null : element.CurrentAutomationId;
+                var classname = string.IsNullOrEmpty(element.CurrentClassName) ? null : element.CurrentClassName;
+                var name = element.CurrentName;
+                return automationId ?? name ?? classname;
 
-                    // 获取控件类名
-                    var className = new StringBuilder(256);
-                    GetClassName(hWnd, className, className.Capacity);
-                    return className.ToString();
-                }
+                // 获取控件类名
+                //var windowText = new StringBuilder(256);
+                //GetClassName(hWnd, windowText, windowText.Capacity);
+                //return windowText.ToString();
+                //}
             }
             catch
             {
@@ -111,7 +117,7 @@ namespace SmartIme
         /// <summary>
         /// 获取指定窗口的类名
         /// </summary>
-        /// <param name="hWnd">窗口句柄</param>
+        /// <param processName="hWnd">窗口句柄</param>
         /// <returns>窗口类名，如果获取失败返回空字符串</returns>
         public static string GetWindowClassName(IntPtr hWnd)
         {
@@ -127,6 +133,27 @@ namespace SmartIme
             catch
             {
                 // 忽略所有异常，返回空字符串
+                throw;
+            }
+
+            return string.Empty;
+        }
+
+        public static string GetActiveWindowProcessName()
+        {
+            try
+            {
+                var hWnd = GetForegroundWindow();
+                if (hWnd != IntPtr.Zero)
+                {
+                    GetWindowThreadProcessId(hWnd, out uint processId);
+                    string processName = System.Diagnostics.Process.GetProcessById((int)processId).ProcessName;                    
+                    return processName;
+                }
+            }
+            catch
+            {
+                throw;
             }
 
             return string.Empty;

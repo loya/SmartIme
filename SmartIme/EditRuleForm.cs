@@ -31,7 +31,7 @@ namespace SmartIme
             cmbType.SelectedIndex = (int)rule.Type;
         }
 
-        private void btnOk_Click(object sender, EventArgs e)
+        private void BtnOk_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(txtName.Text) || string.IsNullOrEmpty(txtPattern.Text))
             {

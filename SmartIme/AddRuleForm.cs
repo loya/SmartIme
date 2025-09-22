@@ -21,21 +21,21 @@ namespace SmartIme
         public string AppName { get; set; }
 
         public AddRuleForm(IEnumerable<object> imeList, int defaultImeIndex, string appName = null)
-        {            
+        {
             InitializeComponent();
             this.cmbType.SelectedIndexChanged += CmbType_SelectedIndexChanged;
-            
+
             // 初始化输入法列表
             cmbIme.Items.AddRange(imeList.ToArray());
             if (cmbIme.Items.Count > 0)
             {
                 cmbIme.SelectedIndex = defaultImeIndex;
             }
-            
+
             // 初始化规则类型
             cmbType.Items.AddRange(new object[] { "程序名称", "窗口标题", "控件类型" });
             cmbType.SelectedIndex = 0;
-            
+
             // 如果提供了应用名称，设置默认值
             if (!string.IsNullOrEmpty(appName))
             {
@@ -54,10 +54,10 @@ namespace SmartIme
             else if (cmbType.SelectedIndex == 2) // 控件类型规则
             {
                 string controlClass = SelectControlClass();
-                if (!string.IsNullOrEmpty(controlClass))
-                {
-                    txtPattern.Text = controlClass;
-                }
+                // if (!string.IsNullOrEmpty(controlClass))
+                // {
+                //     txtPattern.Text = controlClass;
+                // }
             }
             else // 程序名称规则
             {
@@ -67,10 +67,10 @@ namespace SmartIme
 
         [DllImport("user32.dll")]
         private static extern IntPtr WindowFromPoint(Point pt);
-        
+
         [DllImport("user32.dll")]
         private static extern bool GetCursorPos(out Point lpPoint);
-        
+
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
 
@@ -84,7 +84,7 @@ namespace SmartIme
         private const uint CWP_SKIPINVISIBLE = 0x0001;
 
         private static IntPtr hHook = IntPtr.Zero;
-        private static string selectedControlClass = null;
+        private static string selectedControlClass = string.Empty;
         private static bool mouseClicked = false;
 
         private Form selectForm; // 添加字段引用
@@ -137,18 +137,27 @@ namespace SmartIme
             return selectedControlClass;
         }
 
-        private void OnMouseClick(object sender, MouseEventArgs e)
+        private void OnMouseClick(object? sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left && !mouseClicked)
             {
                 // 使用ControlHelper获取焦点控件类名
                 Thread.Sleep(1000); // 等待100毫秒，确保焦点已经切换
-                selectedControlClass = ControlHelper.GetFocusedControlClassName();
-                
-                txtPattern.Text = selectedControlClass;
+                string activateWindowText = ControlHelper.GetActiveWindowProcessName();
+                selectedControlClass = ControlHelper.GetFocusedControlName();
                 mouseClicked = true;
                 selectForm.Close();
                 SetForegroundWindow(this.Handle); // 恢复主窗口的焦点
+                if (activateWindowText != AppName)
+                {
+                    MessageBox.Show($"选择控件的窗口不是目标窗口，请重新选择;【{activateWindowText}】！=【{AppName}】");
+                }
+                else
+                {
+
+                    txtPattern.Text = selectedControlClass;
+                }
+
             }
         }
 
@@ -178,11 +187,9 @@ namespace SmartIme
 
             private IntPtr SetHook(NativeMethods.HookProc proc)
             {
-                using (var curModule = Process.GetCurrentProcess().MainModule)
-                {
-                    return SetWindowsHookEx(WH_MOUSE_LL, proc, 
-                        GetModuleHandle(curModule.ModuleName), 0);
-                }
+                using var curModule = Process.GetCurrentProcess().MainModule;
+                return SetWindowsHookEx(WH_MOUSE_LL, proc,
+                    GetModuleHandle(curModule.ModuleName), 0);
             }
 
             private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
@@ -190,7 +197,7 @@ namespace SmartIme
                 if (nCode >= 0 && wParam == (IntPtr)WM_LBUTTONDOWN)
                 {
                     var hookStruct = (NativeMethods.MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(NativeMethods.MSLLHOOKSTRUCT));
-                    MouseClick?.Invoke(this, new MouseEventArgs(MouseButtons.Left, 1, 
+                    MouseClick?.Invoke(this, new MouseEventArgs(MouseButtons.Left, 1,
                         hookStruct.pt.x, hookStruct.pt.y, 0));
                 }
                 return CallNextHookEx(hookId, nCode, wParam, lParam);
@@ -225,7 +232,7 @@ namespace SmartIme
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr SetWindowsHookEx(int idHook, 
+        private static extern IntPtr SetWindowsHookEx(int idHook,
             NativeMethods.HookProc lpfn, IntPtr hMod, uint dwThreadId);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -233,7 +240,7 @@ namespace SmartIme
         private static extern bool UnhookWindowsHookEx(IntPtr hhk);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, 
+        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode,
             IntPtr wParam, IntPtr lParam);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -353,9 +360,14 @@ namespace SmartIme
 
         private void CmbType_SelectedIndexChanged(object sender, EventArgs e)
         {
-            btnSelectProcess.Text = cmbType.SelectedIndex == 1 ? "选择窗口标题" : "选择应用程序";
+            btnSelectProcess.Text = cmbType.SelectedIndex switch
+            {
+                1 => "选择窗口标题",
+                _ => "选择应用程序"
+            };
+
             btnSelectProcess.Visible = cmbType.SelectedIndex == 1 || cmbType.SelectedIndex == 2;
-            
+
             // 当切换到窗口标题规则时，自动显示选择窗口标题对话框
             if (cmbType.SelectedIndex == 1 && !string.IsNullOrEmpty(txtPattern.Text))
             {

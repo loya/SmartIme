@@ -34,18 +34,16 @@ namespace SmartIme
         
         private void btnAddRule_Click(object sender, EventArgs e)
         {
-            using (var addRuleForm = new AddRuleForm(inputMethods, 0, appRuleGroup.AppName))
+            using var addRuleForm = new AddRuleForm(inputMethods, 0, appRuleGroup.AppName);
+            if (addRuleForm.ShowDialog(this) == DialogResult.OK)
             {
-                if (addRuleForm.ShowDialog(this) == DialogResult.OK)
+                var rule = addRuleForm.CreatedRule;
+                if (rule != null)
                 {
-                    var rule = addRuleForm.CreatedRule;
-                    if (rule != null)
-                    {
-                        
 
-                        appRuleGroup.AddRule(rule);
-                        RefreshRulesList();
-                    }
+
+                    appRuleGroup.AddRule(rule);
+                    RefreshRulesList();
                 }
             }
         }
@@ -70,12 +68,10 @@ namespace SmartIme
                 var rule = lstRules.SelectedItem as Rule;
                 if (rule != null)
                 {
-                    using (var editRuleForm = new EditRuleForm(rule, inputMethods))
+                    using var editRuleForm = new EditRuleForm(rule, inputMethods);
+                    if (editRuleForm.ShowDialog(this) == DialogResult.OK)
                     {
-                        if (editRuleForm.ShowDialog(this) == DialogResult.OK)
-                        {
-                            RefreshRulesList();
-                        }
+                        RefreshRulesList();
                     }
                 }
             }

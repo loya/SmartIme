@@ -24,122 +24,148 @@ namespace SmartIme
 
         private void InitializeComponent()
         {
-            this.lblCurrentIme = new System.Windows.Forms.Label();
-            this.btnSwitchIme = new System.Windows.Forms.Button();
-            this.lstApps = new System.Windows.Forms.ListBox();
-            this.btnAddApp = new System.Windows.Forms.Button();
-            this.btnRemoveApp = new System.Windows.Forms.Button();
-            this.cmbDefaultIme = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.lblLog = new System.Windows.Forms.Label();
-            this.SuspendLayout();
+            lblCurrentIme = new Label();
+            btnSwitchIme = new Button();
+            lstApps = new ListBox();
+            btnAddApp = new Button();
+            btnRemoveApp = new Button();
+            cmbDefaultIme = new ComboBox();
+            label1 = new Label();
+            label2 = new Label();
+            lblLog = new Label();
+            btnExit = new Button();
+            SuspendLayout();
             // 
             // lblCurrentIme
             // 
-            this.lblCurrentIme.AutoSize = true;
-            this.lblCurrentIme.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.lblCurrentIme.Location = new System.Drawing.Point(20, 20);
-            this.lblCurrentIme.Name = "lblCurrentIme";
-            this.lblCurrentIme.Size = new System.Drawing.Size(106, 22);
-            this.lblCurrentIme.TabIndex = 0;
-            this.lblCurrentIme.Text = "当前输入法：";
+            lblCurrentIme.AutoSize = true;
+            lblCurrentIme.Font = new Font("微软雅黑", 12F, FontStyle.Bold, GraphicsUnit.Point, 134);
+            lblCurrentIme.Location = new Point(23, 28);
+            lblCurrentIme.Margin = new Padding(4, 0, 4, 0);
+            lblCurrentIme.Name = "lblCurrentIme";
+            lblCurrentIme.Size = new Size(106, 22);
+            lblCurrentIme.TabIndex = 0;
+            lblCurrentIme.Text = "当前输入法：";
             // 
             // btnSwitchIme
             // 
-            this.btnSwitchIme.Location = new System.Drawing.Point(20, 60);
-            this.btnSwitchIme.Name = "btnSwitchIme";
-            this.btnSwitchIme.Size = new System.Drawing.Size(120, 30);
-            this.btnSwitchIme.TabIndex = 1;
-            this.btnSwitchIme.Text = "切换输入法";
-            this.btnSwitchIme.UseVisualStyleBackColor = true;
+            btnSwitchIme.Location = new Point(23, 85);
+            btnSwitchIme.Margin = new Padding(4);
+            btnSwitchIme.Name = "btnSwitchIme";
+            btnSwitchIme.Size = new Size(183, 42);
+            btnSwitchIme.TabIndex = 1;
+            btnSwitchIme.Text = "切换输入法";
+            btnSwitchIme.UseVisualStyleBackColor = true;
             // 
             // lstApps
             // 
-            this.lstApps.FormattingEnabled = true;
-            this.lstApps.ItemHeight = 12;
-            this.lstApps.Location = new System.Drawing.Point(200, 60);
-            this.lstApps.Name = "lstApps";
-            this.lstApps.Size = new System.Drawing.Size(180, 160);
-            this.lstApps.TabIndex = 2;
-            this.lstApps.DoubleClick += new System.EventHandler(this.lstApps_DoubleClick);
+            lstApps.Font = new Font("微软雅黑", 11F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            lstApps.FormattingEnabled = true;
+            lstApps.ItemHeight = 20;
+            lstApps.Location = new Point(233, 136);
+            lstApps.Margin = new Padding(4);
+            lstApps.Name = "lstApps";
+            lstApps.Size = new Size(360, 344);
+            lstApps.TabIndex = 2;
+            lstApps.DoubleClick += LstApps_DoubleClick;
             // 
             // btnAddApp
             // 
-            this.btnAddApp.Location = new System.Drawing.Point(200, 230);
-            this.btnAddApp.Name = "btnAddApp";
-            this.btnAddApp.Size = new System.Drawing.Size(80, 30);
-            this.btnAddApp.TabIndex = 3;
-            this.btnAddApp.Text = "添加应用";
-            this.btnAddApp.UseVisualStyleBackColor = true;
+            btnAddApp.Location = new Point(133, 506);
+            btnAddApp.Margin = new Padding(4);
+            btnAddApp.Name = "btnAddApp";
+            btnAddApp.Size = new Size(93, 42);
+            btnAddApp.TabIndex = 3;
+            btnAddApp.Text = "添加应用";
+            btnAddApp.UseVisualStyleBackColor = true;
             // 
             // btnRemoveApp
             // 
-            this.btnRemoveApp.Location = new System.Drawing.Point(300, 230);
-            this.btnRemoveApp.Name = "btnRemoveApp";
-            this.btnRemoveApp.Size = new System.Drawing.Size(80, 30);
-            this.btnRemoveApp.TabIndex = 4;
-            this.btnRemoveApp.Text = "移除应用";
-            this.btnRemoveApp.UseVisualStyleBackColor = true;
+            btnRemoveApp.Location = new Point(249, 506);
+            btnRemoveApp.Margin = new Padding(4);
+            btnRemoveApp.Name = "btnRemoveApp";
+            btnRemoveApp.Size = new Size(93, 42);
+            btnRemoveApp.TabIndex = 4;
+            btnRemoveApp.Text = "移除应用";
+            btnRemoveApp.UseVisualStyleBackColor = true;
             // 
             // cmbDefaultIme
             // 
-            this.cmbDefaultIme.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbDefaultIme.FormattingEnabled = true;
-            this.cmbDefaultIme.Location = new System.Drawing.Point(20, 120);
-            this.cmbDefaultIme.Name = "cmbDefaultIme";
-            this.cmbDefaultIme.Size = new System.Drawing.Size(120, 20);
-            this.cmbDefaultIme.TabIndex = 5;
+            cmbDefaultIme.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbDefaultIme.FormattingEnabled = true;
+            cmbDefaultIme.Location = new Point(23, 170);
+            cmbDefaultIme.Margin = new Padding(4);
+            cmbDefaultIme.Name = "cmbDefaultIme";
+            cmbDefaultIme.Size = new Size(182, 25);
+            cmbDefaultIme.TabIndex = 5;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(200, 40);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(89, 12);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "应用输入法规则";
+            label1.AutoSize = true;
+            label1.Font = new Font("宋体", 10F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            label1.Location = new Point(230, 96);
+            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(105, 14);
+            label1.TabIndex = 6;
+            label1.Text = "应用输入法规则";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(20, 100);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(89, 12);
-            this.label2.TabIndex = 7;
-            this.label2.Text = "默认输入法设置";
+            label2.AutoSize = true;
+            label2.Location = new Point(23, 142);
+            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Name = "label2";
+            label2.Size = new Size(92, 17);
+            label2.TabIndex = 7;
+            label2.Text = "默认输入法设置";
             // 
             // lblLog
             // 
-            this.lblLog.AutoSize = true;
-            this.lblLog.Location = new System.Drawing.Point(22, 185);
-            this.lblLog.Name = "lblLog";
-            this.lblLog.Size = new System.Drawing.Size(41, 12);
-            this.lblLog.TabIndex = 8;
-            this.lblLog.Text = "label3";
+            lblLog.AutoSize = true;
+            lblLog.Location = new Point(26, 262);
+            lblLog.Margin = new Padding(4, 0, 4, 0);
+            lblLog.Name = "lblLog";
+            lblLog.Size = new Size(43, 17);
+            lblLog.TabIndex = 8;
+            lblLog.Text = "label3";
+            // 
+            // btnExit
+            // 
+            btnExit.Location = new Point(360, 506);
+            btnExit.Margin = new Padding(4);
+            btnExit.Name = "btnExit";
+            btnExit.Size = new Size(93, 42);
+            btnExit.TabIndex = 4;
+            btnExit.Text = "退   出";
+            btnExit.UseVisualStyleBackColor = true;
+            btnExit.Click += btnExit_Click;
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(400, 280);
-            this.Controls.Add(this.lblLog);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.cmbDefaultIme);
-            this.Controls.Add(this.btnRemoveApp);
-            this.Controls.Add(this.btnAddApp);
-            this.Controls.Add(this.lstApps);
-            this.Controls.Add(this.btnSwitchIme);
-            this.Controls.Add(this.lblCurrentIme);
-            this.Name = "MainForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "输入法智能切换助手";
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(7F, 17F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(608, 577);
+            Controls.Add(lblLog);
+            Controls.Add(label2);
+            Controls.Add(label1);
+            Controls.Add(cmbDefaultIme);
+            Controls.Add(btnExit);
+            Controls.Add(btnRemoveApp);
+            Controls.Add(btnAddApp);
+            Controls.Add(lstApps);
+            Controls.Add(btnSwitchIme);
+            Controls.Add(lblCurrentIme);
+            Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            Margin = new Padding(4);
+            Name = "MainForm";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "输入法智能切换助手";
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         private System.Windows.Forms.Label lblLog;
+        private Button btnExit;
     }
 }

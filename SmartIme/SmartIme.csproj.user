@@ -3,4 +3,18 @@
   <PropertyGroup>
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="AddRuleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="EditAppRulesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="EditRuleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
 </Project>
