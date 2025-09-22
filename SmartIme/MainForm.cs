@@ -153,6 +153,7 @@ namespace SmartIme
 
         private IntPtr lastActiveWindow = IntPtr.Zero;
         private string lastActiveApp = string.Empty;
+        private string lastClassName = string.Empty;
 
         private void SetupMonitor()
         {
@@ -170,8 +171,8 @@ namespace SmartIme
             if (currentWindow != lastActiveWindow)
             {
                 lastActiveWindow = currentWindow;
-                MonitorActiveApp();
-            }
+                
+            }MonitorActiveApp();
         }
 
         private void MonitorActiveApp()
@@ -179,15 +180,24 @@ namespace SmartIme
             IntPtr hWnd = GetForegroundWindow();
             uint processId;
             GetWindowThreadProcessId(hWnd, out processId);
-            
             try
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
-                string appName = process.ProcessName;
-                
+                string appName = process.ProcessName;                
+                string className=null;
                 // 如果是同一个应用程序，检查是否有针对该应用的规则
-                if (appName == lastActiveApp)
+                if (appName == lastActiveApp )
                 {
+                    className=  ControlHelper.GetFocusedControlClassName();
+                    lblLog.Text = "(1)"+DateTime.Now.ToString()+" "+className;
+                    if(className == lastClassName)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        lastClassName = className;
+                    }
                     // 检查是否存在针对该应用的规则组
                     bool hasRulesForThisApp = appRuleGroups.Any(g => Regex.IsMatch(appName, g.AppName));
                     
@@ -208,6 +218,7 @@ namespace SmartIme
                 
                 // 获取当前焦点控件名称
                 string controlClass = ControlHelper.GetFocusedControlClassName();
+                //lblLog.Text = DateTime.Now +"--"+ controlClass;
                 if (string.IsNullOrEmpty(controlClass))
                 {
                     // 如果获取焦点控件失败，使用窗口类名作为后备
@@ -264,7 +275,7 @@ namespace SmartIme
                 if (Regex.IsMatch(appName, group.AppName))
                 {
                     // 在应用规则组中查找匹配的规则
-                    lblLog.Text = controlClass;
+                    //lblLog.Text = controlClass;
                     var rule = group.FindMatchingRule(appName, windowTitle, controlClass);
                     if (rule != null)
                     {

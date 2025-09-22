@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace SmartIme
@@ -110,6 +111,17 @@ namespace SmartIme
 
             selectForm.Controls.Add(lblInstruction);
 
+            // 激活要选择控件的窗口（根据AppName激活对应应用的窗口）
+            if (!string.IsNullOrEmpty(AppName))
+            {
+                var targetProcess = Process.GetProcessesByName(AppName)
+                    .FirstOrDefault(p => p.MainWindowHandle != IntPtr.Zero);
+                if (targetProcess != null)
+                {
+                    SetForegroundWindow(targetProcess.MainWindowHandle);
+                }
+            }
+
             // 设置鼠标钩子
             using (var hook = new MouseHook())
             {
@@ -130,10 +142,13 @@ namespace SmartIme
             if (e.Button == MouseButtons.Left)
             {
                 // 使用ControlHelper获取焦点控件类名
+                Thread.Sleep(1000); // 等待100毫秒，确保焦点已经切换
                 selectedControlClass = ControlHelper.GetFocusedControlClassName();
                 
+                txtPattern.Text = selectedControlClass;
                 mouseClicked = true;
                 selectForm.Close();
+                SetForegroundWindow(this.Handle); // 恢复主窗口的焦点
             }
         }
 
@@ -223,6 +238,9 @@ namespace SmartIme
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
 
         private const int WM_LBUTTONDOWN = 0x0201;
 

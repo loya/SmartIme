@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using Interop.UIAutomationClient;
 using System.Text;
 
 namespace SmartIme
@@ -15,6 +16,9 @@ namespace SmartIme
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetActiveWindow();
 
         [DllImport("user32.dll")]
         private static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
@@ -64,7 +68,7 @@ namespace SmartIme
                     hWnd = WindowFromPoint(mousePos);
 
                     // 尝试获取更精确的子控件
-                    IntPtr hParent = GetForegroundWindow();
+                    IntPtr hParent = GetActiveWindow();
                     if (hParent != IntPtr.Zero)
                     {
                         // 将屏幕坐标转换为窗口客户区坐标
@@ -84,6 +88,12 @@ namespace SmartIme
 
                 if (hWnd != IntPtr.Zero)
                 {
+                    var element= new CUIAutomation().GetFocusedElement();
+                    var automationId = string.IsNullOrEmpty(element.CurrentAutomationId)?null:element.CurrentAutomationId;
+                    var classname = string.IsNullOrEmpty(element.CurrentClassName)?null:element.CurrentClassName;
+                    var name = element.CurrentName;
+                    return automationId??name??classname;
+
                     // 获取控件类名
                     var className = new StringBuilder(256);
                     GetClassName(hWnd, className, className.Capacity);
