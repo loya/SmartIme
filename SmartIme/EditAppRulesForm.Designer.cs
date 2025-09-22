@@ -28,95 +28,102 @@ namespace SmartIme
         /// </summary>
         private void InitializeComponent()
         {
-            this.lstRules = new System.Windows.Forms.ListBox();
-            this.btnAddRule = new System.Windows.Forms.Button();
-            this.btnRemoveRule = new System.Windows.Forms.Button();
-            this.btnOK = new System.Windows.Forms.Button();
-            this.btnCancel = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.SuspendLayout();
+            lstRules = new ListBox();
+            btnAddRule = new Button();
+            btnRemoveRule = new Button();
+            btnOK = new Button();
+            btnCancel = new Button();
+            label1 = new Label();
+            SuspendLayout();
             // 
             // lstRules
             // 
-            this.lstRules.FormattingEnabled = true;
-            this.lstRules.ItemHeight = 12;
-            this.lstRules.Location = new System.Drawing.Point(12, 29);
-            this.lstRules.Name = "lstRules";
-            this.lstRules.Size = new System.Drawing.Size(360, 196);
-            this.lstRules.TabIndex = 0;
-            this.lstRules.DoubleClick += new System.EventHandler(this.lstRules_DoubleClick);
+            lstRules.FormattingEnabled = true;
+            lstRules.ItemHeight = 17;
+            lstRules.Location = new Point(14, 41);
+            lstRules.Margin = new Padding(4, 4, 4, 4);
+            lstRules.Name = "lstRules";
+            lstRules.Size = new Size(419, 276);
+            lstRules.TabIndex = 0;
+            lstRules.DoubleClick += lstRules_DoubleClick;
             // 
             // btnAddRule
             // 
-            this.btnAddRule.Location = new System.Drawing.Point(12, 231);
-            this.btnAddRule.Name = "btnAddRule";
-            this.btnAddRule.Size = new System.Drawing.Size(75, 23);
-            this.btnAddRule.TabIndex = 1;
-            this.btnAddRule.Text = "添加规则";
-            this.btnAddRule.UseVisualStyleBackColor = true;
-            this.btnAddRule.Click += new System.EventHandler(this.btnAddRule_Click);
+            btnAddRule.Location = new Point(14, 327);
+            btnAddRule.Margin = new Padding(4, 4, 4, 4);
+            btnAddRule.Name = "btnAddRule";
+            btnAddRule.Size = new Size(88, 33);
+            btnAddRule.TabIndex = 1;
+            btnAddRule.Text = "添加规则";
+            btnAddRule.UseVisualStyleBackColor = true;
+            btnAddRule.Click += btnAddRule_Click;
             // 
             // btnRemoveRule
             // 
-            this.btnRemoveRule.Location = new System.Drawing.Point(93, 231);
-            this.btnRemoveRule.Name = "btnRemoveRule";
-            this.btnRemoveRule.Size = new System.Drawing.Size(75, 23);
-            this.btnRemoveRule.TabIndex = 2;
-            this.btnRemoveRule.Text = "删除规则";
-            this.btnRemoveRule.UseVisualStyleBackColor = true;
-            this.btnRemoveRule.Click += new System.EventHandler(this.btnRemoveRule_Click);
+            btnRemoveRule.Location = new Point(108, 327);
+            btnRemoveRule.Margin = new Padding(4, 4, 4, 4);
+            btnRemoveRule.Name = "btnRemoveRule";
+            btnRemoveRule.Size = new Size(88, 33);
+            btnRemoveRule.TabIndex = 2;
+            btnRemoveRule.Text = "删除规则";
+            btnRemoveRule.UseVisualStyleBackColor = true;
+            btnRemoveRule.Click += btnRemoveRule_Click;
             // 
             // btnOK
             // 
-            this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOK.Location = new System.Drawing.Point(216, 231);
-            this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(75, 23);
-            this.btnOK.TabIndex = 3;
-            this.btnOK.Text = "确定";
-            this.btnOK.UseVisualStyleBackColor = true;
+            btnOK.DialogResult = DialogResult.OK;
+            btnOK.Location = new Point(252, 327);
+            btnOK.Margin = new Padding(4, 4, 4, 4);
+            btnOK.Name = "btnOK";
+            btnOK.Size = new Size(88, 33);
+            btnOK.TabIndex = 3;
+            btnOK.Text = "确定";
+            btnOK.UseVisualStyleBackColor = true;
             // 
             // btnCancel
             // 
-            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(297, 231);
-            this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(75, 23);
-            this.btnCancel.TabIndex = 4;
-            this.btnCancel.Text = "取消";
-            this.btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.DialogResult = DialogResult.Cancel;
+            btnCancel.Location = new Point(346, 327);
+            btnCancel.Margin = new Padding(4, 4, 4, 4);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(88, 33);
+            btnCancel.TabIndex = 4;
+            btnCancel.Text = "取消";
+            btnCancel.UseVisualStyleBackColor = true;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 9);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(65, 12);
-            this.label1.TabIndex = 5;
-            this.label1.Text = "应用规则：";
+            label1.AutoSize = true;
+            label1.Location = new Point(14, 13);
+            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(68, 17);
+            label1.TabIndex = 5;
+            label1.Text = "应用规则：";
             // 
             // EditAppRulesForm
             // 
-            this.AcceptButton = this.btnOK;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(384, 266);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.btnOK);
-            this.Controls.Add(this.btnRemoveRule);
-            this.Controls.Add(this.btnAddRule);
-            this.Controls.Add(this.lstRules);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "EditAppRulesForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "编辑应用规则";
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AcceptButton = btnOK;
+            AutoScaleDimensions = new SizeF(7F, 17F);
+            AutoScaleMode = AutoScaleMode.Font;
+            CancelButton = btnCancel;
+            ClientSize = new Size(448, 377);
+            Controls.Add(label1);
+            Controls.Add(btnCancel);
+            Controls.Add(btnOK);
+            Controls.Add(btnRemoveRule);
+            Controls.Add(btnAddRule);
+            Controls.Add(lstRules);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Margin = new Padding(4, 4, 4, 4);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "EditAppRulesForm";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "编辑应用规则";
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

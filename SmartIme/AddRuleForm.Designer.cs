@@ -28,145 +28,186 @@ namespace SmartIme
         /// </summary>
         private void InitializeComponent()
         {
-            this.lblName = new System.Windows.Forms.Label();
-            this.txtName = new System.Windows.Forms.TextBox();
-            this.lblType = new System.Windows.Forms.Label();
-            this.cmbType = new System.Windows.Forms.ComboBox();
-            this.lblPattern = new System.Windows.Forms.Label();
-            this.txtPattern = new System.Windows.Forms.TextBox();
-            this.lblIme = new System.Windows.Forms.Label();
-            this.cmbIme = new System.Windows.Forms.ComboBox();
-            this.btnSelectProcess = new System.Windows.Forms.Button();
-            this.btnOk = new System.Windows.Forms.Button();
-            this.btnCancel = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            lblName = new Label();
+            txtName = new TextBox();
+            lblType = new Label();
+            radioProgram = new RadioButton();
+            radioTitle = new RadioButton();
+            radioControl = new RadioButton();
+            lblPattern = new Label();
+            txtPattern = new TextBox();
+            lblIme = new Label();
+            cmbIme = new ComboBox();
+            btnSelectProcess = new Button();
+            btnOk = new Button();
+            btnCancel = new Button();
+            SuspendLayout();
             // 
             // lblName
             // 
-            this.lblName.AutoSize = true;
-            this.lblName.Location = new System.Drawing.Point(20, 20);
-            this.lblName.Name = "lblName";
-            this.lblName.Size = new System.Drawing.Size(65, 12);
-            this.lblName.TabIndex = 0;
-            this.lblName.Text = "规则名称：";
+            lblName.AutoSize = true;
+            lblName.Location = new Point(23, 28);
+            lblName.Margin = new Padding(4, 0, 4, 0);
+            lblName.Name = "lblName";
+            lblName.Size = new Size(68, 17);
+            lblName.TabIndex = 0;
+            lblName.Text = "规则名称：";
             // 
             // txtName
             // 
-            this.txtName.Location = new System.Drawing.Point(120, 20);
-            this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(250, 21);
-            this.txtName.TabIndex = 1;
+            txtName.Location = new Point(140, 28);
+            txtName.Margin = new Padding(4, 4, 4, 4);
+            txtName.Name = "txtName";
+            txtName.Size = new Size(291, 23);
+            txtName.TabIndex = 1;
             // 
             // lblType
             // 
-            this.lblType.AutoSize = true;
-            this.lblType.Location = new System.Drawing.Point(20, 50);
-            this.lblType.Name = "lblType";
-            this.lblType.Size = new System.Drawing.Size(65, 12);
-            this.lblType.TabIndex = 2;
-            this.lblType.Text = "规则类型：";
+            lblType.AutoSize = true;
+            lblType.Location = new Point(23, 71);
+            lblType.Margin = new Padding(4, 0, 4, 0);
+            lblType.Name = "lblType";
+            lblType.Size = new Size(68, 17);
+            lblType.TabIndex = 2;
+            lblType.Text = "规则类型：";
             // 
-            // cmbType
+            // radioProgram
             // 
-            this.cmbType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbType.FormattingEnabled = true;
-            this.cmbType.Location = new System.Drawing.Point(120, 50);
-            this.cmbType.Name = "cmbType";
-            this.cmbType.Size = new System.Drawing.Size(250, 20);
-            this.cmbType.TabIndex = 3;
+            radioProgram.AutoSize = true;
+            radioProgram.Checked = true;
+            radioProgram.Location = new Point(140, 71);
+            radioProgram.Margin = new Padding(4, 4, 4, 4);
+            radioProgram.Name = "radioProgram";
+            radioProgram.Size = new Size(74, 21);
+            radioProgram.TabIndex = 3;
+            radioProgram.TabStop = true;
+            radioProgram.Text = "程序名称";
+            radioProgram.UseVisualStyleBackColor = true;
+            // 
+            // radioTitle
+            // 
+            radioTitle.AutoSize = true;
+            radioTitle.Location = new Point(233, 71);
+            radioTitle.Margin = new Padding(4, 4, 4, 4);
+            radioTitle.Name = "radioTitle";
+            radioTitle.Size = new Size(74, 21);
+            radioTitle.TabIndex = 4;
+            radioTitle.Text = "窗口标题";
+            radioTitle.UseVisualStyleBackColor = true;
+            // 
+            // radioControl
+            // 
+            radioControl.AutoSize = true;
+            radioControl.Location = new Point(327, 71);
+            radioControl.Margin = new Padding(4, 4, 4, 4);
+            radioControl.Name = "radioControl";
+            radioControl.Size = new Size(74, 21);
+            radioControl.TabIndex = 5;
+            radioControl.Text = "控件类型";
+            radioControl.UseVisualStyleBackColor = true;
             // 
             // lblPattern
             // 
-            this.lblPattern.AutoSize = true;
-            this.lblPattern.Location = new System.Drawing.Point(20, 80);
-            this.lblPattern.Name = "lblPattern";
-            this.lblPattern.Size = new System.Drawing.Size(65, 12);
-            this.lblPattern.TabIndex = 4;
-            this.lblPattern.Text = "匹配模式：";
+            lblPattern.AutoSize = true;
+            lblPattern.Location = new Point(23, 113);
+            lblPattern.Margin = new Padding(4, 0, 4, 0);
+            lblPattern.Name = "lblPattern";
+            lblPattern.Size = new Size(68, 17);
+            lblPattern.TabIndex = 4;
+            lblPattern.Text = "匹配模式：";
             // 
             // txtPattern
             // 
-            this.txtPattern.Location = new System.Drawing.Point(120, 80);
-            this.txtPattern.Name = "txtPattern";
-            this.txtPattern.Size = new System.Drawing.Size(250, 21);
-            this.txtPattern.TabIndex = 5;
+            txtPattern.Location = new Point(140, 113);
+            txtPattern.Margin = new Padding(4, 4, 4, 4);
+            txtPattern.Name = "txtPattern";
+            txtPattern.Size = new Size(291, 23);
+            txtPattern.TabIndex = 5;
             // 
             // lblIme
             // 
-            this.lblIme.AutoSize = true;
-            this.lblIme.Location = new System.Drawing.Point(20, 110);
-            this.lblIme.Name = "lblIme";
-            this.lblIme.Size = new System.Drawing.Size(53, 12);
-            this.lblIme.TabIndex = 6;
-            this.lblIme.Text = "输入法：";
+            lblIme.AutoSize = true;
+            lblIme.Location = new Point(23, 156);
+            lblIme.Margin = new Padding(4, 0, 4, 0);
+            lblIme.Name = "lblIme";
+            lblIme.Size = new Size(56, 17);
+            lblIme.TabIndex = 6;
+            lblIme.Text = "输入法：";
             // 
             // cmbIme
             // 
-            this.cmbIme.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbIme.FormattingEnabled = true;
-            this.cmbIme.Location = new System.Drawing.Point(120, 110);
-            this.cmbIme.Name = "cmbIme";
-            this.cmbIme.Size = new System.Drawing.Size(250, 20);
-            this.cmbIme.TabIndex = 7;
+            cmbIme.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbIme.FormattingEnabled = true;
+            cmbIme.Location = new Point(140, 156);
+            cmbIme.Margin = new Padding(4, 4, 4, 4);
+            cmbIme.Name = "cmbIme";
+            cmbIme.Size = new Size(291, 25);
+            cmbIme.TabIndex = 7;
             // 
             // btnSelectProcess
             // 
-            this.btnSelectProcess.Location = new System.Drawing.Point(120, 140);
-            this.btnSelectProcess.Name = "btnSelectProcess";
-            this.btnSelectProcess.Size = new System.Drawing.Size(120, 30);
-            this.btnSelectProcess.TabIndex = 8;
-            this.btnSelectProcess.Text = "选择进程";
-            this.btnSelectProcess.UseVisualStyleBackColor = true;
-            this.btnSelectProcess.Visible = false;
-            this.btnSelectProcess.Click += new System.EventHandler(this.BtnSelectProcess_Click);
+            btnSelectProcess.Location = new Point(140, 198);
+            btnSelectProcess.Margin = new Padding(4, 4, 4, 4);
+            btnSelectProcess.Name = "btnSelectProcess";
+            btnSelectProcess.Size = new Size(140, 42);
+            btnSelectProcess.TabIndex = 8;
+            btnSelectProcess.Text = "选择进程";
+            btnSelectProcess.UseVisualStyleBackColor = true;
+            btnSelectProcess.Visible = false;
+            btnSelectProcess.Click += BtnSelectProcess_Click;
             // 
             // btnOk
             // 
-            this.btnOk.Location = new System.Drawing.Point(120, 200);
-            this.btnOk.Name = "btnOk";
-            this.btnOk.Size = new System.Drawing.Size(75, 30);
-            this.btnOk.TabIndex = 9;
-            this.btnOk.Text = "确定";
-            this.btnOk.UseVisualStyleBackColor = true;
-            this.btnOk.Click += new System.EventHandler(this.BtnOk_Click);
+            btnOk.Location = new Point(140, 283);
+            btnOk.Margin = new Padding(4, 4, 4, 4);
+            btnOk.Name = "btnOk";
+            btnOk.Size = new Size(88, 42);
+            btnOk.TabIndex = 9;
+            btnOk.Text = "确定";
+            btnOk.UseVisualStyleBackColor = true;
+            btnOk.Click += BtnOk_Click;
             // 
             // btnCancel
             // 
-            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(220, 200);
-            this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(75, 30);
-            this.btnCancel.TabIndex = 10;
-            this.btnCancel.Text = "取消";
-            this.btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.DialogResult = DialogResult.Cancel;
+            btnCancel.Location = new Point(257, 283);
+            btnCancel.Margin = new Padding(4, 4, 4, 4);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(88, 42);
+            btnCancel.TabIndex = 10;
+            btnCancel.Text = "取消";
+            btnCancel.UseVisualStyleBackColor = true;
             // 
             // AddRuleForm
             // 
-            this.AcceptButton = this.btnOk;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(400, 250);
-            this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.btnOk);
-            this.Controls.Add(this.btnSelectProcess);
-            this.Controls.Add(this.cmbIme);
-            this.Controls.Add(this.lblIme);
-            this.Controls.Add(this.txtPattern);
-            this.Controls.Add(this.lblPattern);
-            this.Controls.Add(this.cmbType);
-            this.Controls.Add(this.lblType);
-            this.Controls.Add(this.txtName);
-            this.Controls.Add(this.lblName);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "AddRuleForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "添加规则";
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AcceptButton = btnOk;
+            AutoScaleDimensions = new SizeF(7F, 17F);
+            AutoScaleMode = AutoScaleMode.Font;
+            CancelButton = btnCancel;
+            ClientSize = new Size(467, 354);
+            Controls.Add(btnCancel);
+            Controls.Add(btnOk);
+            Controls.Add(btnSelectProcess);
+            Controls.Add(cmbIme);
+            Controls.Add(lblIme);
+            Controls.Add(txtPattern);
+            Controls.Add(lblPattern);
+            Controls.Add(radioControl);
+            Controls.Add(radioTitle);
+            Controls.Add(radioProgram);
+            Controls.Add(lblType);
+            Controls.Add(txtName);
+            Controls.Add(lblName);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Margin = new Padding(4, 4, 4, 4);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "AddRuleForm";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "添加规则";
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -174,7 +215,9 @@ namespace SmartIme
         private System.Windows.Forms.Label lblName;
         private System.Windows.Forms.TextBox txtName;
         private System.Windows.Forms.Label lblType;
-        private System.Windows.Forms.ComboBox cmbType;
+        private System.Windows.Forms.RadioButton radioProgram;
+        private System.Windows.Forms.RadioButton radioTitle;
+        private System.Windows.Forms.RadioButton radioControl;
         private System.Windows.Forms.Label lblPattern;
         private System.Windows.Forms.TextBox txtPattern;
         private System.Windows.Forms.Label lblIme;

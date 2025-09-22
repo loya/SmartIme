@@ -98,7 +98,9 @@ namespace SmartIme
                 var automationId = string.IsNullOrEmpty(element.CurrentAutomationId) ? null : element.CurrentAutomationId;
                 var classname = string.IsNullOrEmpty(element.CurrentClassName) ? null : element.CurrentClassName;
                 var name = element.CurrentName;
-                return automationId ?? name ?? classname;
+                return (string.IsNullOrEmpty(name) ? "" : $"{name}|") + 
+                    (string.IsNullOrEmpty(classname) ? "" : $"{classname}|") + 
+                    (string.IsNullOrEmpty(automationId)? "" : $"{automationId}");
 
                 // 获取控件类名
                 //var windowText = new StringBuilder(256);

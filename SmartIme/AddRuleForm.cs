@@ -19,11 +19,20 @@ namespace SmartIme
 
         public Rule CreatedRule { get; private set; }
         public string AppName { get; set; }
+        public enum RuleNams
+        {
+            程序名称,
+            窗口标题,
+            控件
+        };
 
         public AddRuleForm(IEnumerable<object> imeList, int defaultImeIndex, string appName = null)
         {
             InitializeComponent();
-            this.cmbType.SelectedIndexChanged += CmbType_SelectedIndexChanged;
+            // 添加RadioButton事件处理
+            this.radioProgram.CheckedChanged += RadioButton_CheckedChanged;
+            this.radioTitle.CheckedChanged += RadioButton_CheckedChanged;
+            this.radioControl.CheckedChanged += RadioButton_CheckedChanged;
 
             // 初始化输入法列表
             cmbIme.Items.AddRange(imeList.ToArray());
@@ -32,32 +41,27 @@ namespace SmartIme
                 cmbIme.SelectedIndex = defaultImeIndex;
             }
 
-            // 初始化规则类型
-            cmbType.Items.AddRange(new object[] { "程序名称", "窗口标题", "控件类型" });
-            cmbType.SelectedIndex = 0;
+            // 设置默认选择程序名称规则
+            radioProgram.Checked = true;
 
             // 如果提供了应用名称，设置默认值
             if (!string.IsNullOrEmpty(appName))
             {
                 AppName = appName;
                 txtPattern.Text = appName;
-                txtName.Text = $"{appName}规则";
+                txtName.Text = $"{appName} 【{RuleNams.程序名称.ToString()}】";
             }
         }
 
         private void BtnSelectProcess_Click(object sender, EventArgs e)
         {
-            if (cmbType.SelectedIndex == 1) // 窗口标题规则
+            if (radioTitle.Checked) // 窗口标题规则
             {
                 ShowWindowTitlesSelection();
             }
-            else if (cmbType.SelectedIndex == 2) // 控件类型规则
+            else if (radioControl.Checked) // 控件极型规则
             {
                 string controlClass = SelectControlClass();
-                // if (!string.IsNullOrEmpty(controlClass))
-                // {
-                //     txtPattern.Text = controlClass;
-                // }
             }
             else // 程序名称规则
             {
@@ -99,7 +103,10 @@ namespace SmartIme
                 MinimizeBox = false,
                 MaximizeBox = false,
                 Width = 400,
-                Height = 200
+                Height = 200,
+                ShowInTaskbar = false,
+                TopMost= true,
+                
             };
 
             var lblInstruction = new Label()
@@ -118,36 +125,24 @@ namespace SmartIme
                     .FirstOrDefault(p => p.MainWindowHandle != IntPtr.Zero);
                 if (targetProcess != null)
                 {
+
+                    if (IsIconic(targetProcess.MainWindowHandle))
+                    {
+                        ShowWindow(targetProcess.MainWindowHandle, SW_RESTORE);
+                    }
+
                     SetForegroundWindow(targetProcess.MainWindowHandle);
                 }
             }
-
             // 设置鼠标钩子
             using (var hook = new MouseHook())
             {
                 hook.MouseClick += OnMouseClick;
                 mouseClicked = false;
                 selectedControlClass = null;
-
                 selectForm.ShowDialog();
-
                 hook.MouseClick -= OnMouseClick;
-            }
 
-            return selectedControlClass;
-        }
-
-        private void OnMouseClick(object? sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left && !mouseClicked)
-            {
-                // 使用ControlHelper获取焦点控件类名
-                Thread.Sleep(1000); // 等待100毫秒，确保焦点已经切换
-                string activateWindowText = ControlHelper.GetActiveWindowProcessName();
-                selectedControlClass = ControlHelper.GetFocusedControlName();
-                mouseClicked = true;
-                selectForm.Close();
-                SetForegroundWindow(this.Handle); // 恢复主窗口的焦点
                 if (activateWindowText != AppName)
                 {
                     MessageBox.Show($"选择控件的窗口不是目标窗口，请重新选择;【{activateWindowText}】！=【{AppName}】");
@@ -157,6 +152,31 @@ namespace SmartIme
 
                     txtPattern.Text = selectedControlClass;
                 }
+
+            }
+            return selectedControlClass;
+        }
+        string activateWindowText;
+        private void OnMouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && !mouseClicked)
+            {
+                // 使用ControlHelper获取焦点控件类名
+                Thread.Sleep(1000); // 等待100毫秒，确保焦点已经切换
+                activateWindowText = ControlHelper.GetActiveWindowProcessName();
+                selectedControlClass = ControlHelper.GetFocusedControlName();
+                mouseClicked = true;
+                selectForm.Close();
+                SetForegroundWindow(this.Handle); // 恢复主窗口的焦点
+                //if (activateWindowText != AppName)
+                //{
+                //    MessageBox.Show($"选择控件的窗口不是目标窗口，请重新选择;【{activateWindowText}】！=【{AppName}】");
+                //}
+                //else
+                //{
+
+                //    txtPattern.Text = selectedControlClass;
+                //}
 
             }
         }
@@ -249,7 +269,14 @@ namespace SmartIme
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        private static extern bool IsIconic(IntPtr hWnd);
+
         private const int WM_LBUTTONDOWN = 0x0201;
+        private const int SW_RESTORE = 9;
 
         private void ShowProcessSelection()
         {
@@ -358,26 +385,50 @@ namespace SmartIme
             return titles;
         }
 
-        private void CmbType_SelectedIndexChanged(object sender, EventArgs e)
+        private void setRuleName(RuleNams ruleNam)
         {
-            btnSelectProcess.Text = cmbType.SelectedIndex switch
+            txtName.Text = $"{AppName} 【{ruleNam.ToString()}】";
+        }
+        private void RadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton radio = sender as RadioButton;
+            if (radio == null || !radio.Checked)
             {
-                1 => "选择窗口标题",
-                _ => "选择应用程序"
-            };
+                return;
+            }
 
-            btnSelectProcess.Visible = cmbType.SelectedIndex == 1 || cmbType.SelectedIndex == 2;
-
-            // 当切换到窗口标题规则时，自动显示选择窗口标题对话框
-            if (cmbType.SelectedIndex == 1 && !string.IsNullOrEmpty(txtPattern.Text))
+            if (radioTitle.Checked)
             {
+                setRuleName(RuleNams.窗口标题);
+                btnSelectProcess.Text = "选择窗口标题";
+                btnSelectProcess.Visible = true;
+
+                // 当切换到窗口标题规则时，自动显示选择窗口标题对话框
+
                 List<string> titles = GetCurrentAppTitles();
-
                 if (titles.Count > 0)
                 {
-                    // 设置第一个标题为默认值
                     txtPattern.Text = titles[0];
                 }
+                else
+                {
+                    txtPattern.Text = null;
+                }
+
+            }
+            else if (radioControl.Checked)
+            {
+                setRuleName(RuleNams.控件);
+                btnSelectProcess.Text = "选择应用控件";
+                btnSelectProcess.Visible = true;
+                SelectControlClass();
+            }
+            else
+            {
+                setRuleName(RuleNams.程序名称);
+                btnSelectProcess.Text = "选择应用程序";
+                txtPattern.Text = AppName;
+                btnSelectProcess.Visible = false;
             }
         }
 
@@ -390,17 +441,17 @@ namespace SmartIme
             }
 
             RuleType type;
-            switch (cmbType.SelectedIndex)
+            if (radioTitle.Checked)
             {
-                case 1:
-                    type = RuleType.Title;
-                    break;
-                case 2:
-                    type = RuleType.Control;
-                    break;
-                default:
-                    type = RuleType.Program;
-                    break;
+                type = RuleType.Title;
+            }
+            else if (radioControl.Checked)
+            {
+                type = RuleType.Control;
+            }
+            else
+            {
+                type = RuleType.Program;
             }
 
             CreatedRule = new Rule(txtName.Text, type, txtPattern.Text, cmbIme.Text);

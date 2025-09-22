@@ -24,6 +24,7 @@ namespace SmartIme
 
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             lblCurrentIme = new Label();
             btnSwitchIme = new Button();
             lstApps = new ListBox();
@@ -49,29 +50,30 @@ namespace SmartIme
             // 
             // btnSwitchIme
             // 
-            btnSwitchIme.Location = new Point(23, 85);
+            btnSwitchIme.Location = new Point(200, 97);
             btnSwitchIme.Margin = new Padding(4);
             btnSwitchIme.Name = "btnSwitchIme";
             btnSwitchIme.Size = new Size(183, 42);
             btnSwitchIme.TabIndex = 1;
             btnSwitchIme.Text = "切换输入法";
             btnSwitchIme.UseVisualStyleBackColor = true;
+            btnSwitchIme.Visible = false;
             // 
             // lstApps
             // 
             lstApps.Font = new Font("微软雅黑", 11F, FontStyle.Regular, GraphicsUnit.Point, 134);
             lstApps.FormattingEnabled = true;
             lstApps.ItemHeight = 20;
-            lstApps.Location = new Point(233, 136);
+            lstApps.Location = new Point(23, 145);
             lstApps.Margin = new Padding(4);
             lstApps.Name = "lstApps";
-            lstApps.Size = new Size(360, 344);
+            lstApps.Size = new Size(360, 304);
             lstApps.TabIndex = 2;
             lstApps.DoubleClick += LstApps_DoubleClick;
             // 
             // btnAddApp
             // 
-            btnAddApp.Location = new Point(133, 506);
+            btnAddApp.Location = new Point(36, 502);
             btnAddApp.Margin = new Padding(4);
             btnAddApp.Name = "btnAddApp";
             btnAddApp.Size = new Size(93, 42);
@@ -81,7 +83,7 @@ namespace SmartIme
             // 
             // btnRemoveApp
             // 
-            btnRemoveApp.Location = new Point(249, 506);
+            btnRemoveApp.Location = new Point(152, 502);
             btnRemoveApp.Margin = new Padding(4);
             btnRemoveApp.Name = "btnRemoveApp";
             btnRemoveApp.Size = new Size(93, 42);
@@ -93,7 +95,7 @@ namespace SmartIme
             // 
             cmbDefaultIme.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbDefaultIme.FormattingEnabled = true;
-            cmbDefaultIme.Location = new Point(23, 170);
+            cmbDefaultIme.Location = new Point(149, 68);
             cmbDefaultIme.Margin = new Padding(4);
             cmbDefaultIme.Name = "cmbDefaultIme";
             cmbDefaultIme.Size = new Size(182, 25);
@@ -102,28 +104,29 @@ namespace SmartIme
             // label1
             // 
             label1.AutoSize = true;
-            label1.Font = new Font("宋体", 10F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            label1.Location = new Point(230, 96);
+            label1.Font = new Font("微软雅黑", 11F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            label1.Location = new Point(23, 107);
             label1.Margin = new Padding(4, 0, 4, 0);
             label1.Name = "label1";
-            label1.Size = new Size(105, 14);
+            label1.Size = new Size(129, 20);
             label1.TabIndex = 6;
-            label1.Text = "应用输入法规则";
+            label1.Text = "应用输入法规则：";
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(23, 142);
+            label2.Font = new Font("微软雅黑", 11F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            label2.Location = new Point(23, 68);
             label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
-            label2.Size = new Size(92, 17);
+            label2.Size = new Size(114, 20);
             label2.TabIndex = 7;
             label2.Text = "默认输入法设置";
             // 
             // lblLog
             // 
             lblLog.AutoSize = true;
-            lblLog.Location = new Point(26, 262);
+            lblLog.Location = new Point(23, 472);
             lblLog.Margin = new Padding(4, 0, 4, 0);
             lblLog.Name = "lblLog";
             lblLog.Size = new Size(43, 17);
@@ -132,7 +135,7 @@ namespace SmartIme
             // 
             // btnExit
             // 
-            btnExit.Location = new Point(360, 506);
+            btnExit.Location = new Point(263, 502);
             btnExit.Margin = new Padding(4);
             btnExit.Name = "btnExit";
             btnExit.Size = new Size(93, 42);
@@ -145,7 +148,7 @@ namespace SmartIme
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(608, 577);
+            ClientSize = new Size(410, 577);
             Controls.Add(lblLog);
             Controls.Add(label2);
             Controls.Add(label1);
@@ -157,7 +160,9 @@ namespace SmartIme
             Controls.Add(btnSwitchIme);
             Controls.Add(lblCurrentIme);
             Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(4);
+            MaximizeBox = false;
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "输入法智能切换助手";

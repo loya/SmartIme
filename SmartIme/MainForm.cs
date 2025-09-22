@@ -11,12 +11,14 @@ using System.Text.RegularExpressions;
 using System.Timers;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace SmartIme
 {
     public partial class MainForm : Form
     {
-        private List<AppRuleGroup> appRuleGroups = [];
+        private BindingList<AppRuleGroup> appRuleGroups = [];
         private System.Timers.Timer monitorTimer = new();
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayMenu;
@@ -51,37 +53,51 @@ namespace SmartIme
         {
             InitializeComponent();
             InitializeImeList();
-            CheckForIllegalCrossThreadCalls=false;
+            CheckForIllegalCrossThreadCalls = false;
 
 
             SetupMonitor();
             SetupTrayIcon();
 
             lstApps.ItemHeight = (int)(lstApps.Font.Size * 3);
+            
 
             // 绑定事件处理程序
             btnSwitchIme.Click += BtnSwitchIme_Click;
             btnAddApp.Click += BtnAddApp_Click;
             btnRemoveApp.Click += BtnRemoveApp_Click;
             this.FormClosing += MainForm_FormClosing;
+            this.SizeChanged += (s, e) =>
+            {
+                if (this.WindowState == FormWindowState.Minimized)
+                {
+                    this.Hide();
+                }
+            };
 
             // 加载保存的设置
             cmbDefaultIme.SelectedIndex = Properties.Settings.Default.DefaultIme;
             DeserializeRules(Properties.Settings.Default.AppRules);
+            lstApps.DataSource = appRuleGroups;
+
         }
 
         private void SetupTrayIcon()
         {
             trayMenu = new ContextMenuStrip();
-            trayMenu.Items.Add("显示主窗口", null, (s, e) => this.Show());
+            trayMenu.Items.Add("显示主窗口", null, (s, e) =>
+            {
+                this.Show();
+                this.WindowState = FormWindowState.Normal;
+            });
             trayMenu.Items.Add("退出", null, (s, e) => Application.Exit());
 
             trayIcon = new NotifyIcon();
             trayIcon.Text = "输入法智能切换助手";
-            trayIcon.Icon = System.Drawing.SystemIcons.Application;
+            trayIcon.Icon = this.Icon;
             trayIcon.ContextMenuStrip = trayMenu;
             trayIcon.Visible = true;
-            trayIcon.DoubleClick += (s, e) => this.Show();
+            trayIcon.DoubleClick += (s, e) => { this.Show(); this.WindowState = FormWindowState.Normal; };
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -145,7 +161,8 @@ namespace SmartIme
                         }
 
                         appRuleGroups.Add(group);
-                        lstApps.Items.Add(group);
+
+                        //lstApps.Items.Add(group);
                     }
                 }
             }
@@ -217,7 +234,7 @@ namespace SmartIme
                         lastClassName = controlName;
                     }
                     // 检查是否存在针对该应用的规则组
-                    bool hasRulesForThisApp = appRuleGroups.Any(g => Regex.IsMatch(processName, g.AppName));
+                    bool hasRulesForThisApp = appRuleGroups.Any(g => processName == g.AppName);
 
                     // 如果没有针对该应用的规则，则不重复切换输入法
                     if (!hasRulesForThisApp)
@@ -228,6 +245,7 @@ namespace SmartIme
                 }
 
                 lastActiveApp = processName;
+                lastClassName = controlName;
 
                 // 获取窗口标题
                 var titleBuilder = new System.Text.StringBuilder(256);
@@ -262,7 +280,7 @@ namespace SmartIme
                             InputLanguage.CurrentInputLanguage = lang;
                             IntPtr imeWnd = ImmGetDefaultIMEWnd(hWnd);
                             SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
-                            lblLog.Text = DateTime.Now.ToString() + "--" + controlName??processName??windowTitle;
+                            lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
 
                             break;
                         }
@@ -280,11 +298,12 @@ namespace SmartIme
                         InputLanguage.CurrentInputLanguage = lang;
                         IntPtr imeWnd = ImmGetDefaultIMEWnd(hWnd);
                         SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
-                        lblLog.Text = DateTime.Now.ToString() + "--" + controlName ?? processName ?? windowTitle;                        
+                        lblLog.Text = DateTime.Now.ToString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
                     }
                 }
             }
-            catch {
+            catch
+            {
                 throw;
             }
         }
@@ -335,6 +354,7 @@ namespace SmartIme
         {
             // 创建进程选择窗口
             var processSelectForm = new Form();
+            processSelectForm.ShowInTaskbar = false;
             processSelectForm.Text = "选择应用程序";
             processSelectForm.Size = new System.Drawing.Size(400, 300);
             processSelectForm.StartPosition = FormStartPosition.CenterParent;
@@ -389,9 +409,12 @@ namespace SmartIme
                 newGroup.AddRule(defaultRule);
 
                 // 添加到列表
-                appRuleGroups.Add(newGroup);
-                lstApps.Items.Add(newGroup);
+                var list = appRuleGroups.ToList();
+                list.Add(newGroup);
+                //lstApps.Items.Add(newGroup);
 
+                var index = list.OrderBy(t => t.AppName).ToList().FindIndex(t => t.AppName == appName);
+                appRuleGroups.Insert(index, newGroup);
                 // 打开编辑窗口
                 using var editAppRulesForm = new EditAppRulesForm(newGroup, cmbDefaultIme.Items.Cast<object>());
                 editAppRulesForm.ShowDialog(this);
@@ -405,7 +428,8 @@ namespace SmartIme
                 if (lstApps.SelectedItem is AppRuleGroup group)
                 {
                     appRuleGroups.Remove(group);
-                    lstApps.Items.Remove(group);
+                    lstApps.DataSource = appRuleGroups;
+                    //lstApps.Items.Remove(group);
                 }
             }
         }
@@ -428,6 +452,6 @@ namespace SmartIme
             this.Close();
         }
 
-      
+
     }
 }

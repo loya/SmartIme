@@ -15,29 +15,29 @@ namespace SmartIme
         /// 应用名称
         /// </summary>
         public string AppName { get; set; }
-        
+
         /// <summary>
         /// 应用显示名称
         /// </summary>
         public string DisplayName { get; set; }
-        
+
         /// <summary>
         /// 应用图标路径（可选）
         /// </summary>
         public string IconPath { get; set; }
-        
+
         /// <summary>
         /// 应用的规则列表
         /// </summary>
         public List<Rule> Rules { get; private set; }
-        
+
         public AppRuleGroup(string appName, string displayName = null)
         {
             AppName = appName;
             DisplayName = displayName ?? appName;
             Rules = new List<Rule>();
         }
-        
+
         /// <summary>
         /// 添加规则
         /// </summary>
@@ -45,7 +45,7 @@ namespace SmartIme
         {
             Rules.Add(rule);
         }
-        
+
         /// <summary>
         /// 移除规则
         /// </summary>
@@ -53,7 +53,7 @@ namespace SmartIme
         {
             Rules.Remove(rule);
         }
-        
+
         /// <summary>
         /// 查找匹配的规则
         /// </summary>
@@ -61,31 +61,31 @@ namespace SmartIme
         {
             // 按优先级排序规则
             var sortedRules = Rules.OrderByDescending(r => r.Priority).ToList();
-            
+
             // 先检查控件规则
             foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Control))
-            {                   
-                if (System.Text.RegularExpressions.Regex.IsMatch(controlClass, rule.Pattern))
+            {
+                if (controlClass == rule.Pattern)
                     return rule;
             }
-            
+
             // 再检查标题规则
             foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Title))
             {
-                if (System.Text.RegularExpressions.Regex.IsMatch(windowTitle, rule.Pattern))
+                if (windowTitle == rule.Pattern)
                     return rule;
             }
-            
+
             // 最后检查程序规则
             foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Program))
             {
-                if (System.Text.RegularExpressions.Regex.IsMatch(appName, rule.Pattern))
+                if (appName == rule.Pattern)
                     return rule;
             }
-            
+
             return null;
         }
-        
+
         public override string ToString()
         {
             return DisplayName;
