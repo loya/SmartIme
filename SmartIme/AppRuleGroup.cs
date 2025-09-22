@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace SmartIme
 {
@@ -63,7 +64,7 @@ namespace SmartIme
             
             // 先检查控件规则
             foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Control))
-            {
+            {                   
                 if (System.Text.RegularExpressions.Regex.IsMatch(controlClass, rule.Pattern))
                     return rule;
             }

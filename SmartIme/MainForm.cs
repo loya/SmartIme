@@ -206,10 +206,12 @@ namespace SmartIme
                 string windowTitle = titleBuilder.ToString();
                 
                 // 获取当前焦点控件名称
-                IntPtr focusedHandle = GetFocus();
-                var classBuilder = new System.Text.StringBuilder(256);
-                GetClassName(focusedHandle != IntPtr.Zero ? focusedHandle : hWnd, classBuilder, classBuilder.Capacity);
-                string controlClass = classBuilder.ToString();
+                string controlClass = ControlHelper.GetFocusedControlClassName();
+                if (string.IsNullOrEmpty(controlClass))
+                {
+                    // 如果获取焦点控件失败，使用窗口类名作为后备
+                    controlClass = ControlHelper.GetWindowClassName(hWnd);
+                }
                 
                 // 按优先级查找匹配的规则
                 Rule matchedRule = FindMatchingRule(appName, windowTitle, controlClass);
@@ -261,6 +263,7 @@ namespace SmartIme
                 if (Regex.IsMatch(appName, group.AppName))
                 {
                     // 在应用规则组中查找匹配的规则
+                    lblLog.Text = controlClass;
                     var rule = group.FindMatchingRule(appName, windowTitle, controlClass);
                     if (rule != null)
                     {

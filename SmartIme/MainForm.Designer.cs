@@ -32,6 +32,7 @@ namespace SmartIme
             this.cmbDefaultIme = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.lblLog = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblCurrentIme
@@ -108,11 +109,21 @@ namespace SmartIme
             this.label2.TabIndex = 7;
             this.label2.Text = "默认输入法设置";
             // 
+            // lblLog
+            // 
+            this.lblLog.AutoSize = true;
+            this.lblLog.Location = new System.Drawing.Point(22, 185);
+            this.lblLog.Name = "lblLog";
+            this.lblLog.Size = new System.Drawing.Size(41, 12);
+            this.lblLog.TabIndex = 8;
+            this.lblLog.Text = "label3";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(400, 280);
+            this.Controls.Add(this.lblLog);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.cmbDefaultIme);
@@ -128,5 +139,7 @@ namespace SmartIme
             this.PerformLayout();
 
         }
+
+        private System.Windows.Forms.Label lblLog;
     }
 }

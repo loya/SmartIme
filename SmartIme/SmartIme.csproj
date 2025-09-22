@@ -80,6 +80,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="ControlHelper.cs" />
     <Compile Include="Rule.cs" />
     <None Include="app.config" />
     <None Include="app.manifest" />

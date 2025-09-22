@@ -169,9 +169,7 @@ namespace SmartIme
                 if (hWnd != IntPtr.Zero)
                 {
                     // 获取控件类名
-                    var className = new System.Text.StringBuilder(256);
-                    GetClassName(hWnd, className, className.Capacity);
-                    selectedControlClass = className.ToString();
+                    selectedControlClass = ControlHelper.GetWindowClassName(hWnd);
                     
                     // 显示控件信息
                 }
