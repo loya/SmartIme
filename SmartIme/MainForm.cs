@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Reflection;
 using SmartIme.Utilities;
 using System.Text;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace SmartIme
 {
@@ -21,6 +23,13 @@ namespace SmartIme
             WriteIndented = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
+
+        // 光标颜色配置
+        private Dictionary<string, Color> imeColors = new();
+        private string currentImeName = "";
+        private const int SPI_SETCURSOR = 0x0057;
+        private const int SPIF_UPDATEINIFILE = 0x01;
+        private const int SPIF_SENDCHANGE = 0x02;
 
         public MainForm()
         {
@@ -39,6 +48,9 @@ namespace SmartIme
             btnSwitchIme.Click += BtnSwitchIme_Click;
             btnAddApp.Click += BtnAddApp_Click;
             btnRemoveApp.Click += BtnRemoveApp_Click;
+            btnColorConfig.Click += BtnColorConfig_Click;
+            btnPickColor.Click += BtnPickColor_Click;
+            cmbImeForColor.SelectedIndexChanged += CmbImeForColor_SelectedIndexChanged;
             this.FormClosing += MainForm_FormClosing;
             this.SizeChanged += (s, e) =>
             {
@@ -66,6 +78,8 @@ namespace SmartIme
                 this.WindowState = Properties.Settings.Default.WindowState;
             }
 
+            // 初始化光标颜色配置
+            InitializeCursorColorConfig();
             UpdateTreeView();
 
         }
@@ -108,6 +122,9 @@ namespace SmartIme
                 Properties.Settings.Default.WindowLocation = this.RestoreBounds.Location;
             }
             Properties.Settings.Default.WindowState = this.WindowState;
+
+            // 保存光标颜色配置
+            SaveCursorColorConfig();
 
             Properties.Settings.Default.Save();
 
@@ -283,6 +300,9 @@ namespace SmartIme
                             WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                             lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
 
+                            // 切换光标颜色
+                            ChangeCursorColorByIme(targetIme);
+
                             break;
                         }
                     }
@@ -300,6 +320,9 @@ namespace SmartIme
                         IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
                         WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                         lblLog.Text = DateTime.Now.ToString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
+                        
+                        // 切换光标颜色
+                        ChangeCursorColorByIme(lang.LayoutName);
                     }
                 }
             }
@@ -390,15 +413,41 @@ namespace SmartIme
             // 添加到列表
             foreach (var process in processes)
             {
-                lstProcesses.Items.Add($"{process.ProcessName} - {process.MainModule?.ModuleName}");
+                try
+                {
+                    lstProcesses.Items.Add($"{process.ProcessName} - {process.MainModule?.ModuleName}");
+                }
+                catch
+                {
+                    try
+                    {
+                        lstProcesses.Items.Add($"{process.ProcessName} - {process.MainWindowTitle}");
+                    }
+                    catch
+                    {
+                        throw;
+                    }
+                }
             }
 
             // 显示窗口
             if (processSelectForm.ShowDialog(this) == DialogResult.OK && lstProcesses.SelectedIndex >= 0)
             {
                 var selectedProcess = processes[lstProcesses.SelectedIndex];
+
                 string appName = selectedProcess.ProcessName;
-                string displayName = $"{appName} - {selectedProcess.MainModule?.ModuleName}";
+
+                System.Diagnostics.ProcessModule mainModule = null;
+                try
+                {
+                    mainModule = selectedProcess.MainModule;
+                }
+                catch(Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+                
+                string displayName = $"{appName} - {mainModule?.ModuleName}";
 
                 // 检查是否已存在该应用
                 var existingGroup = appRuleGroups.FirstOrDefault(g => g.AppName == appName);
@@ -409,7 +458,7 @@ namespace SmartIme
                 }
 
                 // 创建新的应用规则组
-                var newGroup = new AppRuleGroup(appName, displayName,selectedProcess.MainModule?.FileName);
+                var newGroup = new AppRuleGroup(appName, displayName,mainModule?.FileName);
 
                 // 添加默认规则
                 var defaultRule = new Rule(Rule.CreateDefaultName(appName, RuleNams.程序名称), RuleType.Program, appName, cmbDefaultIme.Text);
@@ -515,6 +564,223 @@ namespace SmartIme
             this.Close();
         }
 
+        #region 光标颜色配置功能
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SystemParametersInfo(int uiAction, int uiParam, IntPtr pvParam, int fWinIni);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetFocus();
+
+        [DllImport("user32.dll")]
+        private static extern bool SetCaretBlinkTime(int wMSeconds);
+
+        [DllImport("user32.dll")]
+        private static extern bool CreateCaret(IntPtr hWnd, IntPtr hBitmap, int nWidth, int nHeight);
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowCaret(IntPtr hWnd);
+        
+        [DllImport("user32.dll")]
+        private static extern bool DestroyCaret();
+
+        private void InitializeCursorColorConfig()
+        {
+            // 初始化输入法颜色下拉框
+            cmbImeForColor.Items.Clear();
+            foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
+            {
+                cmbImeForColor.Items.Add(lang.LayoutName);
+            }
+            if (cmbImeForColor.Items.Count > 0)
+            {
+                cmbImeForColor.SelectedIndex = 0;
+            }
+
+            // 加载保存的光标颜色配置
+            LoadCursorColorConfig();
+        }
+
+        private void LoadCursorColorConfig()
+        {
+            try
+            {
+                imeColors.Clear();
+                var savedColors = Properties.Settings.Default.ImeColors;
+                if (!string.IsNullOrEmpty(savedColors))
+                {
+                    var colorDict = JsonSerializer.Deserialize<Dictionary<string, string>>(savedColors);
+                    if (colorDict != null)
+                    {
+                        foreach (var kvp in colorDict)
+                        {
+                            try
+                            {
+                                var color = ColorTranslator.FromHtml(kvp.Value);
+                                imeColors[kvp.Key] = color;
+                            }
+                            catch
+                            {
+                                // 如果颜色解析失败，跳过
+                            }
+                        }
+                    }
+                }
+
+                // 设置默认颜色
+                if (imeColors.Count == 0)
+                {
+                    imeColors["中文(简体) - 微软拼音"] = Color.Red;
+                    imeColors["英语(美国)"] = Color.Blue;
+                    imeColors["中文(简体) - 美式键盘"] = Color.Green;
+                }
+
+                UpdateCursorColorDisplay();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载光标颜色配置失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SaveCursorColorConfig()
+        {
+            try
+            {
+                var colorDict = new Dictionary<string, string>();
+                foreach (var kvp in imeColors)
+                {
+                    colorDict[kvp.Key] = ColorTranslator.ToHtml(kvp.Value);
+                }
+                Properties.Settings.Default.ImeColors = JsonSerializer.Serialize(colorDict);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"保存光标颜色配置失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void UpdateCursorColorDisplay()
+        {
+            if (cmbImeForColor.SelectedItem != null)
+            {
+                string imeName = cmbImeForColor.SelectedItem.ToString();
+                if (imeColors.TryGetValue(imeName, out Color color))
+                {
+                    pnlCursorColor.BackColor = color;
+                    lblCursorColor.Text = color.Name;
+                }
+                else
+                {
+                    pnlCursorColor.BackColor = Color.Black;
+                    lblCursorColor.Text = "黑色";
+                }
+            }
+        }
+
+        private void ChangeCursorColor(Color color)
+        {
+            try
+            {
+                // 获取当前焦点窗口
+                IntPtr hWnd = GetFocus();
+                if (hWnd != IntPtr.Zero)
+                {
+                    // 先销毁现有的插入符
+                    DestroyCaret();
+                    
+                    // 创建新的插入符（使用颜色对应的宽度来模拟颜色效果）
+                    // 注意：Windows API 不直接支持设置插入符颜色，这里使用宽度作为颜色标识
+                    int caretWidth = GetCaretWidthFromColor(color);
+                    CreateCaret(hWnd, IntPtr.Zero, caretWidth, 20); // 高度固定为20像素
+                    ShowCaret(hWnd);
+                    
+                    // 同时设置插入符闪烁时间（可选）
+                    SetCaretBlinkTime(500); // 500毫秒闪烁一次
+                }
+            }
+            catch (Exception ex)
+            {
+                lblLog.Text = $"光标颜色设置失败: {ex.Message}";
+            }
+        }
+
+        private int GetCaretWidthFromColor(Color color)
+        {
+            // 将颜色映射到不同的插入符宽度（1-10像素）
+            // 这只是视觉上的提示，因为Windows API不支持直接设置插入符颜色
+            if (color == Color.Red) return 3;
+            if (color == Color.Blue) return 5;
+            if (color == Color.Green) return 7;
+            if (color == Color.Yellow) return 9;
+            if (color == Color.Purple) return 2;
+            if (color == Color.Orange) return 4;
+            if (color == Color.Cyan) return 6;
+            if (color == Color.Magenta) return 8;
+            return 1; // 默认黑色
+        }
+
+        private void ChangeCursorColorByIme(string imeName)
+        {
+            if (imeColors.TryGetValue(imeName, out Color color))
+            {
+                ChangeCursorColor(color);
+                currentImeName = imeName;
+            }
+            else
+            {
+                // 使用默认黑色
+                ChangeCursorColor(Color.Black);
+                currentImeName = "";
+            }
+        }
+
+        private void BtnColorConfig_Click(object sender, EventArgs e)
+        {
+            // 显示颜色配置提示
+            MessageBox.Show("请在下方选择输入法并设置对应的光标颜色。切换输入法时，光标颜色会自动改变。", 
+                "光标颜色配置", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void BtnPickColor_Click(object sender, EventArgs e)
+        {
+            if (cmbImeForColor.SelectedItem != null)
+            {
+                string imeName = cmbImeForColor.SelectedItem.ToString();
+                if (imeColors.TryGetValue(imeName, out Color currentColor))
+                {
+                    colorDialog.Color = currentColor;
+                }
+                else
+                {
+                    colorDialog.Color = Color.Black;
+                }
+
+                if (colorDialog.ShowDialog() == DialogResult.OK)
+                {
+                    imeColors[imeName] = colorDialog.Color;
+                    UpdateCursorColorDisplay();
+                    SaveCursorColorConfig();
+
+                    // 如果当前输入法匹配，立即应用颜色变化
+                    if (imeName == currentImeName)
+                    {
+                        ChangeCursorColor(colorDialog.Color);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("请先选择一个输入法", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void CmbImeForColor_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateCursorColorDisplay();
+        }
+
+        #endregion
 
     }
 }
