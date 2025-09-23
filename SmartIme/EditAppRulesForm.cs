@@ -26,10 +26,11 @@ namespace SmartIme
         private void RefreshRulesList()
         {
             lstRules.Items.Clear();
-            foreach (var rule in appRuleGroup.Rules)
-            {
-                lstRules.Items.Add(rule);
-            }
+            //foreach (var rule in appRuleGroup.Rules)
+            //{
+            //    lstRules.Items.Add(rule);
+            //}
+            lstRules.Items.AddRange(appRuleGroup.Rules.Select(r => r).OrderByDescending(t=>t.Priority).ToArray());
         }
         
         private void btnAddRule_Click(object sender, EventArgs e)

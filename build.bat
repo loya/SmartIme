@@ -10,3 +10,5 @@ if exist %VSPATH% (
     echo Error: Visual Studio 2019 not found. Please install Visual Studio 2019 or later with .NET Framework support.
     exit /b 1
 )
+
+

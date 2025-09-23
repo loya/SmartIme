@@ -78,8 +78,8 @@ namespace SmartIme
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetFocus();
+        [LibraryImport("user32.dll", EntryPoint = "GetFocusW")]
+        private static partial IntPtr GetFocus();
 
         [DllImport("user32.dll")]
         private static extern IntPtr ChildWindowFromPointEx(IntPtr hwndParent, Point pt, uint uFlags);

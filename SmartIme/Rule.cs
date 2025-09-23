@@ -15,6 +15,9 @@ namespace SmartIme
         public RuleType Type { get; set; }
         public string Pattern { get; set; }
         public string InputMethod { get; set; }
+        /// <summary>
+        /// 优先级，数字越大优先级越高   
+        /// </summary>
         public int Priority { get; set; }
 
         public Rule()
@@ -45,7 +48,7 @@ namespace SmartIme
 
         public override string ToString()
         {
-            return $"{Name} [{Type}]";
+            return $"{Name} [{InputMethod}]";
         }
     }
 }
