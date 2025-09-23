@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -9,13 +8,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using SmartIme.Utilities;
 
 namespace SmartIme
 {
     public partial class AddRuleForm : Form
     {
-        [DllImport("user32.dll")]
-        private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
+
 
         public Rule CreatedRule { get; private set; }
         public string AppName { get; set; }
@@ -61,7 +60,7 @@ namespace SmartIme
             }
             else if (radioControl.Checked) // 控件极型规则
             {
-                string controlClass = SelectControlClass();
+                _ = SelectControlClass();
             }
             else // 程序名称规则
             {
@@ -69,25 +68,6 @@ namespace SmartIme
             }
         }
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr WindowFromPoint(Point pt);
-
-        [DllImport("user32.dll")]
-        private static extern bool GetCursorPos(out Point lpPoint);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [LibraryImport("user32.dll", EntryPoint = "GetFocusW")]
-        private static partial IntPtr GetFocus();
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr ChildWindowFromPointEx(IntPtr hwndParent, Point pt, uint uFlags);
-
-        private const uint CWP_ALL = 0x0000;
-        private const uint CWP_SKIPINVISIBLE = 0x0001;
-
-        private static IntPtr hHook = IntPtr.Zero;
         private static string selectedControlClass = string.Empty;
         private static bool mouseClicked = false;
 
@@ -188,8 +168,7 @@ namespace SmartIme
             public int y;
         }
 
-        [DllImport("user32.dll")]
-        private static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
+
 
         private class MouseHook : IDisposable
         {

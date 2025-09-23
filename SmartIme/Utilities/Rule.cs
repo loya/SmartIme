@@ -1,6 +1,6 @@
 using System;
 
-namespace SmartIme
+namespace SmartIme.Utilities
 {
     public enum RuleType
     {
@@ -30,7 +30,7 @@ namespace SmartIme
             Type = type;
             Pattern = pattern;
             InputMethod = inputMethod;
-            
+
             // 设置优先级
             switch (type)
             {

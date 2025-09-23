@@ -4,48 +4,11 @@ using System.Drawing;
 using Interop.UIAutomationClient;
 using System.Text;
 
-namespace SmartIme
+namespace SmartIme.Utilities
 {
     public static class ControlHelper
     {
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetFocus();
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr WindowFromPoint(Point point);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr GetActiveWindow();
-
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
-
-        [DllImport("user32.dll")]
-        private static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr ChildWindowFromPointEx(IntPtr hWndParent, Point point, uint uFlags);
-
-        [DllImport("user32.dll")]
-        private static extern bool GetCursorPos(out Point lpPoint);
-
-        [DllImport("user32.dll")]
-        private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
-
         private const uint CWP_SKIPINVISIBLE = 0x0001;
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct POINT
-        {
-            public int x;
-            public int y;
-        }
 
         /// <summary>
         /// 获取当前焦点控件的类名
@@ -98,9 +61,9 @@ namespace SmartIme
                 var automationId = string.IsNullOrEmpty(element.CurrentAutomationId) ? null : element.CurrentAutomationId;
                 var classname = string.IsNullOrEmpty(element.CurrentClassName) ? null : element.CurrentClassName;
                 var name = element.CurrentName;
-                return ((string.IsNullOrEmpty(name) ? "" : $"{name}:") + 
-                    (string.IsNullOrEmpty(classname) ? "" : $"{classname}:") + 
-                    (string.IsNullOrEmpty(automationId)? "" : $"{automationId}")).TrimEnd(':');
+                return ((string.IsNullOrEmpty(name) ? "" : $"{name}:") +
+                    (string.IsNullOrEmpty(classname) ? "" : $"{classname}:") +
+                    (string.IsNullOrEmpty(automationId) ? "" : $"{automationId}")).TrimEnd(':');
 
                 // 获取控件类名
                 //var windowText = new StringBuilder(256);
@@ -121,14 +84,14 @@ namespace SmartIme
         /// </summary>
         /// <param processName="hWnd">窗口句柄</param>
         /// <returns>窗口类名，如果获取失败返回空字符串</returns>
-        public static string GetWindowClassName(IntPtr hWnd)
+        public static string GetWindowClassName(nint hWnd)
         {
             try
             {
-                if (hWnd != IntPtr.Zero)
+                if (hWnd != nint.Zero)
                 {
                     var className = new StringBuilder(256);
-                    GetClassName(hWnd, className, className.Capacity);
+                    WinApi.GetClassName(hWnd, className, className.Capacity);
                     return className.ToString();
                 }
             }
@@ -145,11 +108,11 @@ namespace SmartIme
         {
             try
             {
-                var hWnd = GetForegroundWindow();
-                if (hWnd != IntPtr.Zero)
+                var hWnd = WinApi.GetForegroundWindow();
+                if (hWnd != nint.Zero)
                 {
-                    GetWindowThreadProcessId(hWnd, out uint processId);
-                    string processName = System.Diagnostics.Process.GetProcessById((int)processId).ProcessName;                    
+                    WinApi.GetWindowThreadProcessId(hWnd, out uint processId);
+                    string processName = System.Diagnostics.Process.GetProcessById((int)processId).ProcessName;
                     return processName;
                 }
             }

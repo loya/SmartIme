@@ -1,18 +1,7 @@
-using System;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
+using SmartIme.Utilities;
 
 namespace SmartIme
 {
@@ -23,31 +12,7 @@ namespace SmartIme
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayMenu;
 
-        [DllImport("imm32.dll")]
-        private static extern IntPtr ImmGetDefaultIMEWnd(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-
         private const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetKeyboardLayout(uint idThread);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
-
-        [DllImport("user32.dll")]
-        private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetFocus();
 
         public MainForm()
         {
@@ -198,7 +163,7 @@ namespace SmartIme
 
         {
             monitorTimer.Stop();
-            IntPtr currentWindow = GetForegroundWindow();
+            IntPtr currentWindow = WinApi.GetForegroundWindow();
 
             // 只有当活动窗口变化时才处理
             if (currentWindow != lastActiveWindow)
@@ -212,9 +177,9 @@ namespace SmartIme
 
         private void MonitorActiveApp()
         {
-            IntPtr hWnd = GetForegroundWindow();
+            IntPtr hWnd = WinApi.GetForegroundWindow();
             uint processId;
-            GetWindowThreadProcessId(hWnd, out processId);
+            WinApi.GetWindowThreadProcessId(hWnd, out processId);
             try
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
@@ -249,7 +214,7 @@ namespace SmartIme
 
                 // 获取窗口标题
                 var titleBuilder = new System.Text.StringBuilder(256);
-                GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
+                WinApi.GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
                 string windowTitle = titleBuilder.ToString();
 
                 // 获取当前焦点控件名称
@@ -278,8 +243,8 @@ namespace SmartIme
                         {
                             // 两种方式结合确保切换成功
                             InputLanguage.CurrentInputLanguage = lang;
-                            IntPtr imeWnd = ImmGetDefaultIMEWnd(hWnd);
-                            SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
+                            IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
+                            WinApi.SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                             lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
 
                             break;
@@ -296,8 +261,8 @@ namespace SmartIme
                     {
                         var lang = inputLanguages[cmbDefaultIme.SelectedIndex];
                         InputLanguage.CurrentInputLanguage = lang;
-                        IntPtr imeWnd = ImmGetDefaultIMEWnd(hWnd);
-                        SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
+                        IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
+                        WinApi.SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                         lblLog.Text = DateTime.Now.ToString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
                     }
                 }
@@ -331,15 +296,16 @@ namespace SmartIme
 
         private void BtnSwitchIme_Click(object sender, EventArgs e)
         {
-            IntPtr hWnd = GetForegroundWindow();
-            IntPtr imeWnd = ImmGetDefaultIMEWnd(hWnd);
+            IntPtr hWnd = WinApi.GetForegroundWindow();
+            IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
 
             // 0x0029 是切换到下一个输入法的消息
-            SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, (IntPtr)0x0029, IntPtr.Zero);
+            WinApi.SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, (IntPtr)0x0029, IntPtr.Zero);
 
             // 更新显示
-            uint threadId = GetWindowThreadProcessId(hWnd, out _);
-            IntPtr hkl = GetKeyboardLayout(threadId);
+            uint threadId;
+            WinApi.GetWindowThreadProcessId(hWnd, out threadId);
+            IntPtr hkl = WinApi.GetKeyboardLayout(threadId);
             lblCurrentIme.Text = "当前输入法：" + GetImeName(hkl);
         }
 
