@@ -9,6 +9,13 @@ namespace SmartIme.Utilities
         Control     // 基于控件类型
     }
 
+    public enum RuleNams
+    {
+        程序名称,
+        窗口标题,
+        控件
+    };
+
     public class Rule
     {
         public string Name { get; set; }
@@ -49,6 +56,11 @@ namespace SmartIme.Utilities
         public override string ToString()
         {
             return $"{Name} [{InputMethod}]";
+        }
+
+        public static string CreateDefaultName(string appName,RuleNams ruleNams)
+        {
+            return $"{appName}【{ruleNams}】";
         }
     }
 }

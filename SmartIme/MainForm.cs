@@ -364,7 +364,7 @@ namespace SmartIme
             {
                 var selectedProcess = processes[lstProcesses.SelectedIndex];
                 string appName = selectedProcess.ProcessName;
-                string displayName = $"{appName} - {selectedProcess.MainWindowTitle}";
+                string displayName = $"{appName} - {selectedProcess.MainModule?.ModuleName}";
 
                 // 检查是否已存在该应用
                 var existingGroup = appRuleGroups.FirstOrDefault(g => g.AppName == appName);
@@ -378,7 +378,7 @@ namespace SmartIme
                 var newGroup = new AppRuleGroup(appName, displayName);
 
                 // 添加默认规则
-                var defaultRule = new Rule(appName, RuleType.Program, appName, cmbDefaultIme.Text);
+                var defaultRule = new Rule(Rule.CreateDefaultName(appName,RuleNams.程序名称), RuleType.Program, appName, cmbDefaultIme.Text);
                 newGroup.AddRule(defaultRule);
 
                 // 添加到列表
@@ -445,7 +445,9 @@ namespace SmartIme
                 var groupNode = new TreeNode(group.DisplayName)
                 {
                     Tag = group,
-                    ForeColor = Color.DarkBlue  // 应用组节点使用深蓝色
+                    NodeFont = new Font(treeApps.Font, FontStyle.Bold),
+                    ForeColor = Color.DarkOrange  // 应用组节点使用深蓝色
+                    
                 };
                 
                 foreach (var rule in group.Rules)
@@ -453,13 +455,13 @@ namespace SmartIme
                     // 根据规则类型设置不同的颜色
                     Color ruleColor = rule.Type switch
                     {
-                        RuleType.Program => Color.Green,  // 程序规则：绿色
-                        RuleType.Title => Color.Orange,   // 窗口标题规则：橙色
-                        RuleType.Control => Color.Purple, // 控件规则：紫色
+                        RuleType.Program => Color.DarkSeaGreen,  // 程序规则：绿色
+                        RuleType.Title => Color.DarkCyan,   // 窗口标题规则：橙色
+                        RuleType.Control => Color.DeepSkyBlue, // 控件规则：紫色
                         _ => Color.Black
                     };
                     
-                    var ruleNode = new TreeNode($"{rule.Name} ({rule.Type}: {rule.Pattern}) -> {rule.InputMethod}")
+                    var ruleNode = new TreeNode($"{rule.Name} ({rule.Pattern}) -> {rule.InputMethod}")
                     {
                         Tag = rule,
                         ForeColor = ruleColor

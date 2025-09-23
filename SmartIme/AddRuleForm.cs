@@ -14,16 +14,8 @@ namespace SmartIme
 {
     public partial class AddRuleForm : Form
     {
-
-
         public Rule CreatedRule { get; private set; }
         public string AppName { get; set; }
-        public enum RuleNams
-        {
-            程序名称,
-            窗口标题,
-            控件
-        };
 
         public AddRuleForm(IEnumerable<object> imeList, int defaultImeIndex, string appName = null)
         {
@@ -48,7 +40,7 @@ namespace SmartIme
             {
                 AppName = appName;
                 txtPattern.Text = appName;
-                txtName.Text = $"{appName} 【{RuleNams.程序名称}】";
+                txtName.Text = Rule.CreateDefaultName(appName, RuleNams.程序名称);
             }
         }
 

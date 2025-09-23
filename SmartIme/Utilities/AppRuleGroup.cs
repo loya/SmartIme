@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Windows.Forms;
-using SmartIme.Utilities;
-
-namespace SmartIme
+namespace SmartIme.Utilities
 {
     /// <summary>
     /// 应用规则组，包含一个应用的多个规则
@@ -38,6 +31,13 @@ namespace SmartIme
         public void AddRule(Rule rule)
         {
             Rules.Add(rule);
+        }
+        /// <summary>
+        /// 添加规则
+        /// </summary>
+        public void InsertRule(int index, Rule rule)
+        {
+            Rules.Insert(index,rule);
         }
 
         /// <summary>
