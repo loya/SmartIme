@@ -2,7 +2,10 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Timers;
+using System.Text.Json;
+using System.Reflection;
 using SmartIme.Utilities;
+using System.Text;
 
 namespace SmartIme
 {
@@ -43,7 +46,7 @@ namespace SmartIme
 
             // 加载保存的设置
             cmbDefaultIme.SelectedIndex = Properties.Settings.Default.DefaultIme;
-            DeserializeRules(Properties.Settings.Default.AppRules);
+            LoadRulesFromJson();
             
             // 恢复窗口大小和位置
             if (Properties.Settings.Default.WindowSize != System.Drawing.Size.Empty)
@@ -87,7 +90,7 @@ namespace SmartIme
         {
             // 保存设置
             Properties.Settings.Default.DefaultIme = cmbDefaultIme.SelectedIndex;
-            Properties.Settings.Default.AppRules = SerializeRules();
+            //SaveRulesToJson();
             
             // 保存窗口状态
             if (this.WindowState == FormWindowState.Normal)
@@ -107,62 +110,61 @@ namespace SmartIme
             monitorTimer.Stop();
         }
 
-        private string SerializeRules()
+        private void SaveRulesToJson()
         {
-            var groupEntries = new List<string>();
-
-            foreach (var group in appRuleGroups)
+            try
             {
-                var ruleEntries = group.Rules.Select(r => $"{r.Name}|{(int)r.Type}|{r.Pattern}|{r.InputMethod}");
-                var rulesStr = string.Join(",", ruleEntries);
-                groupEntries.Add($"{group.AppName}|{group.DisplayName}|{rulesStr}");
+                string jsonPath = GetRulesJsonPath();
+                var options = new JsonSerializerOptions { 
+                    WriteIndented = true,
+                     Encoder= System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    };
+                string json = JsonSerializer.Serialize(appRuleGroups, options);
+                File.WriteAllText(jsonPath, json);
             }
-
-            return string.Join(";", groupEntries);
+            catch (Exception ex)
+            {
+                MessageBox.Show($"保存规则失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        private void DeserializeRules(string data)
+        private void LoadRulesFromJson()
         {
-            if (!string.IsNullOrEmpty(data))
+            try
             {
-                var groupEntries = data.Split(';');
-                foreach (var groupEntry in groupEntries)
+                string jsonPath = GetRulesJsonPath();
+                if (File.Exists(jsonPath))
                 {
-                    var parts = groupEntry.Split('|');
-                    if (parts.Length >= 3)
+                    string json = File.ReadAllText(jsonPath);
+                    var options = new JsonSerializerOptions 
+                    { 
+                        PropertyNameCaseInsensitive = true,
+                        AllowTrailingCommas = true,
+                        WriteIndented = true
+                    };
+                    var loadedGroups = JsonSerializer.Deserialize<List<AppRuleGroup>>(json, options);
+                    if (loadedGroups != null)
                     {
-                        string appName = parts[0];
-                        string displayName = parts[1];
-
-                        var group = new AppRuleGroup(appName, displayName);
-
-                        // 解析规则
-                        string rulesStr = string.Join("|", parts.Skip(2));
-                        if (!string.IsNullOrEmpty(rulesStr))
+                        appRuleGroups.Clear();
+                        foreach (var group in loadedGroups)
                         {
-                            var ruleEntries = rulesStr.Split(',');
-                            foreach (var ruleEntry in ruleEntries)
-                            {
-                                var ruleParts = ruleEntry.Split('|');
-                                if (ruleParts.Length == 4)
-                                {
-                                    string name = ruleParts[0];
-                                    RuleType type = (RuleType)int.Parse(ruleParts[1]);
-                                    string pattern = ruleParts[2];
-                                    string inputMethod = ruleParts[3];
-
-                                    var rule = new Rule(name, type, pattern, inputMethod);
-                                    group.AddRule(rule);
-                                }
-                            }
+                            appRuleGroups.Add(group);
                         }
-
-                        appRuleGroups.Add(group);
-
-                        //treeApps.Nodes.Add(group);
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载规则失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private string GetRulesJsonPath()
+        {
+            // 使用Assembly.GetExecutingAssembly().Location获取程序所在目录
+            string assemblyPath = Assembly.GetExecutingAssembly().Location;
+            string appDirectory = Path.GetDirectoryName(assemblyPath);
+            return Path.Combine(appDirectory, "rules.json");
         }
 
         private void InitializeImeList()
@@ -417,6 +419,7 @@ namespace SmartIme
                 var index = list.OrderBy(t => t.AppName).ToList().FindIndex(t => t.AppName == appName);
                 appRuleGroups.Insert(index, newGroup);
                 UpdateTreeView();
+                SaveRulesToJson(); // 保存到JSON文件
                 // 打开编辑窗口
                 using var editAppRulesForm = new EditAppRulesForm(newGroup, cmbDefaultIme.Items.Cast<object>());
                 editAppRulesForm.ShowDialog(this);
@@ -431,6 +434,7 @@ namespace SmartIme
                 {
                     appRuleGroups.Remove(group);
                     UpdateTreeView();
+                    SaveRulesToJson(); // 保存到JSON文件
                 }
                 else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
                 {
@@ -438,6 +442,7 @@ namespace SmartIme
                     {
                         parentGroup.RemoveRule(rule);
                         UpdateTreeView();
+                        SaveRulesToJson(); // 保存到JSON文件
                     }
                 }
             }
@@ -452,6 +457,7 @@ namespace SmartIme
                     using var editAppRulesForm = new EditAppRulesForm(group, cmbDefaultIme.Items.Cast<object>());
                     editAppRulesForm.ShowDialog(this);
                     UpdateTreeView();
+                    SaveRulesToJson(); // 保存到JSON文件
                 }
                 else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
                 {
@@ -460,6 +466,7 @@ namespace SmartIme
                         using var editAppRulesForm = new EditAppRulesForm(parentGroup, cmbDefaultIme.Items.Cast<object>());
                         editAppRulesForm.ShowDialog(this);
                         UpdateTreeView();
+                        SaveRulesToJson(); // 保存到JSON文件
                     }
                 }
             }

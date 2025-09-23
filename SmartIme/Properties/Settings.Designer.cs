@@ -35,17 +35,7 @@ namespace SmartIme.Properties {
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string AppRules {
-            get {
-                return ((string)(this["AppRules"]));
-            }
-            set {
-                this["AppRules"] = value;
-            }
-        }
+
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]

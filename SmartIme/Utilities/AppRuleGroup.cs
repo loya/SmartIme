@@ -23,7 +23,7 @@ namespace SmartIme.Utilities
         /// <summary>
         /// 应用的规则列表
         /// </summary>
-        public List<Rule> Rules { get; private set; } = [];
+        public List<Rule> Rules { get; set; } = [];
 
         /// <summary>
         /// 添加规则
@@ -37,6 +37,14 @@ namespace SmartIme.Utilities
         /// </summary>
         public void InsertRule(int index, Rule rule)
         {
+            if (index < 0 )
+            {
+                index = 0;
+            }
+            if (index> Rules.Count)
+            {
+              index=Rules.Count;
+            }
             Rules.Insert(index,rule);
         }
 
