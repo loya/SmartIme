@@ -678,60 +678,117 @@ namespace SmartIme
             }
         }
 
-        private void ChangeCursorColor(Color color)
+        private void ChangeCursorColor(Color color, string imeName = null)
         {
             try
             {
-                // 获取当前焦点窗口
-                IntPtr hWnd = GetFocus();
-                if (hWnd != IntPtr.Zero)
-                {
-                    // 先销毁现有的插入符
-                    DestroyCaret();
-                    
-                    // 创建新的插入符（使用颜色对应的宽度来模拟颜色效果）
-                    // 注意：Windows API 不直接支持设置插入符颜色，这里使用宽度作为颜色标识
-                    int caretWidth = GetCaretWidthFromColor(color);
-                    CreateCaret(hWnd, IntPtr.Zero, caretWidth, 20); // 高度固定为20像素
-                    ShowCaret(hWnd);
-                    
-                    // 同时设置插入符闪烁时间（可选）
-                    SetCaretBlinkTime(500); // 500毫秒闪烁一次
-                }
+                // 更新系统托盘图标颜色
+                UpdateTrayIconColor(color);
+                
+                // 显示浮动提示窗口，使用指定的输入法名称或当前输入法名称
+                ShowFloatingHint(color, imeName ?? currentImeName);
+                
+                // 同时保留原有的插入符宽度提示（可选）
+                TryUpdateCaretWidth(color);
             }
             catch (Exception ex)
             {
-                lblLog.Text = $"光标颜色设置失败: {ex.Message}";
+                lblLog.Text = $"视觉提示设置失败: {ex.Message}";
+            }
+        }
+
+        private void ShowFloatingHint(Color color, string imeName)
+        {
+            // 在主UI线程中创建和显示浮动提示窗口
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => ShowFloatingHint(color, imeName)));
+                return;
+            }
+            
+            // 获取当前光标位置
+            Point cursorPos = Cursor.Position;
+            
+            // 创建浮动提示窗口（窗体内部已经实现了自动关闭）
+            FloatingHintForm hintForm = new FloatingHintForm(color, imeName);
+            hintForm.StartPosition = FormStartPosition.Manual;
+            
+            // 将窗口位置设置在光标右下方
+            hintForm.Location = new Point(cursorPos.X + 10, cursorPos.Y + 10);
+            
+            // 显示窗口（1秒后会自动关闭）
+            hintForm.Show();
+        }
+
+        private void UpdateTrayIconColor(Color color)
+        {
+            // 创建带有颜色提示的系统托盘图标
+            using (Bitmap bmp = new Bitmap(16, 16))
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                // 绘制背景
+                g.Clear(Color.Transparent);
+                
+                // 绘制颜色指示圆
+                using (Brush brush = new SolidBrush(color))
+                {
+                    g.FillEllipse(brush, 2, 2, 12, 12);
+                }
+                
+                // 绘制边框
+                using (Pen pen = new Pen(Color.White, 1))
+                {
+                    g.DrawEllipse(pen, 2, 2, 12, 12);
+                }
+                
+                // 更新托盘图标
+                trayIcon.Icon = Icon.FromHandle(bmp.GetHicon());
+            }
+        }
+
+        private void TryUpdateCaretWidth(Color color)
+        {
+            try
+            {
+                // 尝试更新插入符宽度（可能在某些应用中不起作用）
+                IntPtr hWnd = GetFocus();
+                if (hWnd != IntPtr.Zero)
+                {
+                    DestroyCaret();
+                    int caretWidth = GetCaretWidthFromColor(color);
+                    CreateCaret(hWnd, IntPtr.Zero, caretWidth, 20);
+                    ShowCaret(hWnd);
+                    SetCaretBlinkTime(500);
+                }
+            }
+            catch
+            {
+                // 忽略插入符更新错误
             }
         }
 
         private int GetCaretWidthFromColor(Color color)
         {
-            // 将颜色映射到不同的插入符宽度（1-10像素）
-            // 这只是视觉上的提示，因为Windows API不支持直接设置插入符颜色
-            if (color == Color.Red) return 3;
-            if (color == Color.Blue) return 5;
-            if (color == Color.Green) return 7;
-            if (color == Color.Yellow) return 9;
-            if (color == Color.Purple) return 2;
-            if (color == Color.Orange) return 4;
-            if (color == Color.Cyan) return 6;
-            if (color == Color.Magenta) return 8;
-            return 1; // 默认黑色
+            // 简化宽度映射
+            return Math.Max(1, color.GetHashCode() % 5 + 1);
         }
 
         private void ChangeCursorColorByIme(string imeName)
         {
-            if (imeColors.TryGetValue(imeName, out Color color))
+            // 只有当输入法真正切换时才显示提示窗口
+            if (imeName != currentImeName)
             {
-                ChangeCursorColor(color);
-                currentImeName = imeName;
-            }
-            else
-            {
-                // 使用默认黑色
-                ChangeCursorColor(Color.Black);
-                currentImeName = "";
+                if (imeColors.TryGetValue(imeName, out Color color))
+                {
+                    ChangeCursorColor(color, imeName);
+                    currentImeName = imeName;
+                }
+                else
+                {
+                    // 使用默认黑色
+                    ChangeCursorColor(Color.Black, imeName);
+                    currentImeName = "";
+                }
             }
         }
 
