@@ -699,7 +699,7 @@ namespace SmartIme
 
         private void ShowFloatingHint(Color color, string imeName)
         {
-            // 在主UI线程中创建和显示浮动提示窗口
+            // 在主UI线程中创建和显示浮动提示窗口，但使用异步方式避免阻塞
             if (this.InvokeRequired)
             {
                 this.Invoke(new Action(() => ShowFloatingHint(color, imeName)));
@@ -716,7 +716,7 @@ namespace SmartIme
             // 将窗口位置设置在光标右下方
             hintForm.Location = new Point(cursorPos.X + 10, cursorPos.Y + 10);
             
-            // 显示窗口（1秒后会自动关闭）
+            // 异步显示窗口（1秒后会自动关闭）
             hintForm.Show();
         }
 
@@ -776,7 +776,12 @@ namespace SmartIme
         private void ChangeCursorColorByIme(string imeName)
         {
             // 只有当输入法真正切换时才显示提示窗口
-            if (imeName != currentImeName)
+            // 并且排除程序启动时的第一次切换（currentImeName为空）
+            if(string.IsNullOrEmpty(currentImeName)){
+                currentImeName = imeName;
+                return;
+            }
+            if (imeName != currentImeName && !string.IsNullOrEmpty(currentImeName))
             {
                 if (imeColors.TryGetValue(imeName, out Color color))
                 {
@@ -789,6 +794,11 @@ namespace SmartIme
                     ChangeCursorColor(Color.Black, imeName);
                     currentImeName = "";
                 }
+            }
+            else
+            {
+                // 更新当前输入法名称但不显示提示
+                currentImeName = imeName;
             }
         }
 

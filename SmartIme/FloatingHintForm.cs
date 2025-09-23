@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
@@ -28,13 +29,11 @@ namespace SmartIme
 
         private readonly Color hintColor;
         private readonly string imeName;
-        private readonly System.Windows.Forms.Timer closeTimer;
 
         public FloatingHintForm(Color color, string name)
         {
             hintColor = color;
             imeName = name;
-            closeTimer = new System.Windows.Forms.Timer();
             InitializeForm();
         }
 
@@ -42,81 +41,74 @@ namespace SmartIme
         {
             // 窗体设置
             this.FormBorderStyle = FormBorderStyle.None;
-            this.Size = new Size(120, 60);
+            this.Size = new Size(60, 60); // 增大窗口尺寸
             this.ShowInTaskbar = false;
             this.TopMost = true;
+            this.BackColor = Color.Black; // 设置背景色为黑色
 
             // 添加绘制事件
             this.Paint += FloatingHintForm_Paint;
 
-            // 设置自动关闭计时器（确保在UI线程上创建）
+            // 使用异步Task.Delay自动关闭窗口，避免使用Timer导致阻塞
+            _ = AutoCloseFormAsync();
+        }
+
+        private async Task AutoCloseFormAsync()
+        {
+            // 等待1秒后自动关闭窗口
+            await Task.Delay(1000);
+            
+            // 在UI线程中安全关闭窗口
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(() =>
-                {
-                    closeTimer.Interval = 1000;
-                    closeTimer.Tick += CloseTimer_Tick;
-                    closeTimer.Start();
-                }));
+                this.Invoke(new Action(() => this.Close()));
             }
             else
             {
-                closeTimer.Interval = 1000;
-                closeTimer.Tick += CloseTimer_Tick;
-                closeTimer.Start();
+                this.Close();
             }
         }
 
-        private void CloseTimer_Tick(object sender, EventArgs e)
+        protected override void OnLoad(EventArgs e)
         {
-            closeTimer.Stop();
-            closeTimer.Dispose();
-            this.Close();
+            base.OnLoad(e);
+            
+            // 设置窗口透明度
+            this.Opacity = 0.6;
+            
+            // 创建圆角效果
+            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 20, 20));
         }
-
-        protected override void OnFormClosed(FormClosedEventArgs e)
-        {
-            base.OnFormClosed(e);
-            if (closeTimer != null)
-            {
-                closeTimer.Stop();
-                closeTimer.Dispose();
-            }
-        }
-
-        protected override void OnHandleCreated(EventArgs e)
-        {
-            base.OnHandleCreated(e);
-
-            // 在句柄创建后设置窗口样式
-            int initialStyle = GetWindowLong(this.Handle, GWL_EXSTYLE);
-            SetWindowLong(this.Handle, GWL_EXSTYLE, initialStyle | WS_EX_LAYERED);
-            SetLayeredWindowAttributes(this.Handle, 0, 180, LWA_ALPHA); // 70% 透明度
-
-            // 设置鼠标穿透
-            SetWindowLong(this.Handle, GWL_EXSTYLE, initialStyle | WS_EX_LAYERED | WS_EX_TRANSPARENT);
-        }
+        
+        [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
+        private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
 
         private void FloatingHintForm_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
 
-            // 绘制圆角矩形背景
-            using (Brush bgBrush = new SolidBrush(Color.FromArgb(220, Color.Black)))
+            // 设置高质量渲染
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.CompositingQuality = CompositingQuality.HighQuality;
+
+            // 绘制半透明黑色背景
+            using (Brush bgBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0))) // 40% 透明黑色
             {
-                g.FillRoundedRectangle(bgBrush, 0, 0, this.Width - 1, this.Height - 1, 10);
+                g.FillRectangle(bgBrush, 0, 0, this.Width, this.Height);
             }
+
+            // 圆角边框由Region处理，不需要额外绘制
 
             // 绘制颜色指示圆
             using (Brush colorBrush = new SolidBrush(hintColor))
             {
-                g.FillEllipse(colorBrush, 10, 10, 20, 20);
+                g.FillEllipse(colorBrush, 10, 16, 12, 12);
             }
 
             // 绘制边框
             using (Pen borderPen = new Pen(Color.White, 1))
             {
-                g.DrawEllipse(borderPen, 10, 10, 20, 20);
+                g.DrawEllipse(borderPen, 10, 16, 12, 12);
             }
 
             // 绘制输入法名称
