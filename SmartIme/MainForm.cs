@@ -7,8 +7,8 @@ namespace SmartIme
 {
     public partial class MainForm : Form
     {
-        private BindingList<AppRuleGroup> appRuleGroups = [];
-        private System.Timers.Timer monitorTimer = new();
+        private readonly BindingList<AppRuleGroup> appRuleGroups = [];
+        private readonly System.Timers.Timer monitorTimer = new();
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayMenu;
 
@@ -57,11 +57,13 @@ namespace SmartIme
             });
             trayMenu.Items.Add("退出", null, (s, e) => Application.Exit());
 
-            trayIcon = new NotifyIcon();
-            trayIcon.Text = "输入法智能切换助手";
-            trayIcon.Icon = this.Icon;
-            trayIcon.ContextMenuStrip = trayMenu;
-            trayIcon.Visible = true;
+            trayIcon = new NotifyIcon
+            {
+                Text = "输入法智能切换助手",
+                Icon = this.Icon,
+                ContextMenuStrip = trayMenu,
+                Visible = true
+            };
             trayIcon.DoubleClick += (s, e) => { this.Show(); this.WindowState = FormWindowState.Normal; };
         }
 
@@ -178,8 +180,7 @@ namespace SmartIme
         private void MonitorActiveApp()
         {
             IntPtr hWnd = WinApi.GetForegroundWindow();
-            uint processId;
-            WinApi.GetWindowThreadProcessId(hWnd, out processId);
+            _ = WinApi.GetWindowThreadProcessId(hWnd, out uint processId);
             try
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
@@ -214,7 +215,7 @@ namespace SmartIme
 
                 // 获取窗口标题
                 var titleBuilder = new System.Text.StringBuilder(256);
-                WinApi.GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
+                _ = WinApi.GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
                 string windowTitle = titleBuilder.ToString();
 
                 // 获取当前焦点控件名称
@@ -303,8 +304,7 @@ namespace SmartIme
             WinApi.SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, (IntPtr)0x0029, IntPtr.Zero);
 
             // 更新显示
-            uint threadId;
-            WinApi.GetWindowThreadProcessId(hWnd, out threadId);
+            _ = WinApi.GetWindowThreadProcessId(hWnd, out uint threadId);
             IntPtr hkl = WinApi.GetKeyboardLayout(threadId);
             lblCurrentIme.Text = "当前输入法：" + GetImeName(hkl);
         }
@@ -319,23 +319,29 @@ namespace SmartIme
         private void BtnAddApp_Click(object sender, EventArgs e)
         {
             // 创建进程选择窗口
-            var processSelectForm = new Form();
-            processSelectForm.ShowInTaskbar = false;
-            processSelectForm.Text = "选择应用程序";
-            processSelectForm.Size = new System.Drawing.Size(400, 300);
-            processSelectForm.StartPosition = FormStartPosition.CenterParent;
-            processSelectForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-            processSelectForm.MaximizeBox = false;
-            processSelectForm.MinimizeBox = false;
+            var processSelectForm = new Form
+            {
+                ShowInTaskbar = false,
+                Text = "选择应用程序",
+                Size = new System.Drawing.Size(400, 300),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
 
-            var lstProcesses = new ListBox();
-            lstProcesses.Dock = DockStyle.Fill;
-            lstProcesses.FormattingEnabled = true;
+            var lstProcesses = new ListBox
+            {
+                Dock = DockStyle.Fill,
+                FormattingEnabled = true
+            };
 
-            var btnSelect = new Button();
-            btnSelect.Text = "选择";
-            btnSelect.DialogResult = DialogResult.OK;
-            btnSelect.Dock = DockStyle.Bottom;
+            var btnSelect = new Button
+            {
+                Text = "选择",
+                DialogResult = DialogResult.OK,
+                Dock = DockStyle.Bottom
+            };
 
             processSelectForm.Controls.Add(lstProcesses);
             processSelectForm.Controls.Add(btnSelect);
@@ -404,8 +410,7 @@ namespace SmartIme
         {
             if (lstApps.SelectedItem != null)
             {
-                var group = lstApps.SelectedItem as AppRuleGroup;
-                if (group != null)
+                if (lstApps.SelectedItem is AppRuleGroup group)
                 {
                     using var editAppRulesForm = new EditAppRulesForm(group, cmbDefaultIme.Items.Cast<object>());
                     editAppRulesForm.ShowDialog(this);
@@ -413,7 +418,7 @@ namespace SmartIme
             }
         }
 
-        private void btnExit_Click(object sender, EventArgs e)
+        private void BtnExit_Click(object sender, EventArgs e)
         {
             this.Close();
         }

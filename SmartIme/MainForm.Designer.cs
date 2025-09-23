@@ -142,7 +142,7 @@ namespace SmartIme
             btnExit.TabIndex = 4;
             btnExit.Text = "退   出";
             btnExit.UseVisualStyleBackColor = true;
-            btnExit.Click += btnExit_Click;
+            btnExit.Click += BtnExit_Click;
             // 
             // MainForm
             // 

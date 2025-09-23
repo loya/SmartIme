@@ -10,17 +10,17 @@ namespace SmartIme
     /// <summary>
     /// 应用规则组，包含一个应用的多个规则
     /// </summary>
-    public class AppRuleGroup
+    public class AppRuleGroup(string appName, string displayName = null)
     {
         /// <summary>
         /// 应用名称
         /// </summary>
-        public string AppName { get; set; }
+        public string AppName { get; set; } = appName;
 
         /// <summary>
         /// 应用显示名称
         /// </summary>
-        public string DisplayName { get; set; }
+        public string DisplayName { get; set; } = displayName ?? appName;
 
         /// <summary>
         /// 应用图标路径（可选）
@@ -30,14 +30,7 @@ namespace SmartIme
         /// <summary>
         /// 应用的规则列表
         /// </summary>
-        public List<Rule> Rules { get; private set; }
-
-        public AppRuleGroup(string appName, string displayName = null)
-        {
-            AppName = appName;
-            DisplayName = displayName ?? appName;
-            Rules = new List<Rule>();
-        }
+        public List<Rule> Rules { get; private set; } = [];
 
         /// <summary>
         /// 添加规则

@@ -48,7 +48,7 @@ namespace SmartIme
             {
                 AppName = appName;
                 txtPattern.Text = appName;
-                txtName.Text = $"{appName} 【{RuleNams.程序名称.ToString()}】";
+                txtName.Text = $"{appName} 【{RuleNams.程序名称}】";
             }
         }
 
@@ -173,8 +173,8 @@ namespace SmartIme
         private class MouseHook : IDisposable
         {
             private const int WH_MOUSE_LL = 14;
-            private IntPtr hookId = IntPtr.Zero;
-            private NativeMethods.HookProc proc;
+            private readonly IntPtr hookId = IntPtr.Zero;
+            private readonly NativeMethods.HookProc proc;
 
             public event MouseEventHandler MouseClick;
 
@@ -184,7 +184,7 @@ namespace SmartIme
                 hookId = SetHook(proc);
             }
 
-            private IntPtr SetHook(NativeMethods.HookProc proc)
+            private static IntPtr SetHook(NativeMethods.HookProc proc)
             {
                 using var curModule = Process.GetCurrentProcess().MainModule;
                 return SetWindowsHookEx(WH_MOUSE_LL, proc,
@@ -364,21 +364,20 @@ namespace SmartIme
             return titles;
         }
 
-        private void setRuleName(RuleNams ruleNam)
+        private void SetRuleName(RuleNams ruleNam)
         {
-            txtName.Text = $"{AppName} 【{ruleNam.ToString()}】";
+            txtName.Text = $"{AppName} 【{ruleNam}】";
         }
         private void RadioButton_CheckedChanged(object sender, EventArgs e)
         {
-            RadioButton radio = sender as RadioButton;
-            if (radio == null || !radio.Checked)
+            if (sender is not RadioButton radio || !radio.Checked)
             {
                 return;
             }
 
             if (radioTitle.Checked)
             {
-                setRuleName(RuleNams.窗口标题);
+                SetRuleName(RuleNams.窗口标题);
                 btnSelectProcess.Text = "选择窗口标题";
                 btnSelectProcess.Visible = true;
 
@@ -397,14 +396,14 @@ namespace SmartIme
             }
             else if (radioControl.Checked)
             {
-                setRuleName(RuleNams.控件);
+                SetRuleName(RuleNams.控件);
                 btnSelectProcess.Text = "选择应用控件";
                 btnSelectProcess.Visible = true;
                 SelectControlClass();
             }
             else
             {
-                setRuleName(RuleNams.程序名称);
+                SetRuleName(RuleNams.程序名称);
                 btnSelectProcess.Text = "选择应用程序";
                 txtPattern.Text = AppName;
                 btnSelectProcess.Visible = false;

@@ -8,8 +8,8 @@ namespace SmartIme
 {
     public partial class EditAppRulesForm : Form
     {
-        private AppRuleGroup appRuleGroup;
-        private IEnumerable<object> inputMethods;
+        private readonly AppRuleGroup appRuleGroup;
+        private readonly IEnumerable<object> inputMethods;
         
         public EditAppRulesForm(AppRuleGroup appRuleGroup, IEnumerable<object> inputMethods)
         {
@@ -34,7 +34,7 @@ namespace SmartIme
             lstRules.Items.AddRange(appRuleGroup.Rules.Select(r => r).OrderByDescending(t=>t.Priority).ToArray());
         }
         
-        private void btnAddRule_Click(object sender, EventArgs e)
+        private void BtnAddRule_Click(object sender, EventArgs e)
         {
             using var addRuleForm = new AddRuleForm(inputMethods, 0, appRuleGroup.AppName);
             if (addRuleForm.ShowDialog(this) == DialogResult.OK)
@@ -50,12 +50,11 @@ namespace SmartIme
             }
         }
         
-        private void btnRemoveRule_Click(object sender, EventArgs e)
+        private void BtnRemoveRule_Click(object sender, EventArgs e)
         {
             if (lstRules.SelectedItem != null)
             {
-                var rule = lstRules.SelectedItem as Rule;
-                if (rule != null)
+                if (lstRules.SelectedItem is Rule rule)
                 {
                     appRuleGroup.RemoveRule(rule);
                     RefreshRulesList();
@@ -63,12 +62,11 @@ namespace SmartIme
             }
         }
         
-        private void lstRules_DoubleClick(object sender, EventArgs e)
+        private void LstRules_DoubleClick(object sender, EventArgs e)
         {
             if (lstRules.SelectedItem != null)
             {
-                var rule = lstRules.SelectedItem as Rule;
-                if (rule != null)
+                if (lstRules.SelectedItem is Rule rule)
                 {
                     using var editRuleForm = new EditRuleForm(rule, inputMethods);
                     if (editRuleForm.ShowDialog(this) == DialogResult.OK)

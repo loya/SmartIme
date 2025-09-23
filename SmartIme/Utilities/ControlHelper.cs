@@ -8,7 +8,6 @@ namespace SmartIme.Utilities
 {
     public static class ControlHelper
     {
-        private const uint CWP_SKIPINVISIBLE = 0x0001;
 
         /// <summary>
         /// 获取当前焦点控件的类名
@@ -91,7 +90,7 @@ namespace SmartIme.Utilities
                 if (hWnd != nint.Zero)
                 {
                     var className = new StringBuilder(256);
-                    WinApi.GetClassName(hWnd, className, className.Capacity);
+                    _ = WinApi.GetClassName(hWnd, className, className.Capacity);
                     return className.ToString();
                 }
             }
@@ -111,7 +110,7 @@ namespace SmartIme.Utilities
                 var hWnd = WinApi.GetForegroundWindow();
                 if (hWnd != nint.Zero)
                 {
-                    WinApi.GetWindowThreadProcessId(hWnd, out uint processId);
+                    _ = WinApi.GetWindowThreadProcessId(hWnd, out uint processId);
                     string processName = System.Diagnostics.Process.GetProcessById((int)processId).ProcessName;
                     return processName;
                 }

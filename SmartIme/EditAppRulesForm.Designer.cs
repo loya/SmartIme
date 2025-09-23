@@ -45,7 +45,7 @@ namespace SmartIme
             lstRules.Name = "lstRules";
             lstRules.Size = new Size(419, 276);
             lstRules.TabIndex = 0;
-            lstRules.DoubleClick += lstRules_DoubleClick;
+            lstRules.DoubleClick += LstRules_DoubleClick;
             // 
             // btnAddRule
             // 
@@ -56,7 +56,7 @@ namespace SmartIme
             btnAddRule.TabIndex = 1;
             btnAddRule.Text = "添加规则";
             btnAddRule.UseVisualStyleBackColor = true;
-            btnAddRule.Click += btnAddRule_Click;
+            btnAddRule.Click += BtnAddRule_Click;
             // 
             // btnRemoveRule
             // 
@@ -67,7 +67,7 @@ namespace SmartIme
             btnRemoveRule.TabIndex = 2;
             btnRemoveRule.Text = "删除规则";
             btnRemoveRule.UseVisualStyleBackColor = true;
-            btnRemoveRule.Click += btnRemoveRule_Click;
+            btnRemoveRule.Click += BtnRemoveRule_Click;
             // 
             // btnOK
             // 
