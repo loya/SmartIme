@@ -15,7 +15,7 @@ namespace SmartIme
 
         private System.Windows.Forms.Label lblCurrentIme;
         private System.Windows.Forms.Button btnSwitchIme;
-        private System.Windows.Forms.ListBox lstApps;
+        private System.Windows.Forms.TreeView treeApps;
         private System.Windows.Forms.Button btnAddApp;
         private System.Windows.Forms.Button btnRemoveApp;
         private System.Windows.Forms.ComboBox cmbDefaultIme;
@@ -27,7 +27,7 @@ namespace SmartIme
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             lblCurrentIme = new Label();
             btnSwitchIme = new Button();
-            lstApps = new ListBox();
+            treeApps = new TreeView();
             btnAddApp = new Button();
             btnRemoveApp = new Button();
             cmbDefaultIme = new ComboBox();
@@ -59,17 +59,15 @@ namespace SmartIme
             btnSwitchIme.UseVisualStyleBackColor = true;
             btnSwitchIme.Visible = false;
             // 
-            // lstApps
+            // treeApps
             // 
-            lstApps.Font = new Font("微软雅黑", 11F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            lstApps.FormattingEnabled = true;
-            lstApps.ItemHeight = 20;
-            lstApps.Location = new Point(23, 145);
-            lstApps.Margin = new Padding(4);
-            lstApps.Name = "lstApps";
-            lstApps.Size = new Size(360, 304);
-            lstApps.TabIndex = 2;
-            lstApps.DoubleClick += LstApps_DoubleClick;
+            treeApps.Font = new Font("微软雅黑", 11F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            treeApps.Location = new Point(23, 145);
+            treeApps.Margin = new Padding(4);
+            treeApps.Name = "treeApps";
+            treeApps.Size = new Size(360, 304);
+            treeApps.TabIndex = 2;
+            treeApps.DoubleClick += TreeApps_DoubleClick;
             // 
             // btnAddApp
             // 
@@ -156,7 +154,7 @@ namespace SmartIme
             Controls.Add(btnExit);
             Controls.Add(btnRemoveApp);
             Controls.Add(btnAddApp);
-            Controls.Add(lstApps);
+            Controls.Add(treeApps);
             Controls.Add(btnSwitchIme);
             Controls.Add(lblCurrentIme);
             Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);

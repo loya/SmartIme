@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Timers;
 using SmartIme.Utilities;
@@ -24,7 +25,7 @@ namespace SmartIme
             SetupMonitor();
             SetupTrayIcon();
 
-            lstApps.ItemHeight = (int)(lstApps.Font.Size * 3);
+            // TreeView不需要设置ItemHeight
             
 
             // 绑定事件处理程序
@@ -43,7 +44,7 @@ namespace SmartIme
             // 加载保存的设置
             cmbDefaultIme.SelectedIndex = Properties.Settings.Default.DefaultIme;
             DeserializeRules(Properties.Settings.Default.AppRules);
-            lstApps.DataSource = appRuleGroups;
+            UpdateTreeView();
 
         }
 
@@ -129,7 +130,7 @@ namespace SmartIme
 
                         appRuleGroups.Add(group);
 
-                        //lstApps.Items.Add(group);
+                        //treeApps.Nodes.Add(group);
                     }
                 }
             }
@@ -355,7 +356,7 @@ namespace SmartIme
             // 添加到列表
             foreach (var process in processes)
             {
-                lstProcesses.Items.Add($"{process.ProcessName} - {process.MainWindowTitle}");
+                lstProcesses.Items.Add($"{process.ProcessName} - {process.MainModule?.ModuleName}");
             }
 
             // 显示窗口
@@ -383,10 +384,10 @@ namespace SmartIme
                 // 添加到列表
                 var list = appRuleGroups.ToList();
                 list.Add(newGroup);
-                //lstApps.Items.Add(newGroup);
 
                 var index = list.OrderBy(t => t.AppName).ToList().FindIndex(t => t.AppName == appName);
                 appRuleGroups.Insert(index, newGroup);
+                UpdateTreeView();
                 // 打开编辑窗口
                 using var editAppRulesForm = new EditAppRulesForm(newGroup, cmbDefaultIme.Items.Cast<object>());
                 editAppRulesForm.ShowDialog(this);
@@ -395,26 +396,79 @@ namespace SmartIme
 
         private void BtnRemoveApp_Click(object sender, EventArgs e)
         {
-            if (lstApps.SelectedItem != null)
+            if (treeApps.SelectedNode != null)
             {
-                if (lstApps.SelectedItem is AppRuleGroup group)
+                if (treeApps.SelectedNode.Tag is AppRuleGroup group)
                 {
                     appRuleGroups.Remove(group);
-                    lstApps.DataSource = appRuleGroups;
-                    //lstApps.Items.Remove(group);
+                    UpdateTreeView();
+                }
+                else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
+                {
+                    if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
+                    {
+                        parentGroup.RemoveRule(rule);
+                        UpdateTreeView();
+                    }
                 }
             }
         }
 
-        private void LstApps_DoubleClick(object sender, EventArgs e)
+        private void TreeApps_DoubleClick(object sender, EventArgs e)
         {
-            if (lstApps.SelectedItem != null)
+            if (treeApps.SelectedNode != null)
             {
-                if (lstApps.SelectedItem is AppRuleGroup group)
+                if (treeApps.SelectedNode.Tag is AppRuleGroup group)
                 {
                     using var editAppRulesForm = new EditAppRulesForm(group, cmbDefaultIme.Items.Cast<object>());
                     editAppRulesForm.ShowDialog(this);
+                    UpdateTreeView();
                 }
+                else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
+                {
+                    if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
+                    {
+                        using var editAppRulesForm = new EditAppRulesForm(parentGroup, cmbDefaultIme.Items.Cast<object>());
+                        editAppRulesForm.ShowDialog(this);
+                        UpdateTreeView();
+                    }
+                }
+            }
+        }
+
+        private void UpdateTreeView()
+        {
+            treeApps.Nodes.Clear();
+            
+            foreach (var group in appRuleGroups.OrderBy(g => g.AppName))
+            {
+                var groupNode = new TreeNode(group.DisplayName)
+                {
+                    Tag = group,
+                    ForeColor = Color.DarkBlue  // 应用组节点使用深蓝色
+                };
+                
+                foreach (var rule in group.Rules)
+                {
+                    // 根据规则类型设置不同的颜色
+                    Color ruleColor = rule.Type switch
+                    {
+                        RuleType.Program => Color.Green,  // 程序规则：绿色
+                        RuleType.Title => Color.Orange,   // 窗口标题规则：橙色
+                        RuleType.Control => Color.Purple, // 控件规则：紫色
+                        _ => Color.Black
+                    };
+                    
+                    var ruleNode = new TreeNode($"{rule.Name} ({rule.Type}: {rule.Pattern}) -> {rule.InputMethod}")
+                    {
+                        Tag = rule,
+                        ForeColor = ruleColor
+                    };
+                    groupNode.Nodes.Add(ruleNode);
+                }
+                
+                treeApps.Nodes.Add(groupNode);
+                groupNode.Expand();
             }
         }
 
