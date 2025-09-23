@@ -44,6 +44,21 @@ namespace SmartIme
             // 加载保存的设置
             cmbDefaultIme.SelectedIndex = Properties.Settings.Default.DefaultIme;
             DeserializeRules(Properties.Settings.Default.AppRules);
+            
+            // 恢复窗口大小和位置
+            if (Properties.Settings.Default.WindowSize != System.Drawing.Size.Empty)
+            {
+                this.Size = Properties.Settings.Default.WindowSize;
+            }
+            if (Properties.Settings.Default.WindowLocation != System.Drawing.Point.Empty)
+            {
+                this.Location = Properties.Settings.Default.WindowLocation;
+            }
+            if (Properties.Settings.Default.WindowState != FormWindowState.Minimized)
+            {
+                this.WindowState = Properties.Settings.Default.WindowState;
+            }
+            
             UpdateTreeView();
 
         }
@@ -73,6 +88,20 @@ namespace SmartIme
             // 保存设置
             Properties.Settings.Default.DefaultIme = cmbDefaultIme.SelectedIndex;
             Properties.Settings.Default.AppRules = SerializeRules();
+            
+            // 保存窗口状态
+            if (this.WindowState == FormWindowState.Normal)
+            {
+                Properties.Settings.Default.WindowSize = this.Size;
+                Properties.Settings.Default.WindowLocation = this.Location;
+            }
+            else
+            {
+                Properties.Settings.Default.WindowSize = this.RestoreBounds.Size;
+                Properties.Settings.Default.WindowLocation = this.RestoreBounds.Location;
+            }
+            Properties.Settings.Default.WindowState = this.WindowState;
+            
             Properties.Settings.Default.Save();
 
             monitorTimer.Stop();
