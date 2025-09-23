@@ -41,7 +41,7 @@ namespace SmartIme
             lstRules.FormattingEnabled = true;
             lstRules.ItemHeight = 17;
             lstRules.Location = new Point(14, 41);
-            lstRules.Margin = new Padding(4, 4, 4, 4);
+            lstRules.Margin = new Padding(4);
             lstRules.Name = "lstRules";
             lstRules.Size = new Size(419, 276);
             lstRules.TabIndex = 0;
@@ -50,7 +50,7 @@ namespace SmartIme
             // btnAddRule
             // 
             btnAddRule.Location = new Point(14, 327);
-            btnAddRule.Margin = new Padding(4, 4, 4, 4);
+            btnAddRule.Margin = new Padding(4);
             btnAddRule.Name = "btnAddRule";
             btnAddRule.Size = new Size(88, 33);
             btnAddRule.TabIndex = 1;
@@ -61,7 +61,7 @@ namespace SmartIme
             // btnRemoveRule
             // 
             btnRemoveRule.Location = new Point(108, 327);
-            btnRemoveRule.Margin = new Padding(4, 4, 4, 4);
+            btnRemoveRule.Margin = new Padding(4);
             btnRemoveRule.Name = "btnRemoveRule";
             btnRemoveRule.Size = new Size(88, 33);
             btnRemoveRule.TabIndex = 2;
@@ -73,18 +73,19 @@ namespace SmartIme
             // 
             btnOK.DialogResult = DialogResult.OK;
             btnOK.Location = new Point(252, 327);
-            btnOK.Margin = new Padding(4, 4, 4, 4);
+            btnOK.Margin = new Padding(4);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(88, 33);
             btnOK.TabIndex = 3;
             btnOK.Text = "确定";
             btnOK.UseVisualStyleBackColor = true;
+            btnOK.Click += btnOK_Click;
             // 
             // btnCancel
             // 
             btnCancel.DialogResult = DialogResult.Cancel;
             btnCancel.Location = new Point(346, 327);
-            btnCancel.Margin = new Padding(4, 4, 4, 4);
+            btnCancel.Margin = new Padding(4);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(88, 33);
             btnCancel.TabIndex = 4;
@@ -115,7 +116,7 @@ namespace SmartIme
             Controls.Add(btnAddRule);
             Controls.Add(lstRules);
             FormBorderStyle = FormBorderStyle.FixedDialog;
-            Margin = new Padding(4, 4, 4, 4);
+            Margin = new Padding(4);
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "EditAppRulesForm";

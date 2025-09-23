@@ -16,7 +16,11 @@ namespace SmartIme
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayMenu;
 
-        private const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
+        private readonly JsonSerializerOptions options = new()
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
 
         public MainForm()
         {
@@ -29,7 +33,7 @@ namespace SmartIme
             SetupTrayIcon();
 
             // TreeView不需要设置ItemHeight
-            
+
 
             // 绑定事件处理程序
             btnSwitchIme.Click += BtnSwitchIme_Click;
@@ -47,7 +51,7 @@ namespace SmartIme
             // 加载保存的设置
             cmbDefaultIme.SelectedIndex = Properties.Settings.Default.DefaultIme;
             LoadRulesFromJson();
-            
+
             // 恢复窗口大小和位置
             if (Properties.Settings.Default.WindowSize != System.Drawing.Size.Empty)
             {
@@ -61,7 +65,7 @@ namespace SmartIme
             {
                 this.WindowState = Properties.Settings.Default.WindowState;
             }
-            
+
             UpdateTreeView();
 
         }
@@ -91,7 +95,7 @@ namespace SmartIme
             // 保存设置
             Properties.Settings.Default.DefaultIme = cmbDefaultIme.SelectedIndex;
             //SaveRulesToJson();
-            
+
             // 保存窗口状态
             if (this.WindowState == FormWindowState.Normal)
             {
@@ -104,23 +108,20 @@ namespace SmartIme
                 Properties.Settings.Default.WindowLocation = this.RestoreBounds.Location;
             }
             Properties.Settings.Default.WindowState = this.WindowState;
-            
+
             Properties.Settings.Default.Save();
 
             monitorTimer.Stop();
         }
 
-        private void SaveRulesToJson()
+        public void SaveRulesToJson()
         {
             try
             {
                 string jsonPath = GetRulesJsonPath();
-                var options = new JsonSerializerOptions { 
-                    WriteIndented = true,
-                     Encoder= System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                    };
                 string json = JsonSerializer.Serialize(appRuleGroups, options);
                 File.WriteAllText(jsonPath, json);
+                UpdateTreeView();
             }
             catch (Exception ex)
             {
@@ -136,13 +137,13 @@ namespace SmartIme
                 if (File.Exists(jsonPath))
                 {
                     string json = File.ReadAllText(jsonPath);
-                    var options = new JsonSerializerOptions 
-                    { 
-                        PropertyNameCaseInsensitive = true,
-                        AllowTrailingCommas = true,
-                        WriteIndented = true
-                    };
-                    var loadedGroups = JsonSerializer.Deserialize<List<AppRuleGroup>>(json, options);
+                    // var options = new JsonSerializerOptions 
+                    // { 
+                    //     PropertyNameCaseInsensitive = true,
+                    //     AllowTrailingCommas = true,
+                    //     WriteIndented = true
+                    // };
+                    var loadedGroups = JsonSerializer.Deserialize<List<AppRuleGroup>>(json);
                     if (loadedGroups != null)
                     {
                         appRuleGroups.Clear();
@@ -222,7 +223,9 @@ namespace SmartIme
                 if (processName == lastActiveApp)
                 {
                     controlName = ControlHelper.GetFocusedControlName();
-                    //lblLog.Text = "(1)" + DateTime.Now.ToString() + " " + controlName;
+                    
+                    //todo 未判断应用标题
+
                     if (controlName == lastClassName)
                     {
                         return;
@@ -277,7 +280,7 @@ namespace SmartIme
                             // 两种方式结合确保切换成功
                             InputLanguage.CurrentInputLanguage = lang;
                             IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
-                            WinApi.SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
+                            WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                             lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
 
                             break;
@@ -295,7 +298,7 @@ namespace SmartIme
                         var lang = inputLanguages[cmbDefaultIme.SelectedIndex];
                         InputLanguage.CurrentInputLanguage = lang;
                         IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
-                        WinApi.SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
+                        WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                         lblLog.Text = DateTime.Now.ToString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
                     }
                 }
@@ -333,7 +336,7 @@ namespace SmartIme
             IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
 
             // 0x0029 是切换到下一个输入法的消息
-            WinApi.SendMessage(imeWnd, WM_INPUTLANGCHANGEREQUEST, (IntPtr)0x0029, IntPtr.Zero);
+            WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, (IntPtr)0x0029, IntPtr.Zero);
 
             // 更新显示
             _ = WinApi.GetWindowThreadProcessId(hWnd, out uint threadId);
@@ -406,10 +409,10 @@ namespace SmartIme
                 }
 
                 // 创建新的应用规则组
-                var newGroup = new AppRuleGroup(appName, displayName);
+                var newGroup = new AppRuleGroup(appName, displayName,selectedProcess.MainModule?.FileName);
 
                 // 添加默认规则
-                var defaultRule = new Rule(Rule.CreateDefaultName(appName,RuleNams.程序名称), RuleType.Program, appName, cmbDefaultIme.Text);
+                var defaultRule = new Rule(Rule.CreateDefaultName(appName, RuleNams.程序名称), RuleType.Program, appName, cmbDefaultIme.Text);
                 newGroup.AddRule(defaultRule);
 
                 // 添加到列表
@@ -421,7 +424,7 @@ namespace SmartIme
                 UpdateTreeView();
                 SaveRulesToJson(); // 保存到JSON文件
                 // 打开编辑窗口
-                using var editAppRulesForm = new EditAppRulesForm(newGroup, cmbDefaultIme.Items.Cast<object>());
+                using var editAppRulesForm = new EditAppRulesForm(this,newGroup, cmbDefaultIme.Items.Cast<string>());
                 editAppRulesForm.ShowDialog(this);
             }
         }
@@ -433,7 +436,6 @@ namespace SmartIme
                 if (treeApps.SelectedNode.Tag is AppRuleGroup group)
                 {
                     appRuleGroups.Remove(group);
-                    UpdateTreeView();
                     SaveRulesToJson(); // 保存到JSON文件
                 }
                 else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
@@ -441,7 +443,6 @@ namespace SmartIme
                     if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
                     {
                         parentGroup.RemoveRule(rule);
-                        UpdateTreeView();
                         SaveRulesToJson(); // 保存到JSON文件
                     }
                 }
@@ -454,19 +455,18 @@ namespace SmartIme
             {
                 if (treeApps.SelectedNode.Tag is AppRuleGroup group)
                 {
-                    using var editAppRulesForm = new EditAppRulesForm(group, cmbDefaultIme.Items.Cast<object>());
+                    using var editAppRulesForm = new EditAppRulesForm(this,group, cmbDefaultIme.Items.Cast<string>());
                     editAppRulesForm.ShowDialog(this);
-                    UpdateTreeView();
-                    SaveRulesToJson(); // 保存到JSON文件
+                    //SaveRulesToJson(); // 保存到JSON文件
                 }
                 else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
                 {
                     if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
                     {
-                        using var editAppRulesForm = new EditAppRulesForm(parentGroup, cmbDefaultIme.Items.Cast<object>());
+                        using var editAppRulesForm = new EditAppRulesForm(this,parentGroup, cmbDefaultIme.Items.Cast<string>());
                         editAppRulesForm.ShowDialog(this);
-                        UpdateTreeView();
-                        SaveRulesToJson(); // 保存到JSON文件
+                        
+                        //SaveRulesToJson(); // 保存到JSON文件
                     }
                 }
             }
@@ -475,7 +475,7 @@ namespace SmartIme
         private void UpdateTreeView()
         {
             treeApps.Nodes.Clear();
-            
+
             foreach (var group in appRuleGroups.OrderBy(g => g.AppName))
             {
                 var groupNode = new TreeNode(group.DisplayName)
@@ -483,9 +483,9 @@ namespace SmartIme
                     Tag = group,
                     NodeFont = new Font(treeApps.Font, FontStyle.Bold),
                     ForeColor = Color.DarkOrange  // 应用组节点使用深蓝色
-                    
+
                 };
-                
+
                 foreach (var rule in group.Rules)
                 {
                     // 根据规则类型设置不同的颜色
@@ -496,15 +496,15 @@ namespace SmartIme
                         RuleType.Control => Color.DeepSkyBlue, // 控件规则：紫色
                         _ => Color.Black
                     };
-                    
-                    var ruleNode = new TreeNode($"{rule.Name} ({rule.Pattern}) -> {rule.InputMethod}")
+
+                    var ruleNode = new TreeNode(rule.ToString())
                     {
                         Tag = rule,
                         ForeColor = ruleColor
                     };
                     groupNode.Nodes.Add(ruleNode);
                 }
-                
+
                 treeApps.Nodes.Add(groupNode);
                 groupNode.Expand();
             }

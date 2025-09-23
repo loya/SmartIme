@@ -13,7 +13,7 @@ namespace SmartIme
     {
         public Rule EditedRule { get; private set; }
 
-        public EditRuleForm(Rule rule, IEnumerable<object> imeList)
+        public EditRuleForm(Rule rule, IEnumerable<string> imeList)
         {
             InitializeComponent();
             EditedRule = rule;

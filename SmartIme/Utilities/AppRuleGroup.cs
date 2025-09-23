@@ -3,7 +3,7 @@ namespace SmartIme.Utilities
     /// <summary>
     /// 应用规则组，包含一个应用的多个规则
     /// </summary>
-    public class AppRuleGroup(string appName, string displayName = null)
+    public class AppRuleGroup(string appName, string displayName = null,string appPath=null)
     {
         /// <summary>
         /// 应用名称
@@ -14,6 +14,11 @@ namespace SmartIme.Utilities
         /// 应用显示名称
         /// </summary>
         public string DisplayName { get; set; } = displayName ?? appName;
+
+        /// <summary>
+        /// 应用路径
+        /// </summary>
+        public string AppPath { get; set; }=appPath;
 
         /// <summary>
         /// 应用图标路径（可选）

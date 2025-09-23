@@ -123,7 +123,7 @@ namespace SmartIme.Utilities
         public const int WM_XBUTTONDOWN = 0x020B;
         public const int WM_XBUTTONUP = 0x020C;
         public const int WM_MOUSEHWHEEL = 0x020E;
-
+        public const uint WM_INPUTLANGCHANGEREQUEST = 0x0050;
         public const uint CWP_ALL = 0x0000;
         public const uint CWP_SKIPINVISIBLE = 0x0001;
 

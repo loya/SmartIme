@@ -53,7 +53,7 @@ namespace SmartIme
 
             if (radioTitle.Checked)
             {
-                SetRuleName(RuleNams.窗口标题);
+                txtName.Text = Rule.CreateDefaultName(AppName, RuleNams.窗口标题);
                 btnSelectProcess.Text = "选择窗口标题";
                 btnSelectProcess.Visible = true;
 
@@ -72,15 +72,15 @@ namespace SmartIme
             }
             else if (radioControl.Checked)
             {
-                SetRuleName(RuleNams.控件);
-                btnSelectProcess.Text = "选择应用控件";
+                txtName.Text = Rule.CreateDefaultName(AppName, RuleNams.控件);
+                btnSelectProcess.Text = "选择窗口控件";
                 btnSelectProcess.Visible = true;
                 txtPattern.Text = "";
                 SelectControlClass();
             }
             else
             {
-                SetRuleName(RuleNams.程序名称);
+                txtName.Text = Rule.CreateDefaultName(AppName, RuleNams.窗口标题);
                 btnSelectProcess.Text = "选择应用程序";
                 txtPattern.Text = AppName;
                 btnSelectProcess.Visible = false;
@@ -178,7 +178,7 @@ namespace SmartIme
             WinApi.GetCursorPos(out Point cursorPos);
             IntPtr hwndUnderCursor = WinApi.WindowFromPoint(cursorPos);
 
-            
+
 
             // 检查鼠标下的窗口是否是本应用窗口
             uint processId;
@@ -250,17 +250,17 @@ namespace SmartIme
                         // 获取鼠标位置
                         var hookStruct = (WinApi.MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(WinApi.MSLLHOOKSTRUCT));
                         Point mousePos = new Point(hookStruct.pt.x, hookStruct.pt.y);
-                        
+
                         // 获取鼠标下的窗口句柄
                         IntPtr hwndUnderCursor = WinApi.WindowFromPoint(mousePos);
-                        
+
                         // 检查是否是本应用窗口
                         if (hwndUnderCursor != IntPtr.Zero)
                         {
                             uint processId;
                             WinApi.GetWindowThreadProcessId(hwndUnderCursor, out processId);
                             var processUnderCursor = Process.GetProcessById((int)processId);
-                            
+
                             // 如果是本应用窗口，清除边框并返回
                             if (processUnderCursor.ProcessName == Process.GetCurrentProcess().ProcessName)
                             {
@@ -268,14 +268,14 @@ namespace SmartIme
                                 return WinApi.CallNextHookEx(hookId, nCode, wParam, lParam);
                             }
                         }
-                        
+
                         // 绘制或清除边框
                         DrawControlBorder(hwndUnderCursor);
                     }
                 }
                 return WinApi.CallNextHookEx(hookId, nCode, wParam, lParam);
             }
-            
+
             private void DrawControlBorder(IntPtr hwnd)
             {
                 // 如果当前有边框的控件不是当前控件，先清除旧边框
@@ -283,7 +283,7 @@ namespace SmartIme
                 {
                     ClearControlBorder(lastHwndWithBorder);
                 }
-                
+
                 // 如果传入空句柄，只清除旧边框
                 if (hwnd == IntPtr.Zero)
                 {
@@ -294,54 +294,54 @@ namespace SmartIme
                     }
                     return;
                 }
-                
 
-                
+
+
                 // 获取控件矩形
                 WinApi.RECT rect;
                 WinApi.GetWindowRect(hwnd, out rect);
-                
+
                 // 创建绘图设备上下文
                 IntPtr hdc = WinApi.GetWindowDC(hwnd);
-                
+
                 // 创建红色画笔
-                IntPtr redPen = WinApi.CreatePen(WinApi.PS_SOLID, 2, 0x0000FF);
+                IntPtr redPen = WinApi.CreatePen(WinApi.PS_SOLID, 6, 0x0000FF);
                 IntPtr oldPen = WinApi.SelectObject(hdc, redPen);
-                
+
                 // 绘制矩形边框
                 WinApi.SelectObject(hdc, WinApi.GetStockObject(WinApi.NULL_BRUSH));
                 WinApi.Rectangle(hdc, 0, 0, rect.right - rect.left, rect.bottom - rect.top);
-                
+
                 // 恢复原有对象并释放资源
                 WinApi.SelectObject(hdc, oldPen);
                 WinApi.DeleteObject(redPen);
                 WinApi.ReleaseDC(hwnd, hdc);
-                
+
                 // 更新最后有边框的控件
                 lastHwndWithBorder = hwnd;
             }
-            
+
             private void ClearControlBorder(IntPtr hwnd)
             {
                 if (hwnd == IntPtr.Zero) return;
-                
+
                 // 使控件区域无效，触发系统重绘
                 WinApi.InvalidateRect(hwnd, IntPtr.Zero, true);
-                
+
                 // 更新窗口
                 WinApi.UpdateWindow(hwnd);
             }
-            
+
             private bool IsInputControl(IntPtr hwnd)
             {
                 if (hwnd == IntPtr.Zero) return false;
-                
+
                 // 获取控件类名
                 StringBuilder className = new StringBuilder(256);
                 WinApi.GetClassName(hwnd, className, className.Capacity);
-                
+
                 string classNameStr = className.ToString();
-                
+
                 // 常见输入控件类名
                 string[] inputControlClasses = new string[]
                 {
@@ -371,7 +371,7 @@ namespace SmartIme
                     "WebView2Control",             // WebView2控件
                     "WPFWebView2Control"           // WPF WebView2控件
                 };
-                
+
                 // 检查是否为输入控件
                 return inputControlClasses.Contains(classNameStr);
             }
