@@ -5,13 +5,13 @@ using System.Text;
 
 namespace SmartIme.Utilities
 {
-    internal static class WinApi
+    internal static partial class WinApi
     {
         // Input Method APIs
         [DllImport("imm32.dll")]
         public static extern nint ImmGetDefaultIMEWnd(nint hWnd);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern nint SendMessage(nint hWnd, uint Msg, nint wParam, nint lParam);
 
         // Window and Process APIs
@@ -71,8 +71,46 @@ namespace SmartIme.Utilities
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern nint GetModuleHandle(string lpModuleName);
 
+        // GDI APIs for drawing
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetWindowRect(nint hWnd, out RECT lpRect);
+
+        [DllImport("user32.dll")]
+        public static extern nint GetWindowDC(nint hWnd);
+
+        [DllImport("gdi32.dll")]
+        public static extern nint CreatePen(int fnPenStyle, int nWidth, uint crColor);
+
+        [DllImport("gdi32.dll")]
+        public static extern nint SelectObject(nint hdc, nint hgdiobj);
+
+        [DllImport("gdi32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool Rectangle(nint hdc, int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
+
+        [DllImport("gdi32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool DeleteObject(nint hObject);
+
+        [DllImport("user32.dll")]
+        public static extern int ReleaseDC(nint hWnd, nint hDC);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool InvalidateRect(nint hWnd, IntPtr lpRect, [MarshalAs(UnmanagedType.Bool)] bool bErase);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool UpdateWindow(nint hWnd);
+
+        [DllImport("gdi32.dll")]
+        public static extern nint GetStockObject(int fnObject);
+
         // Constants        
         public const int SW_RESTORE = 9;
+        public const int PS_SOLID = 0;
+        public const int NULL_BRUSH = 5;
         public const int WH_MOUSE_LL = 14;
         public const int WM_MOUSEMOVE = 0x0200;
         public const int WM_LBUTTONDOWN = 0x0201;
@@ -108,6 +146,15 @@ namespace SmartIme.Utilities
             public uint flags;
             public uint time;
             public nint dwExtraInfo;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
         }
     }
 }
