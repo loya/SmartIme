@@ -50,6 +50,7 @@ namespace SmartIme
             // 
             // btnSwitchIme
             // 
+            btnSwitchIme.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnSwitchIme.Location = new Point(200, 97);
             btnSwitchIme.Margin = new Padding(4);
             btnSwitchIme.Name = "btnSwitchIme";
@@ -61,42 +62,47 @@ namespace SmartIme
             // 
             // treeApps
             // 
+            treeApps.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             treeApps.Font = new Font("微软雅黑", 11F, FontStyle.Regular, GraphicsUnit.Point, 134);
             treeApps.Location = new Point(23, 145);
             treeApps.Margin = new Padding(4);
             treeApps.Name = "treeApps";
-            treeApps.Size = new Size(360, 304);
+            treeApps.ShowNodeToolTips = true;
+            treeApps.Size = new Size(569, 520);
             treeApps.TabIndex = 2;
             treeApps.DoubleClick += TreeApps_DoubleClick;
             // 
             // btnAddApp
             // 
-            btnAddApp.Location = new Point(36, 502);
+            btnAddApp.Anchor = AnchorStyles.Bottom;
+            btnAddApp.Location = new Point(171, 701);
             btnAddApp.Margin = new Padding(4);
             btnAddApp.Name = "btnAddApp";
-            btnAddApp.Size = new Size(93, 42);
+            btnAddApp.Size = new Size(93, 44);
             btnAddApp.TabIndex = 3;
             btnAddApp.Text = "添加应用";
             btnAddApp.UseVisualStyleBackColor = true;
             // 
             // btnRemoveApp
             // 
-            btnRemoveApp.Location = new Point(152, 502);
+            btnRemoveApp.Anchor = AnchorStyles.Bottom;
+            btnRemoveApp.Location = new Point(272, 701);
             btnRemoveApp.Margin = new Padding(4);
             btnRemoveApp.Name = "btnRemoveApp";
-            btnRemoveApp.Size = new Size(93, 42);
+            btnRemoveApp.Size = new Size(93, 44);
             btnRemoveApp.TabIndex = 4;
             btnRemoveApp.Text = "移除应用";
             btnRemoveApp.UseVisualStyleBackColor = true;
             // 
             // cmbDefaultIme
             // 
+            cmbDefaultIme.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             cmbDefaultIme.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbDefaultIme.FormattingEnabled = true;
             cmbDefaultIme.Location = new Point(149, 68);
             cmbDefaultIme.Margin = new Padding(4);
             cmbDefaultIme.Name = "cmbDefaultIme";
-            cmbDefaultIme.Size = new Size(182, 25);
+            cmbDefaultIme.Size = new Size(443, 25);
             cmbDefaultIme.TabIndex = 5;
             // 
             // label1
@@ -123,8 +129,9 @@ namespace SmartIme
             // 
             // lblLog
             // 
+            lblLog.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lblLog.AutoSize = true;
-            lblLog.Location = new Point(23, 472);
+            lblLog.Location = new Point(23, 677);
             lblLog.Margin = new Padding(4, 0, 4, 0);
             lblLog.Name = "lblLog";
             lblLog.Size = new Size(43, 17);
@@ -133,10 +140,11 @@ namespace SmartIme
             // 
             // btnExit
             // 
-            btnExit.Location = new Point(263, 502);
+            btnExit.Anchor = AnchorStyles.Bottom;
+            btnExit.Location = new Point(373, 701);
             btnExit.Margin = new Padding(4);
             btnExit.Name = "btnExit";
-            btnExit.Size = new Size(93, 42);
+            btnExit.Size = new Size(93, 44);
             btnExit.TabIndex = 4;
             btnExit.Text = "退   出";
             btnExit.UseVisualStyleBackColor = true;
@@ -146,7 +154,7 @@ namespace SmartIme
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(410, 577);
+            ClientSize = new Size(615, 769);
             Controls.Add(lblLog);
             Controls.Add(label2);
             Controls.Add(label1);
