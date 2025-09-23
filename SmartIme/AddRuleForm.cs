@@ -85,8 +85,8 @@ namespace SmartIme
                 Width = 400,
                 Height = 200,
                 ShowInTaskbar = false,
-                TopMost= true,
-                
+                TopMost = true,
+
             };
 
             var lblInstruction = new Label()
@@ -106,12 +106,12 @@ namespace SmartIme
                 if (targetProcess != null)
                 {
 
-                    if (IsIconic(targetProcess.MainWindowHandle))
+                    if (WinApi.IsIconic(targetProcess.MainWindowHandle))
                     {
-                        ShowWindow(targetProcess.MainWindowHandle, SW_RESTORE);
+                        WinApi.ShowWindow(targetProcess.MainWindowHandle, WinApi.SW_RESTORE);
                     }
 
-                    SetForegroundWindow(targetProcess.MainWindowHandle);
+                    WinApi.SetForegroundWindow(targetProcess.MainWindowHandle);
                 }
             }
             // 设置鼠标钩子
@@ -147,7 +147,7 @@ namespace SmartIme
                 selectedControlClass = ControlHelper.GetFocusedControlName();
                 mouseClicked = true;
                 selectForm.Close();
-                SetForegroundWindow(this.Handle); // 恢复主窗口的焦点
+                WinApi.SetForegroundWindow(this.Handle); // 恢复主窗口的焦点
                 //if (activateWindowText != AppName)
                 //{
                 //    MessageBox.Show($"选择控件的窗口不是目标窗口，请重新选择;【{activateWindowText}】！=【{AppName}】");
@@ -161,20 +161,14 @@ namespace SmartIme
             }
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        public struct POINT
-        {
-            public int x;
-            public int y;
-        }
+
 
 
 
         private class MouseHook : IDisposable
         {
-            private const int WH_MOUSE_LL = 14;
             private readonly IntPtr hookId = IntPtr.Zero;
-            private readonly NativeMethods.HookProc proc;
+            private readonly WinApi.HookProc proc;
 
             public event MouseEventHandler MouseClick;
 
@@ -184,78 +178,29 @@ namespace SmartIme
                 hookId = SetHook(proc);
             }
 
-            private static IntPtr SetHook(NativeMethods.HookProc proc)
+            private static IntPtr SetHook(WinApi.HookProc proc)
             {
                 using var curModule = Process.GetCurrentProcess().MainModule;
-                return SetWindowsHookEx(WH_MOUSE_LL, proc,
-                    GetModuleHandle(curModule.ModuleName), 0);
+                return WinApi.SetWindowsHookEx(WinApi.WH_MOUSE_LL, proc,
+                    WinApi.GetModuleHandle(curModule.ModuleName), 0);
             }
 
             private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
             {
-                if (nCode >= 0 && wParam == (IntPtr)WM_LBUTTONDOWN)
+                if (nCode >= 0 && wParam == (IntPtr)WinApi.WM_LBUTTONDOWN)
                 {
-                    var hookStruct = (NativeMethods.MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(NativeMethods.MSLLHOOKSTRUCT));
+                    var hookStruct = (WinApi.MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(WinApi.MSLLHOOKSTRUCT));
                     MouseClick?.Invoke(this, new MouseEventArgs(MouseButtons.Left, 1,
                         hookStruct.pt.x, hookStruct.pt.y, 0));
                 }
-                return CallNextHookEx(hookId, nCode, wParam, lParam);
+                return WinApi.CallNextHookEx(hookId, nCode, wParam, lParam);
             }
 
             public void Dispose()
             {
-                UnhookWindowsHookEx(hookId);
+                WinApi.UnhookWindowsHookEx(hookId);
             }
         }
-
-        private static class NativeMethods
-        {
-            public delegate IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam);
-
-            [StructLayout(LayoutKind.Sequential)]
-            public struct POINT
-            {
-                public int x;
-                public int y;
-            }
-
-            [StructLayout(LayoutKind.Sequential)]
-            public struct MSLLHOOKSTRUCT
-            {
-                public POINT pt;
-                public uint mouseData;
-                public uint flags;
-                public uint time;
-                public IntPtr dwExtraInfo;
-            }
-        }
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr SetWindowsHookEx(int idHook,
-            NativeMethods.HookProc lpfn, IntPtr hMod, uint dwThreadId);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode,
-            IntPtr wParam, IntPtr lParam);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr GetModuleHandle(string lpModuleName);
-
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        [DllImport("user32.dll")]
-        private static extern bool IsIconic(IntPtr hWnd);
-
-        private const int WM_LBUTTONDOWN = 0x0201;
-        private const int SW_RESTORE = 9;
 
         private void ShowProcessSelection()
         {

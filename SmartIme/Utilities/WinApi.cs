@@ -71,7 +71,8 @@ namespace SmartIme.Utilities
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern nint GetModuleHandle(string lpModuleName);
 
-        // Constants
+        // Constants        
+        public const int SW_RESTORE = 9;
         public const int WH_MOUSE_LL = 14;
         public const int WM_MOUSEMOVE = 0x0200;
         public const int WM_LBUTTONDOWN = 0x0201;
