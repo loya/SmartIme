@@ -303,6 +303,8 @@ namespace SmartIme
                     return;
                 }
                 
+
+                
                 // 获取控件矩形
                 WinApi.RECT rect;
                 WinApi.GetWindowRect(hwnd, out rect);
@@ -336,6 +338,50 @@ namespace SmartIme
                 
                 // 更新窗口
                 WinApi.UpdateWindow(hwnd);
+            }
+            
+            private bool IsInputControl(IntPtr hwnd)
+            {
+                if (hwnd == IntPtr.Zero) return false;
+                
+                // 获取控件类名
+                StringBuilder className = new StringBuilder(256);
+                WinApi.GetClassName(hwnd, className, className.Capacity);
+                
+                string classNameStr = className.ToString();
+                
+                // 常见输入控件类名
+                string[] inputControlClasses = new string[]
+                {
+                    "Edit",          // 标准文本框
+                    "RichEdit",      // 富文本框
+                    "ComboBox",      // 组合框
+                    "ListBox",       // 列表框
+                    "RichEdit20W",   // Word富文本框
+                    "RICHEDIT50W",   // 新版富文本框
+                    "TEdit",         // Delphi文本框
+                    "TMemo",         // Delphi多行文本框
+                    "TComboBox",     // Delphi组合框
+                    "TListBox",      // Delphi列表框
+                    "TextBox",       // WPF文本框
+                    "PasswordBox",   // WPF密码框
+                    "RichTextBox",   // WPF富文本框
+                    "ComboBox",      // WPF组合框
+                    "ListBox",       // WPF列表框
+                    "Chrome_RenderWidgetHostHWND", // Chrome浏览器输入框
+                    "MozillaWindowClass",          // Firefox浏览器输入框
+                    "Internet Explorer_Server",     // IE浏览器输入框
+                    "EdgeTabWindowClass",          // Edge浏览器输入框
+                    "Chrome_WidgetWin_1",          // Chrome应用输入框
+                    "ElectronNSWindow",            // Electron应用窗口
+                    "Windows.UI.Input.InputSite",  // UWP应用输入控件
+                    "XamlWebView2",                // WinUI WebView2
+                    "WebView2Control",             // WebView2控件
+                    "WPFWebView2Control"           // WPF WebView2控件
+                };
+                
+                // 检查是否为输入控件
+                return inputControlClasses.Contains(classNameStr);
             }
 
             public void Dispose()
