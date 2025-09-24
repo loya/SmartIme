@@ -653,6 +653,9 @@ namespace SmartIme
             
             Point displayPos = GetBestFloatingHintPosition();
             
+            // 验证和调整坐标
+            displayPos = ValidateAndAdjustPosition(displayPos);
+            
             FloatingHintForm hintForm = new FloatingHintForm(color, imeName);
             hintForm.StartPosition = FormStartPosition.Manual;
             hintForm.Location = displayPos;
@@ -666,12 +669,103 @@ namespace SmartIme
             Point? caretPosition = GetCaretPositionFromActiveWindow();
             if (caretPosition.HasValue)
             {
-                if(caretPosition.Value!= Point.Empty)
+                if(caretPosition.Value != Point.Empty)
                     return new Point(caretPosition.Value.X + 5, caretPosition.Value.Y - 40);
             }
             
             Point cursorPos = Cursor.Position;
             return new Point(cursorPos.X + 15, cursorPos.Y - 40);
+        }
+
+        private Point ValidateAndAdjustPosition(Point position)
+        {
+            // 获取屏幕边界
+            Rectangle screenBounds = Screen.PrimaryScreen.Bounds;
+            
+            // 获取浮动提示窗口的预估尺寸
+            int hintWidth = 120;
+            int hintHeight = 40;
+            
+            // 记录原始坐标
+            Point originalPosition = position;
+            
+            // 获取当前活动窗口信息
+            IntPtr foregroundWindow = WinApi.GetForegroundWindow();
+            if (foregroundWindow != IntPtr.Zero)
+            {
+                string windowTitle = GetWindowTitle(foregroundWindow);
+                WinApi.GetWindowRect(foregroundWindow, out WinApi.RECT windowRect);
+                
+                // 检查窗口是否有效（非零尺寸）
+                bool isWindowValid = !(windowRect.left == 0 && windowRect.top == 0 && 
+                                     windowRect.right == 0 && windowRect.bottom == 0);
+                
+                // 记录窗口信息用于调试到文件
+                LogToFile($"活动窗口: {windowTitle}, 位置: [{windowRect.left},{windowRect.top}-{windowRect.right},{windowRect.bottom}], 有效: {isWindowValid}");
+                LogToFile($"原始坐标: {originalPosition}");
+                
+                // 检查坐标是否在当前活动窗口内（仅当窗口有效时）
+                if (isWindowValid && 
+                    windowRect.left <= position.X && position.X <= windowRect.right &&
+                    windowRect.top <= position.Y && position.Y <= windowRect.bottom)
+                {
+                    LogToFile($"坐标在有效活动窗口内，保持原位置: {position}");
+                    return position;
+                }
+                
+                // 如果窗口无效，使用原始坐标但进行屏幕边界检查
+                if (!isWindowValid)
+                {
+                    LogToFile($"活动窗口无效，使用原始坐标并进行屏幕边界检查");
+                }
+                else
+                {
+                    LogToFile($"坐标不在活动窗口内，使用原始坐标并进行屏幕边界检查");
+                }
+            }
+            else
+            {
+                LogToFile($"无法获取活动窗口，使用原始坐标并进行屏幕边界检查");
+            }
+            
+            // 屏幕边界检查
+            Point adjustedPosition = originalPosition;
+            
+            // 检查坐标是否在屏幕范围内
+            if (adjustedPosition.X < screenBounds.Left)
+            {
+                adjustedPosition.X = screenBounds.Left + 10;
+            }
+            else if (adjustedPosition.X + hintWidth > screenBounds.Right)
+            {
+                adjustedPosition.X = screenBounds.Right - hintWidth - 10;
+            }
+            
+            if (adjustedPosition.Y < screenBounds.Top)
+            {
+                adjustedPosition.Y = screenBounds.Top + 10;
+            }
+            else if (adjustedPosition.Y + hintHeight > screenBounds.Bottom)
+            {
+                adjustedPosition.Y = screenBounds.Bottom - hintHeight - 10;
+            }
+            
+            LogToFile($"最终调整坐标: {adjustedPosition}");
+            return adjustedPosition;
+        }
+
+        private void LogToFile(string message)
+        {
+            try
+            {
+                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "position_debug.log");
+                string logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{Environment.NewLine}";
+                File.AppendAllText(logPath, logMessage);
+            }
+            catch
+            {
+                // 忽略日志写入错误
+            }
         }
 
         private Point? TryGetCaretPositionWithRetry(IntPtr hWnd)
@@ -763,28 +857,68 @@ namespace SmartIme
         {
             try
             {
+                // 方法1: 使用标准的ClientToScreen API
                 Point screenPoint = clientPoint;
                 if (WinApi.ClientToScreen(hWnd, ref screenPoint))
                 {
+                    lblLog.Text += $" 方法1成功: ({screenPoint.X},{screenPoint.Y})";
                     return screenPoint;
                 }
-                
+
+                // 方法2: 使用POINT结构体的ClientToScreen
                 WinApi.POINT point = new WinApi.POINT { x = clientPoint.X, y = clientPoint.Y };
                 if (WinApi.ClientToScreen(hWnd, ref point))
                 {
+                    lblLog.Text += $" 方法2成功: ({point.x},{point.y})";
                     return new Point(point.x, point.y);
                 }
-                
+
+                // 方法3: 手动计算窗口位置 + 客户端坐标
                 if (WinApi.GetWindowRect(hWnd, out WinApi.RECT windowRect))
                 {
-                    return new Point(windowRect.left + clientPoint.X, windowRect.top + clientPoint.Y);
+                    Point manualPoint = new Point(windowRect.left + clientPoint.X, windowRect.top + clientPoint.Y);
+                    lblLog.Text += $" 方法3: 手动计算({manualPoint.X},{manualPoint.Y})";
+                    
+                    // 验证坐标是否在屏幕范围内
+                    if (IsPointOnScreen(manualPoint))
+                    {
+                        return manualPoint;
+                    }
+                    else
+                    {
+                        lblLog.Text += " 坐标超出屏幕范围";
+                    }
+                }
+
+                // 方法4: 如果插入符窗口不是目标窗口，尝试获取焦点窗口
+                IntPtr focusWnd = WinApi.GetFocus();
+                if (focusWnd != hWnd && focusWnd != IntPtr.Zero)
+                {
+                    lblLog.Text += $" 尝试焦点窗口: {focusWnd}";
+                    return ConvertClientToScreen(focusWnd, clientPoint);
+                }
+
+                // 方法5: 使用鼠标位置作为备选方案
+                if (WinApi.GetCursorPos(out Point cursorPos))
+                {
+                    lblLog.Text += $" 使用鼠标位置: ({cursorPos.X},{cursorPos.Y})";
+                    return cursorPos;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                lblLog.Text += $" 坐标转换异常: {ex.Message}";
             }
             
             return null;
+        }
+
+        private bool IsPointOnScreen(Point point)
+        {
+            // 检查坐标是否在屏幕范围内
+            return point.X >= 0 && point.Y >= 0 && 
+                   point.X <= Screen.PrimaryScreen.Bounds.Width && 
+                   point.Y <= Screen.PrimaryScreen.Bounds.Height;
         }
         
         private string GetWindowTitle(IntPtr hWnd)
