@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using System.Drawing.Printing;
 
 namespace SmartIme
 {
@@ -14,19 +15,7 @@ namespace SmartIme
         [DllImport("user32.dll")]
         static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
-        private void InitializeComponent()
-        {
-            SuspendLayout();
-            // 
-            // FloatingHintForm
-            // 
-            // ClientSize = new Size(80, 80);
-            FormBorderStyle = FormBorderStyle.None;
-            Name = "FloatingHintForm";
-            //ResumeLayout(false);
-        }
 
-        
 
         private readonly Color hintColor;
         private readonly string imeName;
@@ -35,6 +24,10 @@ namespace SmartIme
         {
             hintColor = color;
             imeName = name;
+            this.Load += (sender, e) =>
+            {
+                
+            };
             InitializeForm();
         }
 
@@ -42,15 +35,13 @@ namespace SmartIme
         {
             // 窗体设置
             this.FormBorderStyle = FormBorderStyle.None;
-            //this.Size = new Size(60, 60); // 增大窗口尺寸
+            this.AutoSize = false;
             this.MinimumSize = Size.Empty;
-            Size = new Size(80, 30);
-            ClientSize=new Size(80, 30);
+            this.ClientSize = new Size(80, 30); // 设置客户区大小
+            this.Size = this.ClientSize; // 强制设置窗口尺寸
             this.ShowInTaskbar = false;
             this.TopMost = true;
             this.BackColor = Color.Black; // 设置背景色为黑色
-            //this.Width = ClientSize.Width;
-            //this.Height = ClientSize.Height;
 
             // 添加绘制事件
             this.Paint += FloatingHintForm_Paint;
@@ -62,7 +53,7 @@ namespace SmartIme
         private async Task AutoCloseFormAsync()
         {
             // 等待1秒后自动关闭窗口
-            await Task.Delay(500);
+            await Task.Delay(800);
             
             // 在UI线程中安全关闭窗口
             if (this.InvokeRequired)
@@ -81,9 +72,11 @@ namespace SmartIme
             
             // 设置窗口透明度
             this.Opacity = 0.6;
+            Width = 90;
+            Height = 30;
             
-            // 创建圆角效果
-            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 12, 12));
+            // 创建圆角效果（使用客户区尺寸）
+            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.ClientSize.Width, this.ClientSize.Height, 8, 8));
         }
         
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
@@ -100,7 +93,7 @@ namespace SmartIme
             // 绘制半透明黑色背景
             using (Brush bgBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0))) // 40% 透明黑色
             {
-                g.FillRectangle(bgBrush, 0, 0, this.Width, this.Height);
+                g.FillRectangle(bgBrush, 0, 0, this.ClientSize.Width, this.ClientSize.Height);
             }
 
             // 圆角边框由Region处理，不需要额外绘制
@@ -108,21 +101,21 @@ namespace SmartIme
             // 绘制颜色指示圆
             using (Brush colorBrush = new SolidBrush(hintColor))
             {
-                g.FillEllipse(colorBrush, 10, 10, 12, 12);
+                g.FillEllipse(colorBrush, 10, 8, 12, 12);
             }
 
             // 绘制边框
             using (Pen borderPen = new Pen(Color.White, 1))
             {
-                g.DrawEllipse(borderPen, 10, 10, 12, 12);
+                g.DrawEllipse(borderPen, 10, 8, 12, 12);
             }
 
             // 绘制输入法名称
-            using (Font font = new Font("微软雅黑", 9, FontStyle.Bold))
+            using (Font font = new Font("微软雅黑", 8, FontStyle.Bold))
             using (Brush textBrush = new SolidBrush(Color.White))
             {
                 string displayName = imeName.Length > 8 ? imeName.Substring(0, 6) + "..." : imeName;
-                g.DrawString(displayName, font, textBrush, 30, 8);
+                g.DrawString(displayName, font, textBrush, 28, 8);
             }
 
             // 绘制颜色名称

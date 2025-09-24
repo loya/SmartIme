@@ -81,7 +81,6 @@ namespace SmartIme
             // 初始化光标颜色配置
             InitializeCursorColorConfig();
             UpdateTreeView();
-
         }
 
         private void SetupTrayIcon()
@@ -714,7 +713,7 @@ namespace SmartIme
             hintForm.StartPosition = FormStartPosition.Manual;
             
             // 将窗口位置设置在光标右下方
-            hintForm.Location = new Point(cursorPos.X + 5, cursorPos.Y + 5);
+            hintForm.Location = new Point(cursorPos.X + 5, cursorPos.Y - 40); 
             
             // 异步显示窗口（1秒后会自动关闭）
             hintForm.Show();
