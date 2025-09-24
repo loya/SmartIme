@@ -28,6 +28,9 @@ namespace SmartIme
         private Dictionary<string, Color> imeColors = new();
         private string currentImeName = "";
         private const int SPI_SETCURSOR = 0x0057;
+        
+        // 跟踪当前打开的浮动提示窗口
+        private FloatingHintForm currentHintForm = null;
         private const int SPIF_UPDATEINIFILE = 0x01;
         private const int SPIF_SENDCHANGE = 0x02;
 
@@ -705,6 +708,14 @@ namespace SmartIme
                 return;
             }
             
+            // 先关闭已存在的提示窗口
+            if (currentHintForm != null && !currentHintForm.IsDisposed)
+            {
+                currentHintForm.Close();
+                currentHintForm.Dispose();
+                currentHintForm = null;
+            }
+            
             // 获取当前光标位置
             Point cursorPos = Cursor.Position;
             
@@ -713,10 +724,15 @@ namespace SmartIme
             hintForm.StartPosition = FormStartPosition.Manual;
             
             // 将窗口位置设置在光标右下方
-            hintForm.Location = new Point(cursorPos.X + 5, cursorPos.Y - 40); 
-            
+            hintForm.Location = new Point(cursorPos.X + 5, cursorPos.Y - 40);
+
             // 异步显示窗口（1秒后会自动关闭）
+            if (imeName == currentImeName)
+                return;
             hintForm.Show();
+            
+            // 保存当前提示窗口引用
+            currentHintForm = hintForm;
         }
 
         private void UpdateTrayIconColor(Color color)
