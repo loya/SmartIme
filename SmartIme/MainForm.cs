@@ -40,12 +40,10 @@ namespace SmartIme
             InitializeImeList();
             CheckForIllegalCrossThreadCalls = false;
 
-
             SetupMonitor();
             SetupTrayIcon();
 
             // TreeView不需要设置ItemHeight
-
 
             // 绑定事件处理程序
             btnSwitchIme.Click += BtnSwitchIme_Click;
@@ -156,12 +154,6 @@ namespace SmartIme
                 if (File.Exists(jsonPath))
                 {
                     string json = File.ReadAllText(jsonPath);
-                    // var options = new JsonSerializerOptions 
-                    // { 
-                    //     PropertyNameCaseInsensitive = true,
-                    //     AllowTrailingCommas = true,
-                    //     WriteIndented = true
-                    // };
                     var loadedGroups = JsonSerializer.Deserialize<List<AppRuleGroup>>(json);
                     if (loadedGroups != null)
                     {
@@ -181,7 +173,6 @@ namespace SmartIme
 
         private string GetRulesJsonPath()
         {
-            // 使用Assembly.GetExecutingAssembly().Location获取程序所在目录
             string assemblyPath = Assembly.GetExecutingAssembly().Location;
             string appDirectory = Path.GetDirectoryName(assemblyPath);
             return Path.Combine(appDirectory, "rules.json");
@@ -190,7 +181,6 @@ namespace SmartIme
         private void InitializeImeList()
         {
             cmbDefaultIme.Items.Clear();
-            // 枚举系统安装的输入法
             foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
             {
                 cmbDefaultIme.Items.Add(lang.LayoutName);
@@ -214,16 +204,13 @@ namespace SmartIme
         }
 
         private void CheckActiveWindowChanged(object sender, ElapsedEventArgs e)
-
         {
             monitorTimer.Stop();
             IntPtr currentWindow = WinApi.GetForegroundWindow();
 
-            // 只有当活动窗口变化时才处理
             if (currentWindow != lastActiveWindow)
             {
                 lastActiveWindow = currentWindow;
-
             }
             MonitorActiveApp();
             monitorTimer.Start();
@@ -238,13 +225,11 @@ namespace SmartIme
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string processName = process.ProcessName;
                 string controlName = null;
-                // 如果是同一个应用程序，检查是否有针对该应用的规则
+                
                 if (processName == lastActiveApp)
                 {
                     controlName = ControlHelper.GetFocusedControlName();
                     
-                    //todo 未判断应用标题
-
                     if (controlName == lastClassName)
                     {
                         return;
@@ -253,67 +238,51 @@ namespace SmartIme
                     {
                         lastClassName = controlName;
                     }
-                    // 检查是否存在针对该应用的规则组
+                    
                     bool hasRulesForThisApp = appRuleGroups.Any(g => processName == g.AppName);
-
-                    // 如果没有针对该应用的规则，则不重复切换输入法
                     if (!hasRulesForThisApp)
                     {
                         return;
                     }
-                    // 如果有规则，继续处理以检查控件级别的规则
                 }
 
                 lastActiveApp = processName;
                 lastClassName = controlName;
 
-                // 获取窗口标题
                 var titleBuilder = new System.Text.StringBuilder(256);
                 _ = WinApi.GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
                 string windowTitle = titleBuilder.ToString();
 
-                // 获取当前焦点控件名称
-                //string controlName = ControlHelper.GetFocusedControlName();
-                //lblLog.Text = DateTime.Now +"--"+ controlName;
                 if (string.IsNullOrEmpty(controlName))
                 {
-                    // 如果获取焦点控件失败，使用窗口类名作为后备
                     controlName = ControlHelper.GetWindowClassName(hWnd);
                 }
 
-                // 按优先级查找匹配的规则
                 Rule matchedRule = FindMatchingRule(processName, windowTitle, controlName);
 
                 if (matchedRule != null)
                 {
-                    // 切换输入法
                     string targetIme = matchedRule.InputMethod;
                     lblCurrentIme.Text = "当前输入法：" + targetIme + " (规则：" + matchedRule.Name + ")";
 
-                    // 获取所有输入法列表
                     var inputLanguages = InputLanguage.InstalledInputLanguages;
                     foreach (InputLanguage lang in inputLanguages)
                     {
                         if (lang.LayoutName == targetIme)
                         {
-                            // 两种方式结合确保切换成功
                             InputLanguage.CurrentInputLanguage = lang;
                             IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
                             WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                             lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
 
-                            // 切换光标颜色
                             ChangeCursorColorByIme(targetIme);
-
                             break;
                         }
                     }
                 }
                 else
                 {
-                    // 使用默认输入法
                     lblCurrentIme.Text = "当前输入法：" + cmbDefaultIme.Text + " (默认)";
-                    // 切换到默认输入法
                     var inputLanguages = InputLanguage.InstalledInputLanguages;
                     if (cmbDefaultIme.SelectedIndex >= 0 && cmbDefaultIme.SelectedIndex < inputLanguages.Count)
                     {
@@ -323,7 +292,6 @@ namespace SmartIme
                         WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                         lblLog.Text = DateTime.Now.ToString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
                         
-                        // 切换光标颜色
                         ChangeCursorColorByIme(lang.LayoutName);
                     }
                 }
@@ -336,14 +304,10 @@ namespace SmartIme
 
         private Rule FindMatchingRule(string appName, string windowTitle, string controlClass)
         {
-            // 查找匹配的应用规则组
             foreach (var group in appRuleGroups)
             {
-                // 检查应用名称是否匹配
                 if (Regex.IsMatch(appName, group.AppName))
                 {
-                    // 在应用规则组中查找匹配的规则
-                    //lblLog.Text = controlName;
                     var rule = group.FindMatchingRule(appName, windowTitle, controlClass);
                     if (rule != null)
                     {
@@ -360,10 +324,8 @@ namespace SmartIme
             IntPtr hWnd = WinApi.GetForegroundWindow();
             IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
 
-            // 0x0029 是切换到下一个输入法的消息
             WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, (IntPtr)0x0029, IntPtr.Zero);
 
-            // 更新显示
             _ = WinApi.GetWindowThreadProcessId(hWnd, out uint threadId);
             IntPtr hkl = WinApi.GetKeyboardLayout(threadId);
             lblCurrentIme.Text = "当前输入法：" + GetImeName(hkl);
@@ -371,14 +333,11 @@ namespace SmartIme
 
         private string GetImeName(IntPtr hkl)
         {
-            // 这里应该根据hkl获取输入法名称
-            // 简化处理，直接返回下拉框中的选项
             return cmbDefaultIme.Text;
         }
 
         private void BtnAddApp_Click(object sender, EventArgs e)
         {
-            // 创建进程选择窗口
             var processSelectForm = new Form
             {
                 ShowInTaskbar = false,
@@ -406,13 +365,11 @@ namespace SmartIme
             processSelectForm.Controls.Add(lstProcesses);
             processSelectForm.Controls.Add(btnSelect);
 
-            // 获取所有进程
             var processes = System.Diagnostics.Process.GetProcesses()
                 .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
                 .OrderBy(p => p.ProcessName)
                 .ToList();
 
-            // 添加到列表
             foreach (var process in processes)
             {
                 try
@@ -432,11 +389,9 @@ namespace SmartIme
                 }
             }
 
-            // 显示窗口
             if (processSelectForm.ShowDialog(this) == DialogResult.OK && lstProcesses.SelectedIndex >= 0)
             {
                 var selectedProcess = processes[lstProcesses.SelectedIndex];
-
                 string appName = selectedProcess.ProcessName;
 
                 System.Diagnostics.ProcessModule mainModule = null;
@@ -451,7 +406,6 @@ namespace SmartIme
                 
                 string displayName = $"{appName} - {mainModule?.ModuleName}";
 
-                // 检查是否已存在该应用
                 var existingGroup = appRuleGroups.FirstOrDefault(g => g.AppName == appName);
                 if (existingGroup != null)
                 {
@@ -459,22 +413,19 @@ namespace SmartIme
                     return;
                 }
 
-                // 创建新的应用规则组
                 var newGroup = new AppRuleGroup(appName, displayName,mainModule?.FileName);
 
-                // 添加默认规则
                 var defaultRule = new Rule(Rule.CreateDefaultName(appName, RuleNams.程序名称), RuleType.Program, appName, cmbDefaultIme.Text);
                 newGroup.AddRule(defaultRule);
 
-                // 添加到列表
                 var list = appRuleGroups.ToList();
                 list.Add(newGroup);
 
                 var index = list.OrderBy(t => t.AppName).ToList().FindIndex(t => t.AppName == appName);
                 appRuleGroups.Insert(index, newGroup);
                 UpdateTreeView();
-                SaveRulesToJson(); // 保存到JSON文件
-                // 打开编辑窗口
+                SaveRulesToJson();
+                
                 using var editAppRulesForm = new EditAppRulesForm(this,newGroup, cmbDefaultIme.Items.Cast<string>());
                 editAppRulesForm.ShowDialog(this);
             }
@@ -487,14 +438,14 @@ namespace SmartIme
                 if (treeApps.SelectedNode.Tag is AppRuleGroup group)
                 {
                     appRuleGroups.Remove(group);
-                    SaveRulesToJson(); // 保存到JSON文件
+                    SaveRulesToJson();
                 }
                 else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
                 {
                     if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
                     {
                         parentGroup.RemoveRule(rule);
-                        SaveRulesToJson(); // 保存到JSON文件
+                        SaveRulesToJson();
                     }
                 }
             }
@@ -508,7 +459,6 @@ namespace SmartIme
                 {
                     using var editAppRulesForm = new EditAppRulesForm(this,group, cmbDefaultIme.Items.Cast<string>());
                     editAppRulesForm.ShowDialog(this);
-                    //SaveRulesToJson(); // 保存到JSON文件
                 }
                 else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
                 {
@@ -516,8 +466,6 @@ namespace SmartIme
                     {
                         using var editAppRulesForm = new EditAppRulesForm(this,parentGroup, cmbDefaultIme.Items.Cast<string>());
                         editAppRulesForm.ShowDialog(this);
-                        
-                        //SaveRulesToJson(); // 保存到JSON文件
                     }
                 }
             }
@@ -533,18 +481,16 @@ namespace SmartIme
                 {
                     Tag = group,
                     NodeFont = new Font(treeApps.Font, FontStyle.Bold),
-                    ForeColor = Color.DarkOrange  // 应用组节点使用深蓝色
-
+                    ForeColor = Color.DarkOrange
                 };
 
                 foreach (var rule in group.Rules)
                 {
-                    // 根据规则类型设置不同的颜色
                     Color ruleColor = rule.Type switch
                     {
-                        RuleType.Program => Color.DarkSeaGreen,  // 程序规则：绿色
-                        RuleType.Title => Color.DarkCyan,   // 窗口标题规则：橙色
-                        RuleType.Control => Color.DeepSkyBlue, // 控件规则：紫色
+                        RuleType.Program => Color.DarkSeaGreen,
+                        RuleType.Title => Color.DarkCyan,
+                        RuleType.Control => Color.DeepSkyBlue,
                         _ => Color.Black
                     };
 
@@ -588,7 +534,6 @@ namespace SmartIme
 
         private void InitializeCursorColorConfig()
         {
-            // 初始化输入法颜色下拉框
             cmbImeForColor.Items.Clear();
             foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
             {
@@ -599,7 +544,6 @@ namespace SmartIme
                 cmbImeForColor.SelectedIndex = 0;
             }
 
-            // 加载保存的光标颜色配置
             LoadCursorColorConfig();
         }
 
@@ -623,13 +567,11 @@ namespace SmartIme
                             }
                             catch
                             {
-                                // 如果颜色解析失败，跳过
                             }
                         }
                     }
                 }
 
-                // 设置默认颜色
                 if (imeColors.Count == 0)
                 {
                     imeColors["中文(简体) - 微软拼音"] = Color.Red;
@@ -684,13 +626,8 @@ namespace SmartIme
         {
             try
             {
-                // 更新系统托盘图标颜色
                 UpdateTrayIconColor(color);
-                
-                // 显示浮动提示窗口，使用指定的输入法名称或当前输入法名称
                 ShowFloatingHint(color, imeName ?? currentImeName);
-                
-                // 同时保留原有的插入符宽度提示（可选）
                 TryUpdateCaretWidth(color);
             }
             catch (Exception ex)
@@ -701,14 +638,12 @@ namespace SmartIme
 
         private void ShowFloatingHint(Color color, string imeName)
         {
-            // 在主UI线程中创建和显示浮动提示窗口，但使用异步方式避免阻塞
             if (this.InvokeRequired)
             {
                 this.Invoke(new Action(() => ShowFloatingHint(color, imeName)));
                 return;
             }
             
-            // 先关闭已存在的提示窗口
             if (currentHintForm != null && !currentHintForm.IsDisposed)
             {
                 currentHintForm.Close();
@@ -716,47 +651,184 @@ namespace SmartIme
                 currentHintForm = null;
             }
             
-            // 获取当前光标位置
-            Point cursorPos = Cursor.Position;
+            Point displayPos = GetBestFloatingHintPosition();
             
-            // 创建浮动提示窗口（窗体内部已经实现了自动关闭）
             FloatingHintForm hintForm = new FloatingHintForm(color, imeName);
             hintForm.StartPosition = FormStartPosition.Manual;
-            
-            // 将窗口位置设置在光标右下方
-            hintForm.Location = new Point(cursorPos.X + 5, cursorPos.Y - 40);
+            hintForm.Location = displayPos;
 
-            // 异步显示窗口（1秒后会自动关闭）
-            if (imeName == currentImeName)
-                return;
             hintForm.Show();
-            
-            // 保存当前提示窗口引用
             currentHintForm = hintForm;
+        }
+
+        private Point GetBestFloatingHintPosition()
+        {
+            Point? caretPosition = GetCaretPositionFromActiveWindow();
+            if (caretPosition.HasValue)
+            {
+                if(caretPosition.Value!= Point.Empty)
+                    return new Point(caretPosition.Value.X + 5, caretPosition.Value.Y - 40);
+            }
+            
+            Point cursorPos = Cursor.Position;
+            return new Point(cursorPos.X + 15, cursorPos.Y - 40);
+        }
+
+        private Point? TryGetCaretPositionWithRetry(IntPtr hWnd)
+        {
+            // 首先尝试使用GetGUIThreadInfo API获取更准确的插入符位置
+            Point? caretPos = GetCaretPositionUsingGUIThreadInfo(hWnd);
+            if (caretPos.HasValue)
+            {
+                return caretPos;
+            }
+
+            // 如果GetGUIThreadInfo失败，回退到原来的GetCaretPos方法
+            for (int i = 0; i < 5; i++)
+            {
+                if (WinApi.GetCaretPos(out Point caretPos2))
+                {
+                    if (caretPos2.X >= 0 && caretPos2.Y >= 0)
+                    {
+                        Point? screenPos = ConvertClientToScreen(hWnd, caretPos2);
+                        if (screenPos.HasValue)
+                        {
+                            return screenPos;
+                        }
+                    }
+                }
+                
+                System.Threading.Thread.Sleep(30);
+            }
+            
+            return null;
+        }
+
+        private Point? GetCaretPositionUsingGUIThreadInfo(IntPtr hWnd)
+        {
+            try
+            {
+                uint threadId = WinApi.GetWindowThreadProcessId(hWnd, IntPtr.Zero);
+                if (threadId == 0)
+                {
+                    lblLog.Text = $"GUIThreadInfo: 无法获取线程ID (窗口: {hWnd})";
+                    return null;
+                }
+
+                WinApi.GUITHREADINFO threadInfo = new WinApi.GUITHREADINFO();
+                threadInfo.cbSize = (uint)Marshal.SizeOf(typeof(WinApi.GUITHREADINFO));
+
+                if (WinApi.GetGUIThreadInfo(threadId, ref threadInfo))
+                {
+                    string debugInfo = $"GUIThreadInfo: 线程={threadId}, 焦点窗口={threadInfo.hwndFocus}, 插入符窗口={threadInfo.hwndCaret}";
+                    
+                    if (threadInfo.hwndCaret != IntPtr.Zero)
+                    {
+                        debugInfo += $", 插入符位置=({threadInfo.rcCaret.left},{threadInfo.rcCaret.top})";
+                        lblLog.Text = debugInfo;
+
+                        if (threadInfo.rcCaret.left >= 0 && threadInfo.rcCaret.top >= 0)
+                        {
+                            // 插入符位置是相对于插入符窗口的客户端坐标
+                            Point caretPos = new Point(threadInfo.rcCaret.left, threadInfo.rcCaret.top);
+                            Point? screenPos = ConvertClientToScreen(threadInfo.hwndCaret, caretPos);
+                            
+                            if (screenPos.HasValue)
+                            {
+                                lblLog.Text += $", 屏幕位置=({screenPos.Value.X},{screenPos.Value.Y})";
+                            }
+                            
+                            return screenPos;
+                        }
+                    }
+                    else
+                    {
+                        lblLog.Text = debugInfo + ", 无插入符窗口";
+                    }
+                }
+                else
+                {
+                    lblLog.Text = $"GUIThreadInfo: API调用失败 (线程: {threadId})";
+                }
+            }
+            catch (Exception ex)
+            {
+                lblLog.Text = $"GUIThreadInfo异常: {ex.Message}";
+            }
+            
+            return null;
+        }
+
+        private Point? ConvertClientToScreen(IntPtr hWnd, Point clientPoint)
+        {
+            try
+            {
+                Point screenPoint = clientPoint;
+                if (WinApi.ClientToScreen(hWnd, ref screenPoint))
+                {
+                    return screenPoint;
+                }
+                
+                WinApi.POINT point = new WinApi.POINT { x = clientPoint.X, y = clientPoint.Y };
+                if (WinApi.ClientToScreen(hWnd, ref point))
+                {
+                    return new Point(point.x, point.y);
+                }
+                
+                if (WinApi.GetWindowRect(hWnd, out WinApi.RECT windowRect))
+                {
+                    return new Point(windowRect.left + clientPoint.X, windowRect.top + clientPoint.Y);
+                }
+            }
+            catch
+            {
+            }
+            
+            return null;
+        }
+        
+        private string GetWindowTitle(IntPtr hWnd)
+        {
+            if (hWnd == IntPtr.Zero) return "无效窗口";
+            
+            StringBuilder sb = new StringBuilder(256);
+            WinApi.GetWindowText(hWnd, sb, sb.Capacity);
+            string title = sb.ToString();
+            return string.IsNullOrEmpty(title) ? "无标题窗口" : title;
+        }
+
+        private Point? GetCaretPositionFromActiveWindow()
+        {
+            IntPtr hWnd = WinApi.GetFocus();
+            if (hWnd == IntPtr.Zero)
+            {
+                hWnd = WinApi.GetForegroundWindow();
+                if (hWnd == IntPtr.Zero)
+                {
+                    return null;
+                }
+            }
+            
+            return TryGetCaretPositionWithRetry(hWnd);
         }
 
         private void UpdateTrayIconColor(Color color)
         {
-            // 创建带有颜色提示的系统托盘图标
             using (Bitmap bmp = new Bitmap(16, 16))
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                // 绘制背景
                 g.Clear(Color.Transparent);
                 
-                // 绘制颜色指示圆
                 using (Brush brush = new SolidBrush(color))
                 {
                     g.FillEllipse(brush, 2, 2, 12, 12);
                 }
                 
-                // 绘制边框
                 using (Pen pen = new Pen(Color.White, 1))
                 {
                     g.DrawEllipse(pen, 2, 2, 12, 12);
                 }
                 
-                // 更新托盘图标
                 trayIcon.Icon = Icon.FromHandle(bmp.GetHicon());
             }
         }
@@ -765,7 +837,6 @@ namespace SmartIme
         {
             try
             {
-                // 尝试更新插入符宽度（可能在某些应用中不起作用）
                 IntPtr hWnd = GetFocus();
                 if (hWnd != IntPtr.Zero)
                 {
@@ -778,20 +849,16 @@ namespace SmartIme
             }
             catch
             {
-                // 忽略插入符更新错误
             }
         }
 
         private int GetCaretWidthFromColor(Color color)
         {
-            // 简化宽度映射
             return Math.Max(1, color.GetHashCode() % 5 + 1);
         }
 
         private void ChangeCursorColorByIme(string imeName)
         {
-            // 只有当输入法真正切换时才显示提示窗口
-            // 并且排除程序启动时的第一次切换（currentImeName为空）
             if(string.IsNullOrEmpty(currentImeName)){
                 currentImeName = imeName;
                 return;
@@ -805,21 +872,18 @@ namespace SmartIme
                 }
                 else
                 {
-                    // 使用默认黑色
                     ChangeCursorColor(Color.Black, imeName);
                     currentImeName = "";
                 }
             }
             else
             {
-                // 更新当前输入法名称但不显示提示
                 currentImeName = imeName;
             }
         }
 
         private void BtnColorConfig_Click(object sender, EventArgs e)
         {
-            // 显示颜色配置提示
             MessageBox.Show("请在下方选择输入法并设置对应的光标颜色。切换输入法时，光标颜色会自动改变。", 
                 "光标颜色配置", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -844,7 +908,6 @@ namespace SmartIme
                     UpdateCursorColorDisplay();
                     SaveCursorColorConfig();
 
-                    // 如果当前输入法匹配，立即应用颜色变化
                     if (imeName == currentImeName)
                     {
                         ChangeCursorColor(colorDialog.Color);

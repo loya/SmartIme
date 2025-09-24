@@ -34,6 +34,18 @@ namespace SmartIme.Utilities
         public static extern nint GetFocus();
 
         [DllImport("user32.dll")]
+        public static extern nint SetFocus(nint hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern bool GetCaretPos(out Point lpPoint);
+
+        [DllImport("user32.dll")]
+        public static extern bool ClientToScreen(nint hWnd, ref Point lpPoint);
+
+        [DllImport("user32.dll")]
+        public static extern bool ClientToScreen(nint hWnd, ref POINT lpPoint);
+
+        [DllImport("user32.dll")]
         public static extern nint WindowFromPoint(Point point);
 
         [DllImport("user32.dll")]
@@ -104,6 +116,14 @@ namespace SmartIme.Utilities
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool UpdateWindow(nint hWnd);
 
+        // GUI Thread Info API for caret position
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetGUIThreadInfo(uint idThread, ref GUITHREADINFO lpgui);
+
+        [DllImport("user32.dll")]
+        public static extern uint GetWindowThreadProcessId(nint hWnd, IntPtr lpdwProcessId);
+
         [DllImport("gdi32.dll")]
         public static extern nint GetStockObject(int fnObject);
 
@@ -155,6 +175,20 @@ namespace SmartIme.Utilities
             public int top;
             public int right;
             public int bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct GUITHREADINFO
+        {
+            public uint cbSize;
+            public uint flags;
+            public nint hwndActive;
+            public nint hwndFocus;
+            public nint hwndCapture;
+            public nint hwndMenuOwner;
+            public nint hwndMoveSize;
+            public nint hwndCaret;
+            public RECT rcCaret;
         }
     }
 }

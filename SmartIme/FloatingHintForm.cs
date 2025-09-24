@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
-using System.Drawing.Printing;
+using System.Threading.Tasks;
 
 namespace SmartIme
 {
@@ -37,8 +37,6 @@ namespace SmartIme
             this.FormBorderStyle = FormBorderStyle.None;
             this.AutoSize = false;
             this.MinimumSize = Size.Empty;
-            this.ClientSize = new Size(80, 30); // 设置客户区大小
-            this.Size = this.ClientSize; // 强制设置窗口尺寸
             this.ShowInTaskbar = false;
             this.TopMost = true;
             this.BackColor = Color.Black; // 设置背景色为黑色
@@ -72,11 +70,13 @@ namespace SmartIme
             
             // 设置窗口透明度
             this.Opacity = 0.6;
-            Width = 90;
-            Height = 30;
             
-            // 创建圆角效果（使用客户区尺寸）
-            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.ClientSize.Width, this.ClientSize.Height, 8, 8));
+            // 确保窗口尺寸正确
+            this.Size = new Size(120, 40);
+            this.ClientSize = new Size(120, 40);
+            
+            // 创建圆角效果（使用窗口尺寸）
+            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 12, 12));
         }
         
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
