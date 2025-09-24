@@ -714,7 +714,7 @@ namespace SmartIme
             hintForm.StartPosition = FormStartPosition.Manual;
             
             // 将窗口位置设置在光标右下方
-            hintForm.Location = new Point(cursorPos.X + 10, cursorPos.Y + 10);
+            hintForm.Location = new Point(cursorPos.X + 5, cursorPos.Y + 5);
             
             // 异步显示窗口（1秒后会自动关闭）
             hintForm.Show();

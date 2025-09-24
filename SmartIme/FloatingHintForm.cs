@@ -16,16 +16,17 @@ namespace SmartIme
 
         private void InitializeComponent()
         {
-
+            SuspendLayout();
+            // 
+            // FloatingHintForm
+            // 
+            // ClientSize = new Size(80, 80);
+            FormBorderStyle = FormBorderStyle.None;
+            Name = "FloatingHintForm";
+            //ResumeLayout(false);
         }
 
-        [DllImport("user32.dll")]
-        static extern bool SetLayeredWindowAttributes(IntPtr hwnd, uint crKey, byte bAlpha, uint dwFlags);
-
-        const int GWL_EXSTYLE = -20;
-        const int WS_EX_LAYERED = 0x80000;
-        const int WS_EX_TRANSPARENT = 0x20;
-        const int LWA_ALPHA = 0x2;
+        
 
         private readonly Color hintColor;
         private readonly string imeName;
@@ -41,10 +42,15 @@ namespace SmartIme
         {
             // 窗体设置
             this.FormBorderStyle = FormBorderStyle.None;
-            this.Size = new Size(60, 60); // 增大窗口尺寸
+            //this.Size = new Size(60, 60); // 增大窗口尺寸
+            this.MinimumSize = Size.Empty;
+            Size = new Size(80, 30);
+            ClientSize=new Size(80, 30);
             this.ShowInTaskbar = false;
             this.TopMost = true;
             this.BackColor = Color.Black; // 设置背景色为黑色
+            //this.Width = ClientSize.Width;
+            //this.Height = ClientSize.Height;
 
             // 添加绘制事件
             this.Paint += FloatingHintForm_Paint;
@@ -56,7 +62,7 @@ namespace SmartIme
         private async Task AutoCloseFormAsync()
         {
             // 等待1秒后自动关闭窗口
-            await Task.Delay(1000);
+            await Task.Delay(500);
             
             // 在UI线程中安全关闭窗口
             if (this.InvokeRequired)
@@ -77,7 +83,7 @@ namespace SmartIme
             this.Opacity = 0.6;
             
             // 创建圆角效果
-            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 20, 20));
+            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 12, 12));
         }
         
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
@@ -102,29 +108,29 @@ namespace SmartIme
             // 绘制颜色指示圆
             using (Brush colorBrush = new SolidBrush(hintColor))
             {
-                g.FillEllipse(colorBrush, 10, 16, 12, 12);
+                g.FillEllipse(colorBrush, 10, 10, 12, 12);
             }
 
             // 绘制边框
             using (Pen borderPen = new Pen(Color.White, 1))
             {
-                g.DrawEllipse(borderPen, 10, 16, 12, 12);
+                g.DrawEllipse(borderPen, 10, 10, 12, 12);
             }
 
             // 绘制输入法名称
             using (Font font = new Font("微软雅黑", 9, FontStyle.Bold))
             using (Brush textBrush = new SolidBrush(Color.White))
             {
-                string displayName = imeName.Length > 8 ? imeName.Substring(0, 8) + "..." : imeName;
-                g.DrawString(displayName, font, textBrush, 35, 15);
+                string displayName = imeName.Length > 8 ? imeName.Substring(0, 6) + "..." : imeName;
+                g.DrawString(displayName, font, textBrush, 30, 8);
             }
 
             // 绘制颜色名称
-            using (Font smallFont = new Font("微软雅黑", 7))
-            using (Brush textBrush = new SolidBrush(Color.LightGray))
-            {
-                g.DrawString(hintColor.Name, smallFont, textBrush, 10, 35);
-            }
+            //using (Font smallFont = new Font("微软雅黑", 7))
+            //using (Brush textBrush = new SolidBrush(Color.LightGray))
+            //{
+            //    g.DrawString(hintColor.Name, smallFont, textBrush, 10, 35);
+            //}
         }
 
         protected override void OnDeactivate(EventArgs e)
@@ -136,27 +142,27 @@ namespace SmartIme
     }
 
     // 扩展方法用于绘制圆角矩形
-    public static class GraphicsExtensions
-    {
-        public static void FillRoundedRectangle(this Graphics graphics, Brush brush, float x, float y, float width, float height, float radius)
-        {
-            using (var path = CreateRoundedRectPath(x, y, width, height, radius))
-            {
-                graphics.FillPath(brush, path);
-            }
-        }
+    //public static class GraphicsExtensions
+    //{
+    //    public static void FillRoundedRectangle(this Graphics graphics, Brush brush, float x, float y, float width, float height, float radius)
+    //    {
+    //        using (var path = CreateRoundedRectPath(x, y, width, height, radius))
+    //        {
+    //            graphics.FillPath(brush, path);
+    //        }
+    //    }
         
-        private static System.Drawing.Drawing2D.GraphicsPath CreateRoundedRectPath(float x, float y, float width, float height, float radius)
-        {
-            var path = new System.Drawing.Drawing2D.GraphicsPath();
+    //    private static System.Drawing.Drawing2D.GraphicsPath CreateRoundedRectPath(float x, float y, float width, float height, float radius)
+    //    {
+    //        var path = new System.Drawing.Drawing2D.GraphicsPath();
             
-            path.AddArc(x, y, radius * 2, radius * 2, 180, 90);
-            path.AddArc(x + width - radius * 2, y, radius * 2, radius * 2, 270, 90);
-            path.AddArc(x + width - radius * 2, y + height - radius * 2, radius * 2, radius * 2, 0, 90);
-            path.AddArc(x, y + height - radius * 2, radius * 2, radius * 2, 90, 90);
-            path.CloseFigure();
+    //        path.AddArc(x, y, radius * 2, radius * 2, 180, 90);
+    //        path.AddArc(x + width - radius * 2, y, radius * 2, radius * 2, 270, 90);
+    //        path.AddArc(x + width - radius * 2, y + height - radius * 2, radius * 2, radius * 2, 0, 90);
+    //        path.AddArc(x, y + height - radius * 2, radius * 2, radius * 2, 90, 90);
+    //        path.CloseFigure();
             
-            return path;
-        }
-    }
+    //        return path;
+    //    }
+    //}
 }
