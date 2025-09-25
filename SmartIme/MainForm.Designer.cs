@@ -35,8 +35,6 @@ namespace SmartIme
             label2 = new Label();
             lblLog = new Label();
             btnExit = new Button();
-            btnColorConfig = new Button();
-            label3 = new Label();
             pnlCursorColor = new Panel();
             lblCursorColor = new Label();
             btnPickColor = new Button();
@@ -59,7 +57,7 @@ namespace SmartIme
             // btnSwitchIme
             // 
             btnSwitchIme.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnSwitchIme.Location = new Point(200, 97);
+            btnSwitchIme.Location = new Point(263, 97);
             btnSwitchIme.Margin = new Padding(4);
             btnSwitchIme.Name = "btnSwitchIme";
             btnSwitchIme.Size = new Size(183, 42);
@@ -76,14 +74,14 @@ namespace SmartIme
             treeApps.Margin = new Padding(4);
             treeApps.Name = "treeApps";
             treeApps.ShowNodeToolTips = true;
-            treeApps.Size = new Size(569, 520);
+            treeApps.Size = new Size(423, 278);
             treeApps.TabIndex = 2;
             treeApps.DoubleClick += TreeApps_DoubleClick;
             // 
             // btnAddApp
             // 
             btnAddApp.Anchor = AnchorStyles.Bottom;
-            btnAddApp.Location = new Point(171, 701);
+            btnAddApp.Location = new Point(87, 524);
             btnAddApp.Margin = new Padding(4);
             btnAddApp.Name = "btnAddApp";
             btnAddApp.Size = new Size(93, 44);
@@ -94,7 +92,7 @@ namespace SmartIme
             // btnRemoveApp
             // 
             btnRemoveApp.Anchor = AnchorStyles.Bottom;
-            btnRemoveApp.Location = new Point(272, 701);
+            btnRemoveApp.Location = new Point(188, 524);
             btnRemoveApp.Margin = new Padding(4);
             btnRemoveApp.Name = "btnRemoveApp";
             btnRemoveApp.Size = new Size(93, 44);
@@ -110,7 +108,7 @@ namespace SmartIme
             cmbDefaultIme.Location = new Point(149, 68);
             cmbDefaultIme.Margin = new Padding(4);
             cmbDefaultIme.Name = "cmbDefaultIme";
-            cmbDefaultIme.Size = new Size(443, 25);
+            cmbDefaultIme.Size = new Size(297, 25);
             cmbDefaultIme.TabIndex = 5;
             // 
             // label1
@@ -139,7 +137,7 @@ namespace SmartIme
             // 
             lblLog.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lblLog.AutoSize = true;
-            lblLog.Location = new Point(23, 677);
+            lblLog.Location = new Point(23, 448);
             lblLog.Margin = new Padding(4, 0, 4, 0);
             lblLog.Name = "lblLog";
             lblLog.Size = new Size(43, 17);
@@ -149,7 +147,7 @@ namespace SmartIme
             // btnExit
             // 
             btnExit.Anchor = AnchorStyles.Bottom;
-            btnExit.Location = new Point(373, 701);
+            btnExit.Location = new Point(289, 524);
             btnExit.Margin = new Padding(4);
             btnExit.Name = "btnExit";
             btnExit.Size = new Size(93, 44);
@@ -158,33 +156,11 @@ namespace SmartIme
             btnExit.UseVisualStyleBackColor = true;
             btnExit.Click += BtnExit_Click;
             // 
-            // btnColorConfig
-            // 
-            btnColorConfig.Anchor = AnchorStyles.Bottom;
-            btnColorConfig.Location = new Point(474, 701);
-            btnColorConfig.Margin = new Padding(4);
-            btnColorConfig.Name = "btnColorConfig";
-            btnColorConfig.Size = new Size(93, 44);
-            btnColorConfig.TabIndex = 9;
-            btnColorConfig.Text = "颜色配置";
-            btnColorConfig.UseVisualStyleBackColor = true;
-            btnColorConfig.Click += BtnColorConfig_Click;
-            // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            label3.Location = new Point(23, 750);
-            label3.Margin = new Padding(4, 0, 4, 0);
-            label3.Name = "label3";
-            label3.Size = new Size(68, 17);
-            label3.TabIndex = 10;
-            label3.Text = "光标颜色:";
-            // 
             // pnlCursorColor
             // 
+            pnlCursorColor.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             pnlCursorColor.BorderStyle = BorderStyle.FixedSingle;
-            pnlCursorColor.Location = new Point(99, 748);
+            pnlCursorColor.Location = new Point(336, 480);
             pnlCursorColor.Margin = new Padding(4);
             pnlCursorColor.Name = "pnlCursorColor";
             pnlCursorColor.Size = new Size(20, 20);
@@ -192,31 +168,35 @@ namespace SmartIme
             // 
             // lblCursorColor
             // 
+            lblCursorColor.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lblCursorColor.AutoSize = true;
             lblCursorColor.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            lblCursorColor.Location = new Point(127, 750);
+            lblCursorColor.Location = new Point(369, 482);
             lblCursorColor.Margin = new Padding(4, 0, 4, 0);
             lblCursorColor.Name = "lblCursorColor";
-            lblCursorColor.Size = new Size(43, 17);
+            lblCursorColor.Size = new Size(32, 17);
             lblCursorColor.TabIndex = 12;
             lblCursorColor.Text = "黑色";
             // 
             // btnPickColor
             // 
-            btnPickColor.Location = new Point(178, 748);
+            btnPickColor.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnPickColor.AutoSize = true;
+            btnPickColor.Location = new Point(233, 477);
             btnPickColor.Margin = new Padding(4);
             btnPickColor.Name = "btnPickColor";
-            btnPickColor.Size = new Size(75, 23);
+            btnPickColor.Size = new Size(90, 27);
             btnPickColor.TabIndex = 13;
-            btnPickColor.Text = "选择颜色";
+            btnPickColor.Text = "选择提示颜色";
             btnPickColor.UseVisualStyleBackColor = true;
             btnPickColor.Click += BtnPickColor_Click;
             // 
             // cmbImeForColor
             // 
+            cmbImeForColor.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             cmbImeForColor.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbImeForColor.FormattingEnabled = true;
-            cmbImeForColor.Location = new Point(261, 748);
+            cmbImeForColor.Location = new Point(80, 478);
             cmbImeForColor.Margin = new Padding(4);
             cmbImeForColor.Name = "cmbImeForColor";
             cmbImeForColor.Size = new Size(140, 25);
@@ -225,12 +205,13 @@ namespace SmartIme
             // 
             // label4
             // 
+            label4.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label4.AutoSize = true;
             label4.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            label4.Location = new Point(409, 750);
+            label4.Location = new Point(23, 482);
             label4.Margin = new Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new Size(68, 17);
+            label4.Size = new Size(44, 17);
             label4.TabIndex = 15;
             label4.Text = "输入法";
             // 
@@ -243,15 +224,13 @@ namespace SmartIme
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(615, 780);
-            Controls.Add(lblLog);
+            ClientSize = new Size(469, 592);
             Controls.Add(label4);
             Controls.Add(cmbImeForColor);
             Controls.Add(btnPickColor);
             Controls.Add(lblCursorColor);
             Controls.Add(pnlCursorColor);
-            Controls.Add(label3);
-            Controls.Add(btnColorConfig);
+            Controls.Add(lblLog);
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(cmbDefaultIme);
@@ -273,8 +252,6 @@ namespace SmartIme
 
         private System.Windows.Forms.Label lblLog;
         private Button btnExit;
-        private Button btnColorConfig;
-        private Label label3;
         private Panel pnlCursorColor;
         private Label lblCursorColor;
         private Button btnPickColor;

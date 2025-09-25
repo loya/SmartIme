@@ -48,7 +48,6 @@ namespace SmartIme
             btnSwitchIme.Click += BtnSwitchIme_Click;
             btnAddApp.Click += BtnAddApp_Click;
             btnRemoveApp.Click += BtnRemoveApp_Click;
-            btnColorConfig.Click += BtnColorConfig_Click;
             btnPickColor.Click += BtnPickColor_Click;
             cmbImeForColor.SelectedIndexChanged += CmbImeForColor_SelectedIndexChanged;
             this.FormClosing += MainForm_FormClosing;
