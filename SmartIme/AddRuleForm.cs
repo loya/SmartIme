@@ -1,14 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+using SmartIme.Utilities;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
-using System.Windows.Forms;
-using SmartIme.Utilities;
 
 namespace SmartIme
 {
@@ -195,7 +188,7 @@ namespace SmartIme
             if (e.Button == MouseButtons.Left && !mouseClicked)
             {
                 // 使用ControlHelper获取焦点控件类名
-                Thread.Sleep(300); // 等待100毫秒，确保焦点已经切换
+                Thread.Sleep(500); // 等待100毫秒，确保焦点已经切换
                 selectWindowProcessName = ControlHelper.GetActiveWindowProcessName();
                 selectedControlClass = ControlHelper.GetFocusedControlName();
                 mouseClicked = true;

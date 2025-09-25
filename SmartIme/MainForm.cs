@@ -254,6 +254,7 @@ namespace SmartIme
                 var titleBuilder = new System.Text.StringBuilder(256);
                 _ = WinApi.GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
                 string windowTitle = titleBuilder.ToString();
+                lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
 
                 if (string.IsNullOrEmpty(controlName))
                 {
@@ -272,10 +273,12 @@ namespace SmartIme
                     {
                         if (lang.LayoutName == targetIme)
                         {
-                            InputLanguage.CurrentInputLanguage = lang;
-                            IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
-                            WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
-                            lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
+                            if (InputLanguage.CurrentInputLanguage.LayoutName != targetIme)
+                            {
+                                InputLanguage.CurrentInputLanguage = lang;
+                                IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
+                                WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
+                            }
 
                             ChangeCursorColorByIme(targetIme);
                             break;
