@@ -344,60 +344,10 @@ namespace SmartIme
 
         private void BtnAddApp_Click(object sender, EventArgs e)
         {
-            var processSelectForm = new Form
+            using var processSelectForm = new ProcessSelectForm();
+            if (processSelectForm.ShowDialog(this) == DialogResult.OK && processSelectForm.SelectedProcess != null)
             {
-                ShowInTaskbar = false,
-                Text = "选择应用程序",
-                Size = new System.Drawing.Size(400, 300),
-                StartPosition = FormStartPosition.CenterParent,
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                MaximizeBox = false,
-                MinimizeBox = false
-            };
-
-            var lstProcesses = new ListBox
-            {
-                Dock = DockStyle.Fill,
-                FormattingEnabled = true
-            };
-
-            var btnSelect = new Button
-            {
-                Text = "选择",
-                DialogResult = DialogResult.OK,
-                Dock = DockStyle.Bottom
-            };
-
-            processSelectForm.Controls.Add(lstProcesses);
-            processSelectForm.Controls.Add(btnSelect);
-
-            var processes = System.Diagnostics.Process.GetProcesses()
-                .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
-                .OrderBy(p => p.ProcessName)
-                .ToList();
-
-            foreach (var process in processes)
-            {
-                try
-                {
-                    lstProcesses.Items.Add($"{process.ProcessName} - {process.MainModule?.ModuleName}");
-                }
-                catch
-                {
-                    try
-                    {
-                        lstProcesses.Items.Add($"{process.ProcessName} - {process.MainWindowTitle}");
-                    }
-                    catch
-                    {
-                        throw;
-                    }
-                }
-            }
-
-            if (processSelectForm.ShowDialog(this) == DialogResult.OK && lstProcesses.SelectedIndex >= 0)
-            {
-                var selectedProcess = processes[lstProcesses.SelectedIndex];
+                var selectedProcess = processSelectForm.SelectedProcess;
                 string appName = selectedProcess.ProcessName;
 
                 System.Diagnostics.ProcessModule mainModule = null;
