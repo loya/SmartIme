@@ -1,13 +1,12 @@
-using System.ComponentModel;
-using System.Drawing;
-using System.Text.RegularExpressions;
-using System.Timers;
-using System.Text.Json;
-using System.Reflection;
 using SmartIme.Utilities;
-using System.Text;
-using System.Runtime.InteropServices;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.Json;
+using System.Timers;
+using static SmartIme.Utilities.WinApi;
 
 namespace SmartIme
 {
@@ -28,7 +27,7 @@ namespace SmartIme
         private Dictionary<string, Color> imeColors = new();
         private string currentImeName = "";
         private const int SPI_SETCURSOR = 0x0057;
-        
+
         // 跟踪当前打开的浮动提示窗口
         private FloatingHintForm currentHintForm = null;
         private const int SPIF_UPDATEINIFILE = 0x01;
@@ -224,21 +223,19 @@ namespace SmartIme
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string processName = process.ProcessName;
+                if (processName == "explorer") { return; }
                 string controlName = null;
-                
+                controlName = ControlHelper.GetFocusedControlName();
+
                 if (processName == lastActiveApp)
                 {
                     controlName = ControlHelper.GetFocusedControlName();
-                    
+
                     if (controlName == lastClassName)
                     {
                         return;
                     }
-                    else
-                    {
-                        lastClassName = controlName;
-                    }
-                    
+
                     bool hasRulesForThisApp = appRuleGroups.Any(g => processName == g.AppName);
                     if (!hasRulesForThisApp)
                     {
@@ -246,6 +243,12 @@ namespace SmartIme
                     }
                 }
 
+                //if (string.IsNullOrEmpty(controlName))
+                //{
+                //    return;
+                //}
+                //Debug.WriteLine($"当前窗口: {processName} {controlName}");
+                //Debug.WriteLine($"前次窗口: {lastActiveApp} {lastClassName}");
                 lastActiveApp = processName;
                 lastClassName = controlName;
 
@@ -291,7 +294,7 @@ namespace SmartIme
                         IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
                         WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                         lblLog.Text = DateTime.Now.ToString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
-                        
+
                         ChangeCursorColorByIme(lang.LayoutName);
                     }
                 }
@@ -306,7 +309,8 @@ namespace SmartIme
         {
             foreach (var group in appRuleGroups)
             {
-                if (Regex.IsMatch(appName, group.AppName))
+                //if (Regex.IsMatch(appName, group.AppName))
+                if (appName == group.AppName)
                 {
                     var rule = group.FindMatchingRule(appName, windowTitle, controlClass);
                     if (rule != null)
@@ -399,11 +403,11 @@ namespace SmartIme
                 {
                     mainModule = selectedProcess.MainModule;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Debug.WriteLine(ex.Message);
                 }
-                
+
                 string displayName = $"{appName} - {mainModule?.ModuleName}";
 
                 var existingGroup = appRuleGroups.FirstOrDefault(g => g.AppName == appName);
@@ -413,7 +417,7 @@ namespace SmartIme
                     return;
                 }
 
-                var newGroup = new AppRuleGroup(appName, displayName,mainModule?.FileName);
+                var newGroup = new AppRuleGroup(appName, displayName, mainModule?.FileName);
 
                 var defaultRule = new Rule(Rule.CreateDefaultName(appName, RuleNams.程序名称), RuleType.Program, appName, cmbDefaultIme.Text);
                 newGroup.AddRule(defaultRule);
@@ -425,8 +429,8 @@ namespace SmartIme
                 appRuleGroups.Insert(index, newGroup);
                 UpdateTreeView();
                 SaveRulesToJson();
-                
-                using var editAppRulesForm = new EditAppRulesForm(this,newGroup, cmbDefaultIme.Items.Cast<string>());
+
+                using var editAppRulesForm = new EditAppRulesForm(this, newGroup, cmbDefaultIme.Items.Cast<string>());
                 editAppRulesForm.ShowDialog(this);
             }
         }
@@ -457,14 +461,14 @@ namespace SmartIme
             {
                 if (treeApps.SelectedNode.Tag is AppRuleGroup group)
                 {
-                    using var editAppRulesForm = new EditAppRulesForm(this,group, cmbDefaultIme.Items.Cast<string>());
+                    using var editAppRulesForm = new EditAppRulesForm(this, group, cmbDefaultIme.Items.Cast<string>());
                     editAppRulesForm.ShowDialog(this);
                 }
                 else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
                 {
                     if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
                     {
-                        using var editAppRulesForm = new EditAppRulesForm(this,parentGroup, cmbDefaultIme.Items.Cast<string>());
+                        using var editAppRulesForm = new EditAppRulesForm(this, parentGroup, cmbDefaultIme.Items.Cast<string>());
                         editAppRulesForm.ShowDialog(this);
                     }
                 }
@@ -528,7 +532,7 @@ namespace SmartIme
 
         [DllImport("user32.dll")]
         private static extern bool ShowCaret(IntPtr hWnd);
-        
+
         [DllImport("user32.dll")]
         private static extern bool DestroyCaret();
 
@@ -628,7 +632,7 @@ namespace SmartIme
             {
                 UpdateTrayIconColor(color);
                 ShowFloatingHint(color, imeName ?? currentImeName);
-                TryUpdateCaretWidth(color);
+                //TryUpdateCaretWidth(color);
             }
             catch (Exception ex)
             {
@@ -643,19 +647,19 @@ namespace SmartIme
                 this.Invoke(new Action(() => ShowFloatingHint(color, imeName)));
                 return;
             }
-            
+
             if (currentHintForm != null && !currentHintForm.IsDisposed)
             {
                 currentHintForm.Close();
                 currentHintForm.Dispose();
                 currentHintForm = null;
             }
-            
+
             Point displayPos = GetBestFloatingHintPosition();
-            
+
             // 验证和调整坐标
             displayPos = ValidateAndAdjustPosition(displayPos);
-            
+
             FloatingHintForm hintForm = new FloatingHintForm(color, imeName);
             hintForm.StartPosition = FormStartPosition.Manual;
             hintForm.Location = displayPos;
@@ -669,10 +673,10 @@ namespace SmartIme
             Point? caretPosition = GetCaretPositionFromActiveWindow();
             if (caretPosition.HasValue)
             {
-                if(caretPosition.Value != Point.Empty)
+                if (caretPosition.Value != Point.Empty)
                     return new Point(caretPosition.Value.X + 5, caretPosition.Value.Y - 40);
             }
-            
+
             Point cursorPos = Cursor.Position;
             return new Point(cursorPos.X + 15, cursorPos.Y - 40);
         }
@@ -681,38 +685,59 @@ namespace SmartIme
         {
             // 获取屏幕边界
             Rectangle screenBounds = Screen.PrimaryScreen.Bounds;
-            
+
             // 获取浮动提示窗口的预估尺寸
             int hintWidth = 120;
             int hintHeight = 40;
-            
+
             // 记录原始坐标
             Point originalPosition = position;
-            
+
             // 获取当前活动窗口信息
-            IntPtr foregroundWindow = WinApi.GetForegroundWindow();
+            IntPtr foregroundWindow1 = WinApi.GetForegroundWindow();
+            IntPtr foregroundWindow = ControlHelper.GetGlobalFocusWindow();
             if (foregroundWindow != IntPtr.Zero)
             {
                 string windowTitle = GetWindowTitle(foregroundWindow);
                 WinApi.GetWindowRect(foregroundWindow, out WinApi.RECT windowRect);
-                
+
                 // 检查窗口是否有效（非零尺寸）
-                bool isWindowValid = !(windowRect.left == 0 && windowRect.top == 0 && 
+                bool isWindowValid = !(windowRect.left == 0 && windowRect.top == 0 &&
                                      windowRect.right == 0 && windowRect.bottom == 0);
-                
+
                 // 记录窗口信息用于调试到文件
                 LogToFile($"活动窗口: {windowTitle}, 位置: [{windowRect.left},{windowRect.top}-{windowRect.right},{windowRect.bottom}], 有效: {isWindowValid}");
                 LogToFile($"原始坐标: {originalPosition}");
-                
+
                 // 检查坐标是否在当前活动窗口内（仅当窗口有效时）
-                if (isWindowValid && 
+                if (isWindowValid &&
                     windowRect.left <= position.X && position.X <= windowRect.right &&
                     windowRect.top <= position.Y && position.Y <= windowRect.bottom)
                 {
                     LogToFile($"坐标在有效活动窗口内，保持原位置: {position}");
                     return position;
                 }
-                
+                else if (isWindowValid)
+                {
+                    Point cursourPoint;
+                    // 判断鼠标位置是否在窗口内
+                    GetCursorPos(out cursourPoint);
+                    if ((windowRect.left <= cursourPoint.X && cursourPoint.X <= windowRect.right &&
+                        windowRect.top <= cursourPoint.Y && cursourPoint.Y <= windowRect.bottom))
+                    {
+                        LogToFile($"鼠标坐标在有效活动窗口内,返回鼠标坐标: {cursourPoint}");
+                        cursourPoint.X += 10;
+                        cursourPoint.Y -= 40;
+                        return cursourPoint;
+                    }
+
+                    // 如果窗口有效，但坐标不在窗口内，设置坐标未窗口中心
+                    LogToFile($"坐标不在有效活动窗口内，设置坐标为窗口中心: {position}");
+                    return new Point(windowRect.left + (windowRect.right - windowRect.left) / 2,
+                                     windowRect.top + (windowRect.bottom - windowRect.top) / 2);
+
+                }
+
                 // 如果窗口无效，使用原始坐标但进行屏幕边界检查
                 if (!isWindowValid)
                 {
@@ -727,10 +752,10 @@ namespace SmartIme
             {
                 LogToFile($"无法获取活动窗口，使用原始坐标并进行屏幕边界检查");
             }
-            
+
             // 屏幕边界检查
             Point adjustedPosition = originalPosition;
-            
+
             // 检查坐标是否在屏幕范围内
             if (adjustedPosition.X < screenBounds.Left)
             {
@@ -740,7 +765,7 @@ namespace SmartIme
             {
                 adjustedPosition.X = screenBounds.Right - hintWidth - 10;
             }
-            
+
             if (adjustedPosition.Y < screenBounds.Top)
             {
                 adjustedPosition.Y = screenBounds.Top + 10;
@@ -749,7 +774,7 @@ namespace SmartIme
             {
                 adjustedPosition.Y = screenBounds.Bottom - hintHeight - 10;
             }
-            
+
             LogToFile($"最终调整坐标: {adjustedPosition}");
             return adjustedPosition;
         }
@@ -791,10 +816,10 @@ namespace SmartIme
                         }
                     }
                 }
-                
+
                 System.Threading.Thread.Sleep(30);
             }
-            
+
             return null;
         }
 
@@ -815,7 +840,7 @@ namespace SmartIme
                 if (WinApi.GetGUIThreadInfo(threadId, ref threadInfo))
                 {
                     string debugInfo = $"GUIThreadInfo: 线程={threadId}, 焦点窗口={threadInfo.hwndFocus}, 插入符窗口={threadInfo.hwndCaret}";
-                    
+
                     if (threadInfo.hwndCaret != IntPtr.Zero)
                     {
                         debugInfo += $", 插入符位置=({threadInfo.rcCaret.left},{threadInfo.rcCaret.top})";
@@ -826,12 +851,12 @@ namespace SmartIme
                             // 插入符位置是相对于插入符窗口的客户端坐标
                             Point caretPos = new Point(threadInfo.rcCaret.left, threadInfo.rcCaret.top);
                             Point? screenPos = ConvertClientToScreen(threadInfo.hwndCaret, caretPos);
-                            
+
                             if (screenPos.HasValue)
                             {
                                 lblLog.Text += $", 屏幕位置=({screenPos.Value.X},{screenPos.Value.Y})";
                             }
-                            
+
                             return screenPos;
                         }
                     }
@@ -849,7 +874,7 @@ namespace SmartIme
             {
                 lblLog.Text = $"GUIThreadInfo异常: {ex.Message}";
             }
-            
+
             return null;
         }
 
@@ -878,7 +903,7 @@ namespace SmartIme
                 {
                     Point manualPoint = new Point(windowRect.left + clientPoint.X, windowRect.top + clientPoint.Y);
                     lblLog.Text += $" 方法3: 手动计算({manualPoint.X},{manualPoint.Y})";
-                    
+
                     // 验证坐标是否在屏幕范围内
                     if (IsPointOnScreen(manualPoint))
                     {
@@ -909,22 +934,22 @@ namespace SmartIme
             {
                 lblLog.Text += $" 坐标转换异常: {ex.Message}";
             }
-            
+
             return null;
         }
 
         private bool IsPointOnScreen(Point point)
         {
             // 检查坐标是否在屏幕范围内
-            return point.X >= 0 && point.Y >= 0 && 
-                   point.X <= Screen.PrimaryScreen.Bounds.Width && 
+            return point.X >= 0 && point.Y >= 0 &&
+                   point.X <= Screen.PrimaryScreen.Bounds.Width &&
                    point.Y <= Screen.PrimaryScreen.Bounds.Height;
         }
-        
+
         private string GetWindowTitle(IntPtr hWnd)
         {
             if (hWnd == IntPtr.Zero) return "无效窗口";
-            
+
             StringBuilder sb = new StringBuilder(256);
             WinApi.GetWindowText(hWnd, sb, sb.Capacity);
             string title = sb.ToString();
@@ -936,13 +961,18 @@ namespace SmartIme
             IntPtr hWnd = WinApi.GetFocus();
             if (hWnd == IntPtr.Zero)
             {
+                hWnd = ControlHelper.GetGlobalFocusWindow();
+            }
+            if (hWnd == IntPtr.Zero)
+            {
+
                 hWnd = WinApi.GetForegroundWindow();
                 if (hWnd == IntPtr.Zero)
                 {
                     return null;
                 }
             }
-            
+
             return TryGetCaretPositionWithRetry(hWnd);
         }
 
@@ -952,17 +982,17 @@ namespace SmartIme
             using (Graphics g = Graphics.FromImage(bmp))
             {
                 g.Clear(Color.Transparent);
-                
+
                 using (Brush brush = new SolidBrush(color))
                 {
                     g.FillEllipse(brush, 2, 2, 12, 12);
                 }
-                
+
                 using (Pen pen = new Pen(Color.White, 1))
                 {
                     g.DrawEllipse(pen, 2, 2, 12, 12);
                 }
-                
+
                 trayIcon.Icon = Icon.FromHandle(bmp.GetHicon());
             }
         }
@@ -993,10 +1023,17 @@ namespace SmartIme
 
         private void ChangeCursorColorByIme(string imeName)
         {
-            if(string.IsNullOrEmpty(currentImeName)){
+            if (string.IsNullOrEmpty(currentImeName))
+            {
                 currentImeName = imeName;
                 return;
             }
+            string activeProcessName = ControlHelper.GetActiveWindowProcessName();
+            if (activeProcessName == "explorer")
+            {
+                return;
+            }
+            Debug.WriteLine(activeProcessName);
             if (imeName != currentImeName && !string.IsNullOrEmpty(currentImeName))
             {
                 if (imeColors.TryGetValue(imeName, out Color color))
@@ -1018,7 +1055,7 @@ namespace SmartIme
 
         private void BtnColorConfig_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("请在下方选择输入法并设置对应的光标颜色。切换输入法时，光标颜色会自动改变。", 
+            MessageBox.Show("请在下方选择输入法并设置对应的光标颜色。切换输入法时，光标颜色会自动改变。",
                 "光标颜色配置", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 

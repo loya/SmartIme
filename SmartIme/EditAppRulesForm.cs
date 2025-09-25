@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using System.Linq;
 using SmartIme.Utilities;
 
 namespace SmartIme
@@ -13,7 +9,7 @@ namespace SmartIme
         private MainForm mainForm { get; }
         private bool _isModify = false;
 
-        public EditAppRulesForm(MainForm mainForm,AppRuleGroup appRuleGroup, IEnumerable<string> inputMethods)
+        public EditAppRulesForm(MainForm mainForm, AppRuleGroup appRuleGroup, IEnumerable<string> inputMethods)
         {
             InitializeComponent();
             this.appRuleGroup = appRuleGroup;
@@ -33,7 +29,7 @@ namespace SmartIme
             //{
             //    lstRules.Items.Add(rule);
             //}
-            lstRules.Items.AddRange(appRuleGroup.Rules.Select(r => r).OrderByDescending(t => t.Priority).ToArray());            
+            lstRules.Items.AddRange(appRuleGroup.Rules.Select(r => r).OrderByDescending(t => t.Priority).ToArray());
         }
 
         private void BtnAddRule_Click(object sender, EventArgs e)

@@ -72,11 +72,10 @@ namespace SmartIme
             this.Opacity = 0.6;
             
             // 确保窗口尺寸正确
-            this.Size = new Size(120, 40);
-            this.ClientSize = new Size(120, 40);
+            this.Size = new Size(100, 35);
             
             // 创建圆角效果（使用窗口尺寸）
-            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 12, 12));
+            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 6, 6));
         }
         
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
@@ -101,17 +100,17 @@ namespace SmartIme
             // 绘制颜色指示圆
             using (Brush colorBrush = new SolidBrush(hintColor))
             {
-                g.FillEllipse(colorBrush, 10, 8, 12, 12);
+                g.FillEllipse(colorBrush, 10, 10, 14, 14);
             }
 
             // 绘制边框
             using (Pen borderPen = new Pen(Color.White, 1))
             {
-                g.DrawEllipse(borderPen, 10, 8, 12, 12);
+                g.DrawEllipse(borderPen, 10, 10, 14, 14);
             }
 
             // 绘制输入法名称
-            using (Font font = new Font("微软雅黑", 8, FontStyle.Bold))
+            using (Font font = new Font("微软雅黑", 10, FontStyle.Bold))
             using (Brush textBrush = new SolidBrush(Color.White))
             {
                 string displayName = imeName.Length > 8 ? imeName.Substring(0, 6) + "..." : imeName;

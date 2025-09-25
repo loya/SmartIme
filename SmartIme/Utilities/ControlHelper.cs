@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Drawing;
 using Interop.UIAutomationClient;
 using System.Text;
+using static SmartIme.Utilities.WinApi;
 
 namespace SmartIme.Utilities
 {
@@ -121,6 +122,23 @@ namespace SmartIme.Utilities
             }
 
             return string.Empty;
+        }
+
+        public static IntPtr GetGlobalFocusWindow()
+        {
+            GUITHREADINFO guiThreadInfo = new GUITHREADINFO();
+
+            guiThreadInfo.cbSize = (uint)Marshal.SizeOf(typeof(WinApi.GUITHREADINFO));
+
+            // 获取前台窗口（用户正在交互的窗口）的线程ID
+            var a = GetWindowThreadProcessId(GetForegroundWindow(), out uint foregroundThreadID);
+
+            if (GetGUIThreadInfo(a,ref guiThreadInfo))
+            {
+                return guiThreadInfo.hwndFocus;  // 返回该线程中的焦点窗口
+            }
+
+            return IntPtr.Zero;
         }
     }
 }
