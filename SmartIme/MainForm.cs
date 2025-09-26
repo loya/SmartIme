@@ -3,19 +3,18 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
 using System.Timers;
-using static SmartIme.Utilities.WinApi;
 
 namespace SmartIme
 {
     public partial class MainForm : Form
     {
-        private readonly BindingList<AppRuleGroup> appRuleGroups = [];
+        public BindingList<AppRuleGroup> AppRuleGroups = new();
         private readonly System.Timers.Timer monitorTimer = new();
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayMenu;
+        private readonly List<string> whitelistedApps = new List<string>();
 
         private readonly JsonSerializerOptions options = new()
         {
@@ -62,6 +61,7 @@ namespace SmartIme
             // 加载保存的设置
             cmbDefaultIme.SelectedIndex = Properties.Settings.Default.DefaultIme;
             LoadRulesFromJson();
+            LoadWhitelist();
 
             // 恢复窗口大小和位置
             if (Properties.Settings.Default.WindowSize != System.Drawing.Size.Empty)
@@ -134,7 +134,7 @@ namespace SmartIme
             try
             {
                 string jsonPath = GetRulesJsonPath();
-                string json = JsonSerializer.Serialize(appRuleGroups, options);
+                string json = JsonSerializer.Serialize(AppRuleGroups, options);
                 File.WriteAllText(jsonPath, json);
                 UpdateTreeView();
             }
@@ -155,10 +155,10 @@ namespace SmartIme
                     var loadedGroups = JsonSerializer.Deserialize<List<AppRuleGroup>>(json);
                     if (loadedGroups != null)
                     {
-                        appRuleGroups.Clear();
+                        AppRuleGroups.Clear();
                         foreach (var group in loadedGroups)
                         {
-                            appRuleGroups.Add(group);
+                            AppRuleGroups.Add(group);
                         }
                     }
                 }
@@ -222,20 +222,21 @@ namespace SmartIme
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string processName = process.ProcessName;
+
                 if (processName == "explorer") { return; }
                 string controlName = null;
-                controlName = ControlHelper.GetFocusedControlName();
+                controlName = AppHelper.GetFocusedControlName();
 
                 if (processName == lastActiveApp)
                 {
-                    controlName = ControlHelper.GetFocusedControlName();
+                    controlName = AppHelper.GetFocusedControlName();
 
                     if (controlName == lastClassName)
                     {
                         return;
                     }
 
-                    bool hasRulesForThisApp = appRuleGroups.Any(g => processName == g.AppName);
+                    bool hasRulesForThisApp = AppRuleGroups.Any(g => processName == g.AppName);
                     if (!hasRulesForThisApp)
                     {
                         return;
@@ -251,6 +252,7 @@ namespace SmartIme
                 lastActiveApp = processName;
                 lastClassName = controlName;
 
+
                 var titleBuilder = new System.Text.StringBuilder(256);
                 _ = WinApi.GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
                 string windowTitle = titleBuilder.ToString();
@@ -258,7 +260,7 @@ namespace SmartIme
 
                 if (string.IsNullOrEmpty(controlName))
                 {
-                    controlName = ControlHelper.GetWindowClassName(hWnd);
+                    controlName = AppHelper.GetWindowClassName(hWnd);
                 }
 
                 Rule matchedRule = FindMatchingRule(processName, windowTitle, controlName);
@@ -309,7 +311,7 @@ namespace SmartIme
 
         private Rule FindMatchingRule(string appName, string windowTitle, string controlClass)
         {
-            foreach (var group in appRuleGroups)
+            foreach (var group in AppRuleGroups)
             {
                 //if (Regex.IsMatch(appName, group.AppName))
                 if (appName == group.AppName)
@@ -344,7 +346,8 @@ namespace SmartIme
 
         private void BtnAddApp_Click(object sender, EventArgs e)
         {
-            using var processSelectForm = new ProcessSelectForm();
+            var existingApps = AppRuleGroups.Select(g => g.AppName).ToList();
+            using var processSelectForm = new ProcessSelectForm(existingApps);
             if (processSelectForm.ShowDialog(this) == DialogResult.OK && processSelectForm.SelectedProcess != null)
             {
                 var selectedProcess = processSelectForm.SelectedProcess;
@@ -362,7 +365,7 @@ namespace SmartIme
 
                 string displayName = $"{appName} - {mainModule?.ModuleName}";
 
-                var existingGroup = appRuleGroups.FirstOrDefault(g => g.AppName == appName);
+                var existingGroup = AppRuleGroups.FirstOrDefault(g => g.AppName == appName);
                 if (existingGroup != null)
                 {
                     MessageBox.Show("该应用已存在规则组中，请双击编辑。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -374,11 +377,11 @@ namespace SmartIme
                 var defaultRule = new Rule(Rule.CreateDefaultName(appName, RuleNams.程序名称), RuleType.Program, appName, cmbDefaultIme.Text);
                 newGroup.AddRule(defaultRule);
 
-                var list = appRuleGroups.ToList();
+                var list = AppRuleGroups.ToList();
                 list.Add(newGroup);
 
                 var index = list.OrderBy(t => t.AppName).ToList().FindIndex(t => t.AppName == appName);
-                appRuleGroups.Insert(index, newGroup);
+                AppRuleGroups.Insert(index, newGroup);
                 UpdateTreeView();
                 SaveRulesToJson();
 
@@ -393,7 +396,7 @@ namespace SmartIme
             {
                 if (treeApps.SelectedNode.Tag is AppRuleGroup group)
                 {
-                    appRuleGroups.Remove(group);
+                    AppRuleGroups.Remove(group);
                     SaveRulesToJson();
                 }
                 else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
@@ -431,7 +434,7 @@ namespace SmartIme
         {
             treeApps.Nodes.Clear();
 
-            foreach (var group in appRuleGroups.OrderBy(g => g.AppName))
+            foreach (var group in AppRuleGroups.OrderBy(g => g.AppName))
             {
                 var groupNode = new TreeNode(group.DisplayName)
                 {
@@ -466,6 +469,51 @@ namespace SmartIme
         private void BtnExit_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void BtnWhitelist_Click(object sender, EventArgs e)
+        {
+            using var whitelistForm = new WhitelistForm(this);
+            whitelistForm.ShowDialog(this);
+            LoadWhitelist(); // 重新加载白名单
+        }
+
+        public void LoadWhitelist()
+        {
+            try
+            {
+                string jsonPath = GetWhitelistJsonPath();
+                if (File.Exists(jsonPath))
+                {
+                    string json = File.ReadAllText(jsonPath);
+
+                    // 尝试反序列化为新格式
+
+                    var loadedApps = JsonSerializer.Deserialize<List<WhitelistForm.WhitelistApp>>(json);
+                    if (loadedApps != null)
+                    {
+                        whitelistedApps.Clear();
+                        foreach (var app in loadedApps)
+                        {
+                            whitelistedApps.Add(app.Name);
+                        }
+                        return;
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载白名单失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
+            }
+        }
+
+        private string GetWhitelistJsonPath()
+        {
+            string assemblyPath = Assembly.GetExecutingAssembly().Location;
+            string appDirectory = Path.GetDirectoryName(assemblyPath);
+            return Path.Combine(appDirectory, "whitelist.json");
         }
 
         #region 光标颜色配置功能
@@ -594,6 +642,11 @@ namespace SmartIme
 
         private void ShowFloatingHint(Color color, string imeName)
         {
+            // 检查是否在白名单中
+            if (whitelistedApps.Contains(lastActiveApp))
+            {
+                return;
+            }
             if (this.InvokeRequired)
             {
                 this.Invoke(new Action(() => ShowFloatingHint(color, imeName)));
@@ -610,7 +663,7 @@ namespace SmartIme
             Point displayPos = GetBestFloatingHintPosition();
 
             // 验证和调整坐标
-            displayPos = ValidateAndAdjustPosition(displayPos);
+            displayPos = AppHelper.ValidateAndAdjustPosition(displayPos);
 
             FloatingHintForm hintForm = new FloatingHintForm(color, imeName);
             hintForm.StartPosition = FormStartPosition.Manual;
@@ -633,117 +686,6 @@ namespace SmartIme
             return new Point(cursorPos.X + 15, cursorPos.Y - 40);
         }
 
-        private Point ValidateAndAdjustPosition(Point position)
-        {
-            // 获取屏幕边界
-            Rectangle screenBounds = Screen.PrimaryScreen.Bounds;
-
-            // 获取浮动提示窗口的预估尺寸
-            int hintWidth = 120;
-            int hintHeight = 40;
-
-            // 记录原始坐标
-            Point originalPosition = position;
-
-            // 获取当前活动窗口信息
-            IntPtr foregroundWindow1 = WinApi.GetForegroundWindow();
-            IntPtr foregroundWindow = ControlHelper.GetGlobalFocusWindow();
-            if (foregroundWindow != IntPtr.Zero)
-            {
-                string windowTitle = GetWindowTitle(foregroundWindow);
-                WinApi.GetWindowRect(foregroundWindow, out WinApi.RECT windowRect);
-
-                // 检查窗口是否有效（非零尺寸）
-                bool isWindowValid = !(windowRect.left == 0 && windowRect.top == 0 &&
-                                     windowRect.right == 0 && windowRect.bottom == 0);
-
-                // 记录窗口信息用于调试到文件
-                LogToFile($"活动窗口: {windowTitle}, 位置: [{windowRect.left},{windowRect.top}-{windowRect.right},{windowRect.bottom}], 有效: {isWindowValid}");
-                LogToFile($"原始坐标: {originalPosition}");
-
-                // 检查坐标是否在当前活动窗口内（仅当窗口有效时）
-                if (isWindowValid &&
-                    windowRect.left <= position.X && position.X <= windowRect.right &&
-                    windowRect.top <= position.Y && position.Y <= windowRect.bottom)
-                {
-                    LogToFile($"坐标在有效活动窗口内，保持原位置: {position}");
-                    return position;
-                }
-                else if (isWindowValid)
-                {
-                    Point cursourPoint;
-                    // 判断鼠标位置是否在窗口内
-                    GetCursorPos(out cursourPoint);
-                    if ((windowRect.left <= cursourPoint.X && cursourPoint.X <= windowRect.right &&
-                        windowRect.top <= cursourPoint.Y && cursourPoint.Y <= windowRect.bottom))
-                    {
-                        LogToFile($"鼠标坐标在有效活动窗口内,返回鼠标坐标: {cursourPoint}");
-                        cursourPoint.X += 10;
-                        cursourPoint.Y -= 40;
-                        return cursourPoint;
-                    }
-
-                    // 如果窗口有效，但坐标不在窗口内，设置坐标未窗口中心
-                    LogToFile($"坐标不在有效活动窗口内，设置坐标为窗口中心: {position}");
-                    return new Point(windowRect.left + (windowRect.right - windowRect.left) / 2,
-                                     windowRect.top + (windowRect.bottom - windowRect.top) / 2);
-
-                }
-
-                // 如果窗口无效，使用原始坐标但进行屏幕边界检查
-                if (!isWindowValid)
-                {
-                    LogToFile($"活动窗口无效，使用原始坐标并进行屏幕边界检查");
-                }
-                else
-                {
-                    LogToFile($"坐标不在活动窗口内，使用原始坐标并进行屏幕边界检查");
-                }
-            }
-            else
-            {
-                LogToFile($"无法获取活动窗口，使用原始坐标并进行屏幕边界检查");
-            }
-
-            // 屏幕边界检查
-            Point adjustedPosition = originalPosition;
-
-            // 检查坐标是否在屏幕范围内
-            if (adjustedPosition.X < screenBounds.Left)
-            {
-                adjustedPosition.X = screenBounds.Left + 10;
-            }
-            else if (adjustedPosition.X + hintWidth > screenBounds.Right)
-            {
-                adjustedPosition.X = screenBounds.Right - hintWidth - 10;
-            }
-
-            if (adjustedPosition.Y < screenBounds.Top)
-            {
-                adjustedPosition.Y = screenBounds.Top + 10;
-            }
-            else if (adjustedPosition.Y + hintHeight > screenBounds.Bottom)
-            {
-                adjustedPosition.Y = screenBounds.Bottom - hintHeight - 10;
-            }
-
-            LogToFile($"最终调整坐标: {adjustedPosition}");
-            return adjustedPosition;
-        }
-
-        private void LogToFile(string message)
-        {
-            try
-            {
-                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "position_debug.log");
-                string logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{Environment.NewLine}";
-                File.AppendAllText(logPath, logMessage);
-            }
-            catch
-            {
-                // 忽略日志写入错误
-            }
-        }
 
         private Point? TryGetCaretPositionWithRetry(IntPtr hWnd)
         {
@@ -898,22 +840,13 @@ namespace SmartIme
                    point.Y <= Screen.PrimaryScreen.Bounds.Height;
         }
 
-        private string GetWindowTitle(IntPtr hWnd)
-        {
-            if (hWnd == IntPtr.Zero) return "无效窗口";
-
-            StringBuilder sb = new StringBuilder(256);
-            WinApi.GetWindowText(hWnd, sb, sb.Capacity);
-            string title = sb.ToString();
-            return string.IsNullOrEmpty(title) ? "无标题窗口" : title;
-        }
 
         private Point? GetCaretPositionFromActiveWindow()
         {
             IntPtr hWnd = WinApi.GetFocus();
             if (hWnd == IntPtr.Zero)
             {
-                hWnd = ControlHelper.GetGlobalFocusWindow();
+                hWnd = AppHelper.GetGlobalFocusWindow();
             }
             if (hWnd == IntPtr.Zero)
             {
@@ -980,7 +913,7 @@ namespace SmartIme
                 currentImeName = imeName;
                 return;
             }
-            string activeProcessName = ControlHelper.GetActiveWindowProcessName();
+            string activeProcessName = AppHelper.GetActiveWindowProcessName();
             if (activeProcessName == "explorer")
             {
                 return;

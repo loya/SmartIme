@@ -37,4 +37,13 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="WhitelistForm.Designer.cs">
+      <DependentUpon>WhitelistForm.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="WhitelistForm.resx">
+      <DependentUpon>WhitelistForm.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

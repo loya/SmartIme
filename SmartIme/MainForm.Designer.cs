@@ -41,6 +41,7 @@ namespace SmartIme
             cmbImeForColor = new ComboBox();
             label4 = new Label();
             colorDialog = new ColorDialog();
+            btnWhitelist = new Button();
             SuspendLayout();
             // 
             // lblCurrentIme
@@ -57,7 +58,7 @@ namespace SmartIme
             // btnSwitchIme
             // 
             btnSwitchIme.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnSwitchIme.Location = new Point(263, 97);
+            btnSwitchIme.Location = new Point(373, 97);
             btnSwitchIme.Margin = new Padding(4);
             btnSwitchIme.Name = "btnSwitchIme";
             btnSwitchIme.Size = new Size(183, 42);
@@ -74,14 +75,14 @@ namespace SmartIme
             treeApps.Margin = new Padding(4);
             treeApps.Name = "treeApps";
             treeApps.ShowNodeToolTips = true;
-            treeApps.Size = new Size(423, 278);
+            treeApps.Size = new Size(533, 278);
             treeApps.TabIndex = 2;
             treeApps.DoubleClick += TreeApps_DoubleClick;
             // 
             // btnAddApp
             // 
             btnAddApp.Anchor = AnchorStyles.Bottom;
-            btnAddApp.Location = new Point(87, 524);
+            btnAddApp.Location = new Point(81, 524);
             btnAddApp.Margin = new Padding(4);
             btnAddApp.Name = "btnAddApp";
             btnAddApp.Size = new Size(93, 44);
@@ -92,7 +93,7 @@ namespace SmartIme
             // btnRemoveApp
             // 
             btnRemoveApp.Anchor = AnchorStyles.Bottom;
-            btnRemoveApp.Location = new Point(188, 524);
+            btnRemoveApp.Location = new Point(189, 524);
             btnRemoveApp.Margin = new Padding(4);
             btnRemoveApp.Name = "btnRemoveApp";
             btnRemoveApp.Size = new Size(93, 44);
@@ -108,7 +109,7 @@ namespace SmartIme
             cmbDefaultIme.Location = new Point(149, 68);
             cmbDefaultIme.Margin = new Padding(4);
             cmbDefaultIme.Name = "cmbDefaultIme";
-            cmbDefaultIme.Size = new Size(297, 25);
+            cmbDefaultIme.Size = new Size(407, 25);
             cmbDefaultIme.TabIndex = 5;
             // 
             // label1
@@ -147,7 +148,7 @@ namespace SmartIme
             // btnExit
             // 
             btnExit.Anchor = AnchorStyles.Bottom;
-            btnExit.Location = new Point(289, 524);
+            btnExit.Location = new Point(405, 524);
             btnExit.Margin = new Padding(4);
             btnExit.Name = "btnExit";
             btnExit.Size = new Size(93, 44);
@@ -220,11 +221,23 @@ namespace SmartIme
             colorDialog.AnyColor = true;
             colorDialog.FullOpen = true;
             // 
+            // btnWhitelist
+            // 
+            btnWhitelist.Anchor = AnchorStyles.Bottom;
+            btnWhitelist.Location = new Point(297, 524);
+            btnWhitelist.Margin = new Padding(4);
+            btnWhitelist.Name = "btnWhitelist";
+            btnWhitelist.Size = new Size(93, 44);
+            btnWhitelist.TabIndex = 16;
+            btnWhitelist.Text = "白名单";
+            btnWhitelist.UseVisualStyleBackColor = true;
+            btnWhitelist.Click += BtnWhitelist_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(469, 592);
+            ClientSize = new Size(579, 592);
             Controls.Add(label4);
             Controls.Add(cmbImeForColor);
             Controls.Add(btnPickColor);
@@ -235,6 +248,7 @@ namespace SmartIme
             Controls.Add(label1);
             Controls.Add(cmbDefaultIme);
             Controls.Add(btnExit);
+            Controls.Add(btnWhitelist);
             Controls.Add(btnRemoveApp);
             Controls.Add(btnAddApp);
             Controls.Add(treeApps);
@@ -258,5 +272,6 @@ namespace SmartIme
         private ComboBox cmbImeForColor;
         private Label label4;
         private ColorDialog colorDialog;
+        private Button btnWhitelist;
     }
 }

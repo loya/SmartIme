@@ -1,4 +1,4 @@
-using System.Diagnostics;
+ï»¿using System.Diagnostics;
 
 namespace SmartIme
 {
@@ -9,10 +9,10 @@ namespace SmartIme
         private readonly Process[] processes;
         public Process SelectedProcess { get; private set; }
 
-        public ProcessSelectForm()
+        public ProcessSelectForm(IEnumerable<string> existingApps = null)
         {
             this.ShowInTaskbar = false;
-            this.Text = "Ñ¡ÔñÓ¦ÓÃ³ÌÐò";
+            this.Text = "é€‰æ‹©åº”ç”¨ç¨‹åº";
             this.Size = new Size(400, 500);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -21,12 +21,12 @@ namespace SmartIme
 
             btnSelect = new Button
             {
-                Text = "Ñ¡Ôñ",
+                Text = "é€‰æ‹©",
                 DialogResult = DialogResult.OK,
                 Height = 30,
-                Width = this.ClientSize.Width - 40, // Á½²àÁô20ÏñËØ
+                Width = this.ClientSize.Width - 40, // ä¸¤ä¾§ç•™20åƒç´ 
                 Left = 20,
-                Top = this.ClientSize.Height - 30 - 16, // ¾àµ×²¿16ÏñËØ
+                Top = this.ClientSize.Height - 30 - 16, // è·åº•éƒ¨16åƒç´ 
                 Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
             };
             btnSelect.Click += BtnSelect_Click;
@@ -36,17 +36,17 @@ namespace SmartIme
                 Left = 0,
                 Top = 0,
                 Width = this.ClientSize.Width,
-                Height = this.ClientSize.Height - btnSelect.Height - 16, // Áô³ö°´Å¥ºÍµ×²¿¼ä¾à
+                Height = this.ClientSize.Height - btnSelect.Height - 16, // ç•™å‡ºæŒ‰é’®å’Œåº•éƒ¨é—´è·
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
             };
             btnSelect = new Button
             {
-                Text = "Ñ¡Ôñ",
+                Text = "é€‰æ‹©",
                 DialogResult = DialogResult.OK,
                 Height = 30,
-                Width = this.ClientSize.Width - 40, // Á½²àÁô20ÏñËØ
+                Width = this.ClientSize.Width - 40, // ä¸¤ä¾§ç•™20åƒç´ 
                 Left = 20,
-                Top = this.ClientSize.Height - 30 - 12, // ¾àµ×²¿16ÏñËØ
+                Top = this.ClientSize.Height - 30 - 12, // è·åº•éƒ¨16åƒç´ 
                 Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
             };
             btnSelect.Click += BtnSelect_Click;
@@ -56,6 +56,7 @@ namespace SmartIme
 
             processes = Process.GetProcesses()
                 .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
+                .Where(p => existingApps == null || !existingApps.Contains(p.ProcessName))
                 .OrderBy(p => p.ProcessName)
                 .ToArray();
 
@@ -78,7 +79,7 @@ namespace SmartIme
                 }
             }
 
-            // Ìí¼Ó´°Ìå´óÐ¡±ä»¯Ê±µ÷Õû°´Å¥¿í¶ÈºÍÎ»ÖÃ
+            // æ·»åŠ çª—ä½“å¤§å°å˜åŒ–æ—¶è°ƒæ•´æŒ‰é’®å®½åº¦å’Œä½ç½®
             this.Resize += (s, e) =>
             {
                 btnSelect.Width = this.ClientSize.Width - 40;
