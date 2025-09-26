@@ -150,15 +150,15 @@ namespace SmartIme.Utilities
             return string.IsNullOrEmpty(title) ? "无标题窗口" : title;
         }
 
-        private static void LogToFile(string message)
+        public static void LogToFile(string message, string level = "info", bool foceDebug = false)
         {
-#if !DEBUG
+#if !DEBUG && !foceDebug
             return; // 非调试模式下不记录日志
 #endif
             try
             {
                 string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "position_debug.log");
-                string logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{Environment.NewLine}";
+                string logMessage = $"{level}: {DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{Environment.NewLine}";
                 File.AppendAllText(logPath, logMessage);
             }
             catch
@@ -166,6 +166,7 @@ namespace SmartIme.Utilities
                 // 忽略日志写入错误
             }
         }
+
         public static Point ValidateAndAdjustPosition(Point position)
         {
             // 获取屏幕边界

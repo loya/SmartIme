@@ -85,11 +85,25 @@ namespace SmartIme
         private void SetupTrayIcon()
         {
             trayMenu = new ContextMenuStrip();
+
+            // 添加开机自启动菜单项
+            var startupItem = new ToolStripMenuItem("开机自启动");
+            startupItem.CheckOnClick = true;
+            startupItem.Checked = IsAppSetToStartup();
+            startupItem.Click += (s, e) =>
+            {
+                SetAppStartup(startupItem.Checked);
+            };
+            trayMenu.Items.Add(startupItem);
+
+            trayMenu.Items.Add("-");
+
             trayMenu.Items.Add("显示主窗口", null, (s, e) =>
             {
                 this.Show();
                 this.WindowState = FormWindowState.Normal;
             });
+
             trayMenu.Items.Add("退出", null, (s, e) => Application.Exit());
 
             trayIcon = new NotifyIcon
@@ -100,6 +114,33 @@ namespace SmartIme
                 Visible = true
             };
             trayIcon.DoubleClick += (s, e) => { this.Show(); this.WindowState = FormWindowState.Normal; };
+        }
+
+        private bool IsAppSetToStartup()
+        {
+            using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", false))
+            {
+                string appName = Assembly.GetExecutingAssembly().GetName().Name;
+                return key?.GetValue(appName) != null;
+            }
+        }
+
+        private void SetAppStartup(bool enable)
+        {
+            string appName = Assembly.GetExecutingAssembly().GetName().Name;
+            string appPath = Assembly.GetExecutingAssembly().Location;
+
+            using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true))
+            {
+                if (enable)
+                {
+                    key.SetValue(appName, $"\"{appPath}\" -minimized");
+                }
+                else
+                {
+                    key.DeleteValue(appName, false);
+                }
+            }
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -660,7 +701,7 @@ namespace SmartIme
                 currentHintForm = null;
             }
 
-            Point displayPos = GetBestFloatingHintPosition();
+            Point displayPos = CaretHelper.GetBestFloatingHintPosition();
 
             // 验证和调整坐标
             displayPos = AppHelper.ValidateAndAdjustPosition(displayPos);
@@ -671,194 +712,6 @@ namespace SmartIme
 
             hintForm.Show();
             currentHintForm = hintForm;
-        }
-
-        private Point GetBestFloatingHintPosition()
-        {
-            Point? caretPosition = GetCaretPositionFromActiveWindow();
-            if (caretPosition.HasValue)
-            {
-                if (caretPosition.Value != Point.Empty)
-                    return new Point(caretPosition.Value.X + 5, caretPosition.Value.Y - 40);
-            }
-
-            Point cursorPos = Cursor.Position;
-            return new Point(cursorPos.X + 15, cursorPos.Y - 40);
-        }
-
-
-        private Point? TryGetCaretPositionWithRetry(IntPtr hWnd)
-        {
-            // 首先尝试使用GetGUIThreadInfo API获取更准确的插入符位置
-            Point? caretPos = GetCaretPositionUsingGUIThreadInfo(hWnd);
-            if (caretPos.HasValue)
-            {
-                return caretPos;
-            }
-
-            // 如果GetGUIThreadInfo失败，回退到原来的GetCaretPos方法
-            for (int i = 0; i < 5; i++)
-            {
-                if (WinApi.GetCaretPos(out Point caretPos2))
-                {
-                    if (caretPos2.X >= 0 && caretPos2.Y >= 0)
-                    {
-                        Point? screenPos = ConvertClientToScreen(hWnd, caretPos2);
-                        if (screenPos.HasValue)
-                        {
-                            return screenPos;
-                        }
-                    }
-                }
-
-                System.Threading.Thread.Sleep(30);
-            }
-
-            return null;
-        }
-
-        private Point? GetCaretPositionUsingGUIThreadInfo(IntPtr hWnd)
-        {
-            try
-            {
-                uint threadId = WinApi.GetWindowThreadProcessId(hWnd, IntPtr.Zero);
-                if (threadId == 0)
-                {
-                    lblLog.Text = $"GUIThreadInfo: 无法获取线程ID (窗口: {hWnd})";
-                    return null;
-                }
-
-                WinApi.GUITHREADINFO threadInfo = new WinApi.GUITHREADINFO();
-                threadInfo.cbSize = (uint)Marshal.SizeOf(typeof(WinApi.GUITHREADINFO));
-
-                if (WinApi.GetGUIThreadInfo(threadId, ref threadInfo))
-                {
-                    string debugInfo = $"GUIThreadInfo: 线程={threadId}, 焦点窗口={threadInfo.hwndFocus}, 插入符窗口={threadInfo.hwndCaret}";
-
-                    if (threadInfo.hwndCaret != IntPtr.Zero)
-                    {
-                        debugInfo += $", 插入符位置=({threadInfo.rcCaret.left},{threadInfo.rcCaret.top})";
-                        lblLog.Text = debugInfo;
-
-                        if (threadInfo.rcCaret.left >= 0 && threadInfo.rcCaret.top >= 0)
-                        {
-                            // 插入符位置是相对于插入符窗口的客户端坐标
-                            Point caretPos = new Point(threadInfo.rcCaret.left, threadInfo.rcCaret.top);
-                            Point? screenPos = ConvertClientToScreen(threadInfo.hwndCaret, caretPos);
-
-                            if (screenPos.HasValue)
-                            {
-                                lblLog.Text += $", 屏幕位置=({screenPos.Value.X},{screenPos.Value.Y})";
-                            }
-
-                            return screenPos;
-                        }
-                    }
-                    else
-                    {
-                        lblLog.Text = debugInfo + ", 无插入符窗口";
-                    }
-                }
-                else
-                {
-                    lblLog.Text = $"GUIThreadInfo: API调用失败 (线程: {threadId})";
-                }
-            }
-            catch (Exception ex)
-            {
-                lblLog.Text = $"GUIThreadInfo异常: {ex.Message}";
-            }
-
-            return null;
-        }
-
-        private Point? ConvertClientToScreen(IntPtr hWnd, Point clientPoint)
-        {
-            try
-            {
-                // 方法1: 使用标准的ClientToScreen API
-                Point screenPoint = clientPoint;
-                if (WinApi.ClientToScreen(hWnd, ref screenPoint))
-                {
-                    lblLog.Text += $" 方法1成功: ({screenPoint.X},{screenPoint.Y})";
-                    return screenPoint;
-                }
-
-                // 方法2: 使用POINT结构体的ClientToScreen
-                WinApi.POINT point = new WinApi.POINT { x = clientPoint.X, y = clientPoint.Y };
-                if (WinApi.ClientToScreen(hWnd, ref point))
-                {
-                    lblLog.Text += $" 方法2成功: ({point.x},{point.y})";
-                    return new Point(point.x, point.y);
-                }
-
-                // 方法3: 手动计算窗口位置 + 客户端坐标
-                if (WinApi.GetWindowRect(hWnd, out WinApi.RECT windowRect))
-                {
-                    Point manualPoint = new Point(windowRect.left + clientPoint.X, windowRect.top + clientPoint.Y);
-                    lblLog.Text += $" 方法3: 手动计算({manualPoint.X},{manualPoint.Y})";
-
-                    // 验证坐标是否在屏幕范围内
-                    if (IsPointOnScreen(manualPoint))
-                    {
-                        return manualPoint;
-                    }
-                    else
-                    {
-                        lblLog.Text += " 坐标超出屏幕范围";
-                    }
-                }
-
-                // 方法4: 如果插入符窗口不是目标窗口，尝试获取焦点窗口
-                IntPtr focusWnd = WinApi.GetFocus();
-                if (focusWnd != hWnd && focusWnd != IntPtr.Zero)
-                {
-                    lblLog.Text += $" 尝试焦点窗口: {focusWnd}";
-                    return ConvertClientToScreen(focusWnd, clientPoint);
-                }
-
-                // 方法5: 使用鼠标位置作为备选方案
-                if (WinApi.GetCursorPos(out Point cursorPos))
-                {
-                    lblLog.Text += $" 使用鼠标位置: ({cursorPos.X},{cursorPos.Y})";
-                    return cursorPos;
-                }
-            }
-            catch (Exception ex)
-            {
-                lblLog.Text += $" 坐标转换异常: {ex.Message}";
-            }
-
-            return null;
-        }
-
-        private bool IsPointOnScreen(Point point)
-        {
-            // 检查坐标是否在屏幕范围内
-            return point.X >= 0 && point.Y >= 0 &&
-                   point.X <= Screen.PrimaryScreen.Bounds.Width &&
-                   point.Y <= Screen.PrimaryScreen.Bounds.Height;
-        }
-
-
-        private Point? GetCaretPositionFromActiveWindow()
-        {
-            IntPtr hWnd = WinApi.GetFocus();
-            if (hWnd == IntPtr.Zero)
-            {
-                hWnd = AppHelper.GetGlobalFocusWindow();
-            }
-            if (hWnd == IntPtr.Zero)
-            {
-
-                hWnd = WinApi.GetForegroundWindow();
-                if (hWnd == IntPtr.Zero)
-                {
-                    return null;
-                }
-            }
-
-            return TryGetCaretPositionWithRetry(hWnd);
         }
 
         private void UpdateTrayIconColor(Color color)
