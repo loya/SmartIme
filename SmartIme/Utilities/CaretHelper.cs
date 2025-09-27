@@ -23,10 +23,10 @@ namespace SmartIme.Utilities
             IntPtr hWnd = WinApi.GetFocus();
             if (hWnd == IntPtr.Zero)
             {
-                hWnd = AppHelper.GetGlobalFocusWindow();
-            }
-            if (hWnd == IntPtr.Zero)
-            {
+                //    hWnd = AppHelper.GetGlobalFocusWindow();
+                //}
+                //if (hWnd == IntPtr.Zero)
+                //{
 
                 hWnd = WinApi.GetForegroundWindow();
                 if (hWnd == IntPtr.Zero)
@@ -39,8 +39,11 @@ namespace SmartIme.Utilities
         }
 
 
+
+
         private static Point? TryGetCaretPositionWithRetry(IntPtr hWnd)
         {
+            System.Threading.Thread.Sleep(30);
             // 首先尝试使用GetGUIThreadInfo API获取更准确的插入符位置
             Point? caretPos = GetCaretPositionUsingGUIThreadInfo(hWnd);
             if (caretPos.HasValue)
@@ -102,6 +105,7 @@ namespace SmartIme.Utilities
                             if (screenPos.HasValue)
                             {
                                 debugInfo += $", 屏幕位置=({screenPos.Value.X},{screenPos.Value.Y})";
+                                AppHelper.LogToFile(debugInfo);
                             }
 
                             return screenPos;

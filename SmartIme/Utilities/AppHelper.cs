@@ -180,8 +180,8 @@ namespace SmartIme.Utilities
             Point originalPosition = position;
 
             // 获取当前活动窗口信息
-            IntPtr foregroundWindow1 = WinApi.GetForegroundWindow();
-            IntPtr foregroundWindow = AppHelper.GetGlobalFocusWindow();
+            IntPtr foregroundWindow = WinApi.GetForegroundWindow();
+            //IntPtr foregroundWindow = AppHelper.GetGlobalFocusWindow();
             if (foregroundWindow != IntPtr.Zero)
             {
                 string windowTitle = GetWindowTitle(foregroundWindow);
