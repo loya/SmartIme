@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SmartIme": {
+      "commandName": "Project",
+      "commandLineArgs": "minimized"
+    }
+  }
+}

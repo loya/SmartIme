@@ -127,8 +127,10 @@ namespace SmartIme
 
         private void SetAppStartup(bool enable)
         {
-            string appName = Assembly.GetExecutingAssembly().GetName().Name;
-            string appPath = Assembly.GetExecutingAssembly().Location;
+            //string appName = Assembly.GetExecutingAssembly().GetName().Name;
+            //string appPath = Assembly.GetExecutingAssembly().Location;
+            string appName = Application.ProductName;
+            string appPath = Application.ExecutablePath;
 
             using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true))
             {

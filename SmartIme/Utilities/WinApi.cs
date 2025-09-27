@@ -1,5 +1,3 @@
-using System;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -59,6 +57,9 @@ namespace SmartIme.Utilities
 
         [DllImport("user32.dll")]
         public static extern nint ChildWindowFromPointEx(nint hWndParent, Point point, uint uFlags);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(nint hWnd);
