@@ -42,6 +42,8 @@ namespace SmartIme
             label4 = new Label();
             colorDialog = new ColorDialog();
             btnWhitelist = new Button();
+            btnExpanAll = new Button();
+            btnCollapseAll = new Button();
             SuspendLayout();
             // 
             // lblCurrentIme
@@ -70,7 +72,8 @@ namespace SmartIme
             // treeApps
             // 
             treeApps.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            treeApps.Font = new Font("微软雅黑", 11F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            treeApps.Font = new Font("微软雅黑", 11F, FontStyle.Bold, GraphicsUnit.Point, 134);
+            treeApps.HotTracking = true;
             treeApps.Location = new Point(23, 145);
             treeApps.Margin = new Padding(4);
             treeApps.Name = "treeApps";
@@ -98,7 +101,7 @@ namespace SmartIme
             btnRemoveApp.Name = "btnRemoveApp";
             btnRemoveApp.Size = new Size(93, 44);
             btnRemoveApp.TabIndex = 4;
-            btnRemoveApp.Text = "移除应用";
+            btnRemoveApp.Text = "移除应用/规则";
             btnRemoveApp.UseVisualStyleBackColor = true;
             // 
             // cmbDefaultIme
@@ -106,17 +109,17 @@ namespace SmartIme
             cmbDefaultIme.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             cmbDefaultIme.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbDefaultIme.FormattingEnabled = true;
-            cmbDefaultIme.Location = new Point(149, 68);
+            cmbDefaultIme.Location = new Point(159, 66);
             cmbDefaultIme.Margin = new Padding(4);
             cmbDefaultIme.Name = "cmbDefaultIme";
-            cmbDefaultIme.Size = new Size(407, 25);
+            cmbDefaultIme.Size = new Size(397, 25);
             cmbDefaultIme.TabIndex = 5;
             // 
             // label1
             // 
             label1.AutoSize = true;
             label1.Font = new Font("微软雅黑", 11F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            label1.Location = new Point(23, 107);
+            label1.Location = new Point(23, 110);
             label1.Margin = new Padding(4, 0, 4, 0);
             label1.Name = "label1";
             label1.Size = new Size(129, 20);
@@ -130,9 +133,9 @@ namespace SmartIme
             label2.Location = new Point(23, 68);
             label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
-            label2.Size = new Size(114, 20);
+            label2.Size = new Size(129, 20);
             label2.TabIndex = 7;
-            label2.Text = "默认输入法设置";
+            label2.Text = "默认输入法设置：";
             // 
             // lblLog
             // 
@@ -212,9 +215,9 @@ namespace SmartIme
             label4.Location = new Point(23, 482);
             label4.Margin = new Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new Size(44, 17);
+            label4.Size = new Size(56, 17);
             label4.TabIndex = 15;
-            label4.Text = "输入法";
+            label4.Text = "输入法：";
             // 
             // colorDialog
             // 
@@ -233,11 +236,39 @@ namespace SmartIme
             btnWhitelist.UseVisualStyleBackColor = true;
             btnWhitelist.Click += BtnWhitelist_Click;
             // 
+            // btnExpanAll
+            // 
+            btnExpanAll.AutoSize = true;
+            btnExpanAll.FlatStyle = FlatStyle.Flat;
+            btnExpanAll.Location = new Point(159, 106);
+            btnExpanAll.Margin = new Padding(0);
+            btnExpanAll.Name = "btnExpanAll";
+            btnExpanAll.Size = new Size(84, 29);
+            btnExpanAll.TabIndex = 17;
+            btnExpanAll.Text = "▼ 展开所有";
+            btnExpanAll.UseVisualStyleBackColor = true;
+            btnExpanAll.Click += btnExpanAll_Click;
+            // 
+            // btnCollapseAll
+            // 
+            btnCollapseAll.AutoSize = true;
+            btnCollapseAll.FlatStyle = FlatStyle.Flat;
+            btnCollapseAll.Location = new Point(257, 106);
+            btnCollapseAll.Margin = new Padding(0);
+            btnCollapseAll.Name = "btnCollapseAll";
+            btnCollapseAll.Size = new Size(84, 29);
+            btnCollapseAll.TabIndex = 18;
+            btnCollapseAll.Text = "▲ 折叠所有";
+            btnCollapseAll.UseVisualStyleBackColor = true;
+            btnCollapseAll.Click += BtnCollapseAll_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(579, 592);
+            Controls.Add(btnCollapseAll);
+            Controls.Add(btnExpanAll);
             Controls.Add(label4);
             Controls.Add(cmbImeForColor);
             Controls.Add(btnPickColor);
@@ -273,5 +304,7 @@ namespace SmartIme
         private Label label4;
         private ColorDialog colorDialog;
         private Button btnWhitelist;
+        private Button btnExpanAll;
+        private Button btnCollapseAll;
     }
 }

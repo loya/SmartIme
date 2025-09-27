@@ -8,6 +8,7 @@ namespace SmartIme
         private Button btnSelect;
         private readonly Process[] processes;
         public Process SelectedProcess { get; private set; }
+        public string SelectedProcessDisplayName { get; private set; }
 
         public ProcessSelectForm(IEnumerable<string> existingApps = null)
         {
@@ -95,6 +96,7 @@ namespace SmartIme
             if (lstProcesses.SelectedIndex >= 0)
             {
                 SelectedProcess = processes[lstProcesses.SelectedIndex];
+                SelectedProcessDisplayName = lstProcesses.SelectedItem.ToString();
             }
         }
     }

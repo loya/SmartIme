@@ -7,6 +7,26 @@ namespace SmartIme.Utilities
 {
     public static class AppHelper
     {
+        /// <summary>
+        /// Adds a rule node to the specified group node.
+        /// </summary>
+        public static void AddRuleNodeToGroup(TreeNode groupNode, Rule rule)
+        {
+            Color ruleColor = rule.Type switch
+            {
+                RuleType.Program => Color.DarkSeaGreen,
+                RuleType.Title => Color.DarkCyan,
+                RuleType.Control => Color.DeepSkyBlue,
+                _ => Color.Black
+            };
+
+            var ruleNode = new TreeNode(rule.ToString())
+            {
+                Tag = rule,
+                ForeColor = ruleColor,
+            };
+            groupNode.Nodes.Add(ruleNode);
+        }
 
         /// <summary>
         /// 获取当前焦点控件的类名

@@ -1,5 +1,3 @@
-using System;
-
 namespace SmartIme.Utilities
 {
     public enum RuleType
@@ -16,9 +14,10 @@ namespace SmartIme.Utilities
         控件
     };
 
-    public class Rule
+    public class Rule : ICloneable
     {
         public string Name { get; set; }
+        public string AppName { get; set; } = string.Empty;
         public RuleType Type { get; set; }
         public string Pattern { get; set; }
         public string InputMethod { get; set; }
@@ -58,9 +57,22 @@ namespace SmartIme.Utilities
             return $"{Name}（{Pattern}）-> [{InputMethod}]";
         }
 
-        public static string CreateDefaultName(string appName,RuleNams ruleNams)
+        public static string CreateDefaultName(string appName, RuleNams ruleNams)
         {
             return $"{appName}【{ruleNams}】";
+        }
+
+        public object Clone()
+        {
+            return new Rule
+            {
+                Name = this.Name,
+                AppName = this.AppName,
+                Type = this.Type,
+                Pattern = this.Pattern,
+                InputMethod = this.InputMethod,
+                Priority = this.Priority
+            };
         }
     }
 }

@@ -57,6 +57,14 @@ namespace SmartIme
                     this.Hide();
                 }
             };
+            treeApps.KeyPress += (s, e) =>
+            {
+                if (e.KeyChar == (char)Keys.Enter && treeApps.SelectedNode != null)
+                {
+                    TreeApps_DoubleClick(s, e);
+                    e.Handled = true;
+                }
+            };
 
             // 加载保存的设置
             cmbDefaultIme.SelectedIndex = Properties.Settings.Default.DefaultIme;
@@ -172,14 +180,17 @@ namespace SmartIme
             monitorTimer.Stop();
         }
 
-        public void SaveRulesToJson()
+        public void SaveRulesToJson(bool updateTreeView = true)
         {
             try
             {
                 string jsonPath = GetRulesJsonPath();
                 string json = JsonSerializer.Serialize(AppRuleGroups, options);
                 File.WriteAllText(jsonPath, json);
-                UpdateTreeView();
+                if (updateTreeView)
+                {
+                    UpdateTreeView();
+                }
             }
             catch (Exception ex)
             {
@@ -395,6 +406,7 @@ namespace SmartIme
             {
                 var selectedProcess = processSelectForm.SelectedProcess;
                 string appName = selectedProcess.ProcessName;
+                string displayName = processSelectForm.SelectedProcessDisplayName;
 
                 System.Diagnostics.ProcessModule mainModule = null;
                 try
@@ -405,9 +417,6 @@ namespace SmartIme
                 {
                     Debug.WriteLine(ex.Message);
                 }
-
-                string displayName = $"{appName} - {mainModule?.ModuleName}";
-
                 var existingGroup = AppRuleGroups.FirstOrDefault(g => g.AppName == appName);
                 if (existingGroup != null)
                 {
@@ -425,10 +434,25 @@ namespace SmartIme
 
                 var index = list.OrderBy(t => t.AppName).ToList().FindIndex(t => t.AppName == appName);
                 AppRuleGroups.Insert(index, newGroup);
-                UpdateTreeView();
-                SaveRulesToJson();
+                SaveRulesToJson(false);
+                TreeNode groupNode = new(newGroup.DisplayName)
+                {
+                    Tag = newGroup,
+                    NodeFont = new Font(treeApps.Font, FontStyle.Bold),
+                    ForeColor = Color.DarkOrange
+                };
+                groupNode.Nodes.Add(new TreeNode(defaultRule.ToString())
+                {
+                    Tag = defaultRule,
+                    ForeColor = Color.DarkSeaGreen
+                });
+                treeApps.Nodes.Insert(index, groupNode);
+                treeApps.SelectedNode = groupNode;
+                treeApps.SelectedNode.Expand();
+                treeApps.Focus();
+                //UpdateTreeView();
 
-                using var editAppRulesForm = new EditAppRulesForm(this, newGroup, cmbDefaultIme.Items.Cast<string>());
+                using var editAppRulesForm = new EditAppRulesForm(this, treeApps.SelectedNode, cmbDefaultIme.Items.Cast<string>());
                 editAppRulesForm.ShowDialog(this);
             }
         }
@@ -440,16 +464,25 @@ namespace SmartIme
                 if (treeApps.SelectedNode.Tag is AppRuleGroup group)
                 {
                     AppRuleGroups.Remove(group);
-                    SaveRulesToJson();
+                    SaveRulesToJson(false);
+                    treeApps.Nodes.Remove(treeApps.SelectedNode);
                 }
                 else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
                 {
                     if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
                     {
                         parentGroup.RemoveRule(rule);
-                        SaveRulesToJson();
+                        var parentNode = treeApps.SelectedNode.Parent;
+                        treeApps.Nodes.Remove(treeApps.SelectedNode);
+                        if (parentGroup.Rules.Count == 0)
+                        {
+                            AppRuleGroups.Remove(parentGroup);
+                            treeApps.Nodes.Remove(parentNode);
+                        }
+                        SaveRulesToJson(false);
                     }
                 }
+                treeApps.SelectedNode = null;
             }
         }
 
@@ -457,19 +490,21 @@ namespace SmartIme
         {
             if (treeApps.SelectedNode != null)
             {
-                if (treeApps.SelectedNode.Tag is AppRuleGroup group)
-                {
-                    using var editAppRulesForm = new EditAppRulesForm(this, group, cmbDefaultIme.Items.Cast<string>());
-                    editAppRulesForm.ShowDialog(this);
-                }
-                else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
-                {
-                    if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
-                    {
-                        using var editAppRulesForm = new EditAppRulesForm(this, parentGroup, cmbDefaultIme.Items.Cast<string>());
-                        editAppRulesForm.ShowDialog(this);
-                    }
-                }
+                treeApps.SelectedNode.Expand();
+                //if (treeApps.SelectedNode.Tag is AppRuleGroup group)
+                //{
+                //}
+                //else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
+                //{
+                //    if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
+                //    {
+                //        treeApps.SelectedNode = treeApps.SelectedNode.Parent;
+                //        treeApps.Focus();
+                //    }
+                //}
+
+                using var editAppRulesForm = new EditAppRulesForm(this, treeApps.SelectedNode, cmbDefaultIme.Items.Cast<string>());
+                editAppRulesForm.ShowDialog(this);
             }
         }
 
@@ -477,37 +512,30 @@ namespace SmartIme
         {
             treeApps.Nodes.Clear();
 
+            Font boldFont = new Font(treeApps.Font, FontStyle.Bold);
+            Font regularFont = new Font(treeApps.Font, FontStyle.Regular);
             foreach (var group in AppRuleGroups.OrderBy(g => g.AppName))
             {
-                var groupNode = new TreeNode(group.DisplayName)
+                var groupNode = new TreeNode(group.ToString())
                 {
                     Tag = group,
-                    NodeFont = new Font(treeApps.Font, FontStyle.Bold),
+                    NodeFont = boldFont,
                     ForeColor = Color.DarkOrange
                 };
 
                 foreach (var rule in group.Rules)
                 {
-                    Color ruleColor = rule.Type switch
-                    {
-                        RuleType.Program => Color.DarkSeaGreen,
-                        RuleType.Title => Color.DarkCyan,
-                        RuleType.Control => Color.DeepSkyBlue,
-                        _ => Color.Black
-                    };
-
-                    var ruleNode = new TreeNode(rule.ToString())
-                    {
-                        Tag = rule,
-                        ForeColor = ruleColor
-                    };
-                    groupNode.Nodes.Add(ruleNode);
+                    AppHelper.AddRuleNodeToGroup(groupNode, rule);
                 }
-
+                foreach (TreeNode node in groupNode.Nodes)
+                {
+                    node.NodeFont = regularFont;
+                }
                 treeApps.Nodes.Add(groupNode);
                 groupNode.Expand();
             }
         }
+
 
         private void BtnExit_Click(object sender, EventArgs e)
         {
@@ -838,5 +866,15 @@ namespace SmartIme
 
         #endregion
 
+        private void btnExpanAll_Click(object sender, EventArgs e)
+        {
+            treeApps.ExpandAll();
+            treeApps.Nodes[0].EnsureVisible();
+        }
+
+        private void BtnCollapseAll_Click(object sender, EventArgs e)
+        {
+            treeApps.CollapseAll();
+        }
     }
 }

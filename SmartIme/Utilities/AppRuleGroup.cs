@@ -3,7 +3,7 @@ namespace SmartIme.Utilities
     /// <summary>
     /// 应用规则组，包含一个应用的多个规则
     /// </summary>
-    public class AppRuleGroup(string appName, string displayName = null,string appPath=null)
+    public class AppRuleGroup(string appName, string displayName = null, string appPath = null) : ICloneable
     {
         /// <summary>
         /// 应用名称
@@ -18,7 +18,7 @@ namespace SmartIme.Utilities
         /// <summary>
         /// 应用路径
         /// </summary>
-        public string AppPath { get; set; }=appPath;
+        public string AppPath { get; set; } = appPath;
 
         /// <summary>
         /// 应用图标路径（可选）
@@ -35,6 +35,7 @@ namespace SmartIme.Utilities
         /// </summary>
         public void AddRule(Rule rule)
         {
+            rule.AppName = AppName;
             Rules.Add(rule);
         }
         /// <summary>
@@ -42,15 +43,15 @@ namespace SmartIme.Utilities
         /// </summary>
         public void InsertRule(int index, Rule rule)
         {
-            if (index < 0 )
+            if (index < 0)
             {
                 index = 0;
             }
-            if (index> Rules.Count)
+            if (index > Rules.Count)
             {
-              index=Rules.Count;
+                index = Rules.Count;
             }
-            Rules.Insert(index,rule);
+            Rules.Insert(index, rule);
         }
 
         /// <summary>
@@ -95,7 +96,20 @@ namespace SmartIme.Utilities
 
         public override string ToString()
         {
-            return DisplayName;
+            return DisplayName + (AppPath != null ? "（" + AppPath + "）" : "");
+        }
+
+        public object Clone()
+        {
+            var clonedGroup = new AppRuleGroup(AppName, DisplayName, AppPath)
+            {
+                AppName = AppName,
+                DisplayName = DisplayName,
+                AppPath = AppPath,
+                IconPath = IconPath,
+                Rules = Rules.Select(r => (Rule)r.Clone()).ToList()
+            };
+            return clonedGroup;
         }
     }
 }
