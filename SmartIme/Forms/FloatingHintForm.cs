@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace SmartIme
+namespace SmartIme.Forms
 {
     public partial class FloatingHintForm : Form
     {

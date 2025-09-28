@@ -12,6 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="新文件夹\**" />
+    <EmbeddedResource Remove="新文件夹\**" />
+    <None Remove="新文件夹\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="app.ico" />
     <Content Include="app.manifest">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -38,17 +44,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="WhitelistForm.Designer.cs">
+    <Compile Update="Forms\WhitelistForm.Designer.cs">
       <DependentUpon>WhitelistForm.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Update="WhitelistForm.resx">
+    <EmbeddedResource Update="Forms\WhitelistForm.resx">
       <DependentUpon>WhitelistForm.cs</DependentUpon>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Forms\" />
-    <Folder Include="新文件夹\" />
   </ItemGroup>
 
 </Project>

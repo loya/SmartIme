@@ -1,4 +1,4 @@
-﻿namespace SmartIme
+﻿namespace SmartIme.Forms
 {
     public partial class PromptDialog : Form
     {

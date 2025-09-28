@@ -1,3 +1,4 @@
+using SmartIme.Forms;
 using SmartIme.Models;
 using System.ComponentModel;
 using System.Reflection;

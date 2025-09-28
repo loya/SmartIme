@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace SmartIme
+namespace SmartIme.Forms
 {
     public class ProcessSelectForm : Form
     {
@@ -25,12 +25,23 @@ namespace SmartIme
                 Text = "选择",
                 DialogResult = DialogResult.OK,
                 Height = 30,
-                Width = this.ClientSize.Width - 40, // 两侧留20像素
+                Width = (this.ClientSize.Width - 60) / 2, // 分成两个按钮
                 Left = 20,
                 Top = this.ClientSize.Height - 30 - 16, // 距底部16像素
-                Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
+                Anchor = AnchorStyles.Left | AnchorStyles.Bottom
             };
             btnSelect.Click += BtnSelect_Click;
+
+            var btnCancel = new Button
+            {
+                Text = "退出",
+                DialogResult = DialogResult.Cancel,
+                Height = 30,
+                Width = (this.ClientSize.Width - 60) / 2,
+                Left = btnSelect.Right + 20,
+                Top = this.ClientSize.Height - 30 - 16,
+                Anchor = AnchorStyles.Right | AnchorStyles.Bottom
+            };
 
 
             lstProcesses = new ListBox
@@ -45,6 +56,7 @@ namespace SmartIme
 
             this.Controls.Add(lstProcesses);
             this.Controls.Add(btnSelect);
+            this.Controls.Add(btnCancel);
 
             processes = Process.GetProcesses()
                 .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
@@ -76,9 +88,14 @@ namespace SmartIme
             // 添加窗体大小变化时调整按钮宽度和位置
             this.Resize += (s, e) =>
             {
-                btnSelect.Width = this.ClientSize.Width - 40;
+                btnSelect.Width = (this.ClientSize.Width - 60) / 2;
                 btnSelect.Left = 20;
                 btnSelect.Top = this.ClientSize.Height - btnSelect.Height - 16;
+                
+                btnCancel.Width = (this.ClientSize.Width - 60) / 2;
+                btnCancel.Left = btnSelect.Right + 20;
+                btnCancel.Top = this.ClientSize.Height - btnCancel.Height - 16;
+                
                 lstProcesses.Width = this.ClientSize.Width;
                 lstProcesses.Height = btnSelect.Top;
             };

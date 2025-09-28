@@ -1,3 +1,4 @@
+using SmartIme.Forms;
 using SmartIme.Models;
 using SmartIme.Utilities;
 using System.ComponentModel;
@@ -277,10 +278,16 @@ namespace SmartIme
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string processName = process.ProcessName;
-
                 if (processName == "explorer") { return; }
                 string controlName = null;
                 controlName = AppHelper.GetFocusedControlName();
+                string[] strings = new string[] { "menu", "popup", "bar" };
+                if (strings.Any(s => controlName.Contains(s, StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    return;
+                }
+
+                string title = process.MainWindowTitle;
 
                 if (processName == lastActiveApp)
                 {
@@ -342,21 +349,21 @@ namespace SmartIme
                         }
                     }
                 }
-                else
-                {
-                    lblCurrentIme.Text = "当前输入法：" + cmbDefaultIme.Text + " (默认)";
-                    var inputLanguages = InputLanguage.InstalledInputLanguages;
-                    if (cmbDefaultIme.SelectedIndex >= 0 && cmbDefaultIme.SelectedIndex < inputLanguages.Count)
-                    {
-                        var lang = inputLanguages[cmbDefaultIme.SelectedIndex];
-                        InputLanguage.CurrentInputLanguage = lang;
-                        IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
-                        WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
-                        lblLog.Text = DateTime.Now.ToString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
+                //else
+                //{
+                //    lblCurrentIme.Text = "当前输入法：" + cmbDefaultIme.Text + " (默认)";
+                //    var inputLanguages = InputLanguage.InstalledInputLanguages;
+                //    if (cmbDefaultIme.SelectedIndex >= 0 && cmbDefaultIme.SelectedIndex < inputLanguages.Count)
+                //    {
+                //        var lang = inputLanguages[cmbDefaultIme.SelectedIndex];
+                //        InputLanguage.CurrentInputLanguage = lang;
+                //        IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
+                //        WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
+                //        lblLog.Text = DateTime.Now.ToString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
 
-                        ChangeCursorColorByIme(lang.LayoutName);
-                    }
-                }
+                //        ChangeCursorColorByIme(lang.LayoutName);
+                //    }
+                //}
             }
             catch
             {

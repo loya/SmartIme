@@ -37,42 +37,42 @@ namespace SmartIme.Utilities
         {
             try
             {
-                //// 获取鼠标位置
-                //Point mousePos;
-                //GetCursorPos(out mousePos);
+                // 获取鼠标位置
+                Point mousePos;
+                GetCursorPos(out mousePos);
 
-                //// 尝试获取焦点控件
-                //IntPtr hFocus = GetFocus();
-                //IntPtr hWnd;
+                // 尝试获取焦点控件
+                IntPtr hFocus = GetFocus();
+                IntPtr hWnd;
 
-                //if (hFocus != IntPtr.Zero)
-                //{
-                //    // 使用焦点控件
-                //    hWnd = hFocus;
-                //}
-                //else
-                //{
-                //    // 如果没有焦点控件，使用鼠标下的窗口
-                //    hWnd = WindowFromPoint(mousePos);
+                if (hFocus != IntPtr.Zero)
+                {
+                    // 使用焦点控件
+                    hWnd = hFocus;
+                }
+                else
+                {
+                    // 如果没有焦点控件，使用鼠标下的窗口
+                    hWnd = WindowFromPoint(mousePos);
 
-                //    // 尝试获取更精确的子控件
-                //    IntPtr hParent = GetActiveWindow();
-                //    if (hParent != IntPtr.Zero)
-                //    {
-                //        // 将屏幕坐标转换为窗口客户区坐标
-                //        POINT clientPoint = new POINT { x = mousePos.X, y = mousePos.Y };
-                //        ScreenToClient(hParent, ref clientPoint);
+                    // 尝试获取更精确的子控件
+                    IntPtr hParent = GetActiveWindow();
+                    if (hParent != IntPtr.Zero)
+                    {
+                        // 将屏幕坐标转换为窗口客户区坐标
+                        POINT clientPoint = new POINT { x = mousePos.X, y = mousePos.Y };
+                        ScreenToClient(hParent, ref clientPoint);
 
-                //        // 获取指定坐标下的子控件
-                //        IntPtr hChild = ChildWindowFromPointEx(hParent,
-                //            new Point(clientPoint.x, clientPoint.y), CWP_SKIPINVISIBLE);
+                        // 获取指定坐标下的子控件
+                        IntPtr hChild = ChildWindowFromPointEx(hParent,
+                            new Point(clientPoint.x, clientPoint.y), CWP_SKIPINVISIBLE);
 
-                //        if (hChild != IntPtr.Zero && hChild != hParent)
-                //        {
-                //            hWnd = hChild;
-                //        }
-                //    }
-                //}
+                        if (hChild != IntPtr.Zero && hChild != hParent)
+                        {
+                            hWnd = hChild;
+                        }
+                    }
+                }
 
                 //if (hWnd != IntPtr.Zero)
                 //{

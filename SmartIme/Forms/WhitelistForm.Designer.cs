@@ -41,7 +41,7 @@ namespace SmartIme
             // 
             btnAddApp.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnAddApp.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            btnAddApp.Location = new Point(14, 411);
+            btnAddApp.Location = new Point(35, 411);
             btnAddApp.Margin = new Padding(4);
             btnAddApp.Name = "btnAddApp";
             btnAddApp.Size = new Size(117, 50);
@@ -67,7 +67,7 @@ namespace SmartIme
             // 
             btnClose.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnClose.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            btnClose.Location = new Point(317, 411);
+            btnClose.Location = new Point(297, 411);
             btnClose.Margin = new Padding(4);
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(117, 50);

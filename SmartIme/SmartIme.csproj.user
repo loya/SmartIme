@@ -4,28 +4,28 @@
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Update="AddRuleForm.cs">
+    <Compile Update="Forms\AddRuleForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="EditAppRulesForm.cs">
+    <Compile Update="Forms\EditAppRulesForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="EditRuleForm.cs">
+    <Compile Update="Forms\EditRuleForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="FloatingHintForm.cs">
+    <Compile Update="Forms\FloatingHintForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="MainForm.cs">
+    <Compile Update="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="ProcessSelectForm.cs">
+    <Compile Update="Forms\ProcessSelectForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="PromptDialog.cs">
+    <Compile Update="Forms\PromptDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="WhitelistForm.cs">
+    <Compile Update="Forms\WhitelistForm.cs">
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
