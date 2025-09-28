@@ -1,4 +1,5 @@
 using Interop.UIAutomationClient;
+using SmartIme.Models;
 using System.Runtime.InteropServices;
 using System.Text;
 using static SmartIme.Utilities.WinApi;

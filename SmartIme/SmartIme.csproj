@@ -46,4 +46,9 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Forms\" />
+    <Folder Include="新文件夹\" />
+  </ItemGroup>
+
 </Project>

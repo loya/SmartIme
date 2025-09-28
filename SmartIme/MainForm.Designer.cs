@@ -44,6 +44,7 @@ namespace SmartIme
             btnWhitelist = new Button();
             btnExpanAll = new Button();
             btnCollapseAll = new Button();
+            btnRefresh = new Button();
             SuspendLayout();
             // 
             // lblCurrentIme
@@ -262,11 +263,26 @@ namespace SmartIme
             btnCollapseAll.UseVisualStyleBackColor = true;
             btnCollapseAll.Click += BtnCollapseAll_Click;
             // 
+            // btnRefresh
+            // 
+            btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnRefresh.FlatStyle = FlatStyle.Flat;
+            btnRefresh.Font = new Font("微软雅黑", 12F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            btnRefresh.Location = new Point(516, 102);
+            btnRefresh.Name = "btnRefresh";
+            btnRefresh.Size = new Size(40, 30);
+            btnRefresh.TabIndex = 19;
+            btnRefresh.Text = "↻";
+            btnRefresh.TextAlign = ContentAlignment.TopCenter;
+            btnRefresh.UseVisualStyleBackColor = true;
+            btnRefresh.Click += btnRefresh_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(579, 592);
+            Controls.Add(btnRefresh);
             Controls.Add(btnCollapseAll);
             Controls.Add(btnExpanAll);
             Controls.Add(label4);
@@ -306,5 +322,6 @@ namespace SmartIme
         private Button btnWhitelist;
         private Button btnExpanAll;
         private Button btnCollapseAll;
+        private Button btnRefresh;
     }
 }

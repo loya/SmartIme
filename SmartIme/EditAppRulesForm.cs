@@ -1,3 +1,4 @@
+using SmartIme.Models;
 using SmartIme.Utilities;
 
 namespace SmartIme

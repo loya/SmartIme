@@ -1,3 +1,4 @@
+using SmartIme.Models;
 using SmartIme.Utilities;
 using System.Diagnostics;
 using System.Runtime.InteropServices;

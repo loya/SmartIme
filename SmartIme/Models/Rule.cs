@@ -1,4 +1,4 @@
-namespace SmartIme.Utilities
+namespace SmartIme.Models
 {
     public enum RuleType
     {

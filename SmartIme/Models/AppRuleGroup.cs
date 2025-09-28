@@ -1,4 +1,4 @@
-namespace SmartIme.Utilities
+namespace SmartIme.Models
 {
     /// <summary>
     /// 应用规则组，包含一个应用的多个规则

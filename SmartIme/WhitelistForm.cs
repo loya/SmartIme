@@ -1,3 +1,4 @@
+using SmartIme.Models;
 using System.ComponentModel;
 using System.Reflection;
 using System.Text.Json;
@@ -6,17 +7,6 @@ namespace SmartIme
 {
     public partial class WhitelistForm : Form
     {
-        public class WhitelistApp
-        {
-            public string Name { get; set; }
-            public string Title { get; set; }
-            public string Path { get; set; }
-
-            public override string ToString()
-            {
-                return $"{Name} - {Title} ({Path})";
-            }
-        }
 
         private readonly BindingList<WhitelistApp> whitelistedApps = new BindingList<WhitelistApp>();
         private readonly MainForm mainForm;
@@ -93,17 +83,17 @@ namespace SmartIme
             {
                 var selectedProcess = processSelectForm.SelectedProcess;
                 string appName = selectedProcess.ProcessName;
-                string appTitle = "";
+                string appTitle = processSelectForm.SelectedProcessDisplayName;
                 string appPath = "";
                 try
                 {
-                    appTitle = selectedProcess.MainModule.ModuleName;
+                    //appTitle = selectedProcess.MainModule.ModuleName;
                     appPath = selectedProcess.MainModule?.FileName ?? "未知路径";
                 }
                 catch
                 {
                     //MessageBox.Show("无法获取该进程的路径，可能是权限不足。请以管理员身份运行此程序后重试。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    appTitle = selectedProcess.MainWindowTitle;
+                    //appTitle = selectedProcess.MainWindowTitle;
                     appPath = "未知路径（可能是权限不足）";
                 }
 
@@ -127,7 +117,7 @@ namespace SmartIme
                     whitelistedApps.Add(new WhitelistApp
                     {
                         Name = appName,
-                        Title = appTitle,
+                        DisplayName = appTitle,
                         Path = appPath
                     });
                     SaveWhitelist();
@@ -156,6 +146,21 @@ namespace SmartIme
         private void BtnClose_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void listWhitelist_DoubleClick(object sender, EventArgs e)
+        {
+            using var prompt = new PromptDialog(whitelistedApps[listWhitelist.SelectedIndex].DisplayName);
+            if (prompt.ShowDialog() == DialogResult.Cancel)
+            {
+                return;
+            }
+            var selectedApp = whitelistedApps[listWhitelist.SelectedIndex];
+            selectedApp.DisplayName = prompt.ResultText;
+            SaveWhitelist();
+            listWhitelist.DataSource = null;
+            listWhitelist.DataSource = whitelistedApps;
+
         }
     }
 }

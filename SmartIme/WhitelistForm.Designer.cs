@@ -35,6 +35,7 @@ namespace SmartIme
             listWhitelist.Name = "listWhitelist";
             listWhitelist.Size = new Size(419, 327);
             listWhitelist.TabIndex = 0;
+            listWhitelist.DoubleClick += listWhitelist_DoubleClick;
             // 
             // btnAddApp
             // 
@@ -99,6 +100,7 @@ namespace SmartIme
             Margin = new Padding(4);
             MinimumSize = new Size(347, 409);
             Name = "WhitelistForm";
+            ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
             Text = "应用白名单";
             ResumeLayout(false);

@@ -92,69 +92,13 @@ namespace SmartIme
                 SelectedProcessDisplayName = lstProcesses.SelectedItem.ToString();
 
                 // 弹出对话框让用户修改显示名称
-                using (var inputDialog = new Form())
+                using (var inputDialog = new PromptDialog(SelectedProcessDisplayName))
                 {
-                    inputDialog.Text = "修改应用程序显示名称";
-                    inputDialog.Size = new Size(400, 170);
-                    inputDialog.StartPosition = FormStartPosition.CenterParent;
-                    inputDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
-                    inputDialog.MaximizeBox = false;
-                    inputDialog.MinimizeBox = false;
 
-                    var label = new Label
-                    {
-                        Text = "请输入应用程序显示名称:",
-                        Left = 20,
-                        Top = 20,
-                        Width = 360
-                    };
-
-                    var textBox = new TextBox
-                    {
-                        Text = SelectedProcessDisplayName,
-                        Left = 20,
-                        Top = 50,
-                        Width = 360
-                    };
-
-                    var okButton = new Button
-                    {
-                        Text = "确定",
-                        DialogResult = DialogResult.OK,
-                        Left = 190,
-                        Top = 88,
-                        Width = 80,
-                        Height = 30
-
-                    };
-
-                    var cancelButton = new Button
-                    {
-                        Text = "取消",
-                        DialogResult = DialogResult.Cancel,
-                        Left = 285,
-                        Top = 88,
-                        Width = 80,
-                        Height = 30,
-                    };
-
-                    inputDialog.Controls.Add(label);
-                    inputDialog.Controls.Add(textBox);
-                    inputDialog.Controls.Add(okButton);
-                    inputDialog.Controls.Add(cancelButton);
-
-                    inputDialog.AcceptButton = okButton;
-                    inputDialog.CancelButton = cancelButton;
-
-                    inputDialog.Load += (s, ev) =>
-                    {
-                        textBox.SelectionStart = textBox.Text.IndexOf("-") + 2;
-                        textBox.SelectionLength = textBox.Text.Length;
-                    };
 
                     if (inputDialog.ShowDialog(this) == DialogResult.OK)
                     {
-                        SelectedProcessDisplayName = textBox.Text.Trim();
+                        SelectedProcessDisplayName = inputDialog.ResultText;
                     }
                     else
                     {

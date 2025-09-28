@@ -1,3 +1,4 @@
+using SmartIme.Models;
 using SmartIme.Utilities;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -435,7 +436,7 @@ namespace SmartIme
                 var index = list.OrderBy(t => t.AppName).ToList().FindIndex(t => t.AppName == appName);
                 AppRuleGroups.Insert(index, newGroup);
                 SaveRulesToJson(false);
-                TreeNode groupNode = new(newGroup.DisplayName)
+                TreeNode groupNode = new(newGroup.ToString())
                 {
                     Tag = newGroup,
                     NodeFont = new Font(treeApps.Font, FontStyle.Bold),
@@ -534,6 +535,7 @@ namespace SmartIme
                 treeApps.Nodes.Add(groupNode);
                 groupNode.Expand();
             }
+            treeApps.Nodes[0]?.EnsureVisible();
         }
 
 
@@ -560,7 +562,7 @@ namespace SmartIme
 
                     // 尝试反序列化为新格式
 
-                    var loadedApps = JsonSerializer.Deserialize<List<WhitelistForm.WhitelistApp>>(json);
+                    var loadedApps = JsonSerializer.Deserialize<List<WhitelistApp>>(json);
                     if (loadedApps != null)
                     {
                         whitelistedApps.Clear();
@@ -875,6 +877,11 @@ namespace SmartIme
         private void BtnCollapseAll_Click(object sender, EventArgs e)
         {
             treeApps.CollapseAll();
+        }
+
+        private void btnRefresh_Click(object sender, EventArgs e)
+        {
+            UpdateTreeView();
         }
     }
 }
