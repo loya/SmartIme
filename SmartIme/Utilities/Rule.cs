@@ -54,7 +54,7 @@ namespace SmartIme.Utilities
 
         public override string ToString()
         {
-            return $"{Name}（{Pattern}）-> [{InputMethod}]";
+            return $"{Name} -（{Type}：{Pattern}）-> [{InputMethod}]";
         }
 
         public static string CreateDefaultName(string appName, RuleNams ruleNams)

@@ -121,13 +121,34 @@ namespace SmartIme
             {
                 // 将修改应用到 mainForm.AppRuleGroups 中
                 this.originalAppRuleGroup.Rules = [.. this.tempAppRuleGroup.Rules];
-                mainForm.SaveRulesToJson(false);
-                appRuleGroupNode.Nodes.Clear();
-                foreach (var rule in originalAppRuleGroup.Rules)
+                if (this.originalAppRuleGroup.Rules.Count == 0)
                 {
-                    AppHelper.AddRuleNodeToGroup(appRuleGroupNode, rule);
+                    var result = MessageBox.Show("当前应用的规则列表为空，是否删除该应用？", "删除应用", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (result == DialogResult.Yes)
+                    {
+                        mainForm.AppRuleGroups.Remove(this.originalAppRuleGroup);
+                    }
+                    else
+                    {
+                        // 如果不删除应用，则不允许关闭窗口
+                        DialogResult = DialogResult.None;
+                        return;
+                    }
                 }
-                appRuleGroupNode.Expand();
+                mainForm.SaveRulesToJson(false);
+                if (originalAppRuleGroup.Rules.Count != 0)
+                {
+                    appRuleGroupNode.Nodes.Clear();
+                    foreach (var rule in originalAppRuleGroup.Rules)
+                    {
+                        AppHelper.AddRuleNodeToGroup(appRuleGroupNode, rule);
+                    }
+                    appRuleGroupNode.Expand();
+                }
+                else
+                {
+                    appRuleGroupNode.Remove();
+                }
                 _isModify = false;
             }
         }

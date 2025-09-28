@@ -482,7 +482,7 @@ namespace SmartIme
                         SaveRulesToJson(false);
                     }
                 }
-                treeApps.SelectedNode = null;
+                treeApps.Focus();
             }
         }
 
@@ -512,14 +512,14 @@ namespace SmartIme
         {
             treeApps.Nodes.Clear();
 
-            Font boldFont = new Font(treeApps.Font, FontStyle.Bold);
-            Font regularFont = new Font(treeApps.Font, FontStyle.Regular);
+            //Font boldFont = new Font(treeApps.Font, FontStyle.Bold);
+            Font regularFont = new Font(treeApps.Font.FontFamily, 11, FontStyle.Regular);
             foreach (var group in AppRuleGroups.OrderBy(g => g.AppName))
             {
                 var groupNode = new TreeNode(group.ToString())
                 {
                     Tag = group,
-                    NodeFont = boldFont,
+                    //NodeFont = boldFont,
                     ForeColor = Color.DarkOrange
                 };
 

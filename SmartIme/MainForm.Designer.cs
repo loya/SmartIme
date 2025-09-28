@@ -60,7 +60,7 @@ namespace SmartIme
             // btnSwitchIme
             // 
             btnSwitchIme.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnSwitchIme.Location = new Point(373, 97);
+            btnSwitchIme.Location = new Point(373, 13);
             btnSwitchIme.Margin = new Padding(4);
             btnSwitchIme.Name = "btnSwitchIme";
             btnSwitchIme.Size = new Size(183, 42);
@@ -72,7 +72,7 @@ namespace SmartIme
             // treeApps
             // 
             treeApps.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            treeApps.Font = new Font("微软雅黑", 11F, FontStyle.Bold, GraphicsUnit.Point, 134);
+            treeApps.Font = new Font("微软雅黑", 12F, FontStyle.Bold, GraphicsUnit.Point, 134);
             treeApps.HotTracking = true;
             treeApps.Location = new Point(23, 145);
             treeApps.Margin = new Padding(4);
