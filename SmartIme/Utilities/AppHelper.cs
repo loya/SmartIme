@@ -123,7 +123,7 @@ namespace SmartIme.Utilities
             return string.Empty;
         }
 
-        public static string GetActiveWindowProcessName()
+        public static string GetForegroundProcessName()
         {
             try
             {
@@ -166,7 +166,7 @@ namespace SmartIme.Utilities
             if (hWnd == IntPtr.Zero) return "无效窗口";
 
             StringBuilder sb = new StringBuilder(256);
-            WinApi.GetWindowText(hWnd, sb, sb.Capacity);
+            WinApi.GetWindowText(hWnd);
             string title = sb.ToString();
             return string.IsNullOrEmpty(title) ? "无标题窗口" : title;
         }

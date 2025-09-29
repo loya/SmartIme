@@ -22,6 +22,7 @@ namespace SmartIme
             btnRemoveApp = new Button();
             btnClose = new Button();
             label1 = new Label();
+            btnAddControl = new Button();
             SuspendLayout();
             // 
             // listWhitelist
@@ -41,10 +42,10 @@ namespace SmartIme
             // 
             btnAddApp.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnAddApp.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            btnAddApp.Location = new Point(35, 411);
+            btnAddApp.Location = new Point(45, 422);
             btnAddApp.Margin = new Padding(4);
             btnAddApp.Name = "btnAddApp";
-            btnAddApp.Size = new Size(117, 50);
+            btnAddApp.Size = new Size(77, 39);
             btnAddApp.TabIndex = 1;
             btnAddApp.Text = "添加应用";
             btnAddApp.UseVisualStyleBackColor = true;
@@ -54,10 +55,10 @@ namespace SmartIme
             // 
             btnRemoveApp.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnRemoveApp.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            btnRemoveApp.Location = new Point(166, 411);
+            btnRemoveApp.Location = new Point(204, 422);
             btnRemoveApp.Margin = new Padding(4);
             btnRemoveApp.Name = "btnRemoveApp";
-            btnRemoveApp.Size = new Size(117, 50);
+            btnRemoveApp.Size = new Size(77, 39);
             btnRemoveApp.TabIndex = 2;
             btnRemoveApp.Text = "移除应用";
             btnRemoveApp.UseVisualStyleBackColor = true;
@@ -67,10 +68,10 @@ namespace SmartIme
             // 
             btnClose.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnClose.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            btnClose.Location = new Point(297, 411);
+            btnClose.Location = new Point(307, 422);
             btnClose.Margin = new Padding(4);
             btnClose.Name = "btnClose";
-            btnClose.Size = new Size(117, 50);
+            btnClose.Size = new Size(77, 39);
             btnClose.TabIndex = 3;
             btnClose.Text = "关闭";
             btnClose.UseVisualStyleBackColor = true;
@@ -87,11 +88,24 @@ namespace SmartIme
             label1.TabIndex = 4;
             label1.Text = "白名单中的应用切换前台时将不会悬浮提示：";
             // 
+            // btnAddControl
+            // 
+            btnAddControl.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnAddControl.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            btnAddControl.Location = new Point(130, 422);
+            btnAddControl.Margin = new Padding(4);
+            btnAddControl.Name = "btnAddControl";
+            btnAddControl.Size = new Size(77, 39);
+            btnAddControl.TabIndex = 5;
+            btnAddControl.Text = "添加控件";
+            btnAddControl.UseVisualStyleBackColor = true;
+            // 
             // WhitelistForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(448, 483);
+            Controls.Add(btnAddControl);
             Controls.Add(label1);
             Controls.Add(btnClose);
             Controls.Add(btnRemoveApp);
@@ -115,5 +129,6 @@ namespace SmartIme
         private System.Windows.Forms.Button btnRemoveApp;
         private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.Label label1;
+        private Button btnAddControl;
     }
 }

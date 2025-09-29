@@ -190,7 +190,7 @@ namespace SmartIme
             {
                 // 使用ControlHelper获取焦点控件类名
                 Thread.Sleep(500); // 等待100毫秒，确保焦点已经切换
-                selectWindowProcessName = AppHelper.GetActiveWindowProcessName();
+                selectWindowProcessName = AppHelper.GetForegroundProcessName();
                 selectedControlClass = AppHelper.GetFocusedControlName();
                 mouseClicked = true;
                 selectForm.Close();

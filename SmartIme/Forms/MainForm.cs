@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using System.Timers;
 
 namespace SmartIme
 {
@@ -34,10 +33,15 @@ namespace SmartIme
         private const int SPIF_UPDATEINIFILE = 0x01;
         private const int SPIF_SENDCHANGE = 0x02;
 
+        //改变输入法时的进程名
+        private string changeColorProcessName = "";
+
         public MainForm()
         {
             InitializeComponent();
             InitializeImeList();
+            // 初始化光标颜色配置
+            InitializeCursorColorConfig();
             CheckForIllegalCrossThreadCalls = false;
 
             SetupMonitor();
@@ -87,8 +91,6 @@ namespace SmartIme
                 this.WindowState = Properties.Settings.Default.WindowState;
             }
 
-            // 初始化光标颜色配置
-            InitializeCursorColorConfig();
             UpdateTreeView();
         }
 
@@ -249,17 +251,24 @@ namespace SmartIme
         private string lastActiveApp = string.Empty;
         private string lastClassName = string.Empty;
 
+        private System.Windows.Forms.Timer monitorTimer2;
+
         private void SetupMonitor()
         {
-            monitorTimer.Interval = 300;
-            monitorTimer.Elapsed += CheckActiveWindowChanged;
-            monitorTimer.Enabled = true;
-            monitorTimer.Start();
+            //monitorTimer.Interval = 300;
+            //monitorTimer.Elapsed += CheckActiveWindowChanged;
+            //monitorTimer.Enabled = true;
+            //monitorTimer.Start();
+
+            monitorTimer2 = new System.Windows.Forms.Timer();
+            monitorTimer2.Interval = 300;
+            monitorTimer2.Tick += CheckActiveWindowChanged;
+            monitorTimer2.Start();
         }
 
-        private void CheckActiveWindowChanged(object sender, ElapsedEventArgs e)
+        private void CheckActiveWindowChanged(object sender, EventArgs e)
         {
-            monitorTimer.Stop();
+            //monitorTimer.Stop();
             IntPtr currentWindow = WinApi.GetForegroundWindow();
 
             if (currentWindow != lastActiveWindow)
@@ -267,7 +276,15 @@ namespace SmartIme
                 lastActiveWindow = currentWindow;
             }
             MonitorActiveApp();
-            monitorTimer.Start();
+
+            var imeSwitched = CaretHelper.MonitorInputMethodSwitch(out string newImeName, out changeColorProcessName);
+            //Debug.WriteLine($"监测输入法切换: {imeSwitched}");
+            if (imeSwitched)
+            {
+                ChangeCursorColorByIme(newImeName);
+            }
+
+            //monitorTimer.Start();
         }
 
         private void MonitorActiveApp()
@@ -287,14 +304,22 @@ namespace SmartIme
                     return;
                 }
 
-                string title = process.MainWindowTitle;
+                string windowTitle = process.MainWindowTitle;
 
+                Rule matchedRule = FindMatchingRule(processName, windowTitle, controlName);
                 if (processName == lastActiveApp)
                 {
                     controlName = AppHelper.GetFocusedControlName();
 
                     if (controlName == lastClassName)
                     {
+
+                        //if (matchedRule != null && InputLanguage.CurrentInputLanguage.LayoutName != matchedRule.InputMethod)
+                        //{
+                        //    ChangeCursorColorByIme(matchedRule.InputMethod);
+
+                        //    return;
+                        //}
                         return;
                     }
 
@@ -314,10 +339,7 @@ namespace SmartIme
                 lastActiveApp = processName;
                 lastClassName = controlName;
 
-
-                var titleBuilder = new System.Text.StringBuilder(256);
-                _ = WinApi.GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
-                string windowTitle = titleBuilder.ToString();
+                windowTitle = WinApi.GetWindowText(hWnd);
                 lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
 
                 if (string.IsNullOrEmpty(controlName))
@@ -325,7 +347,7 @@ namespace SmartIme
                     controlName = AppHelper.GetWindowClassName(hWnd);
                 }
 
-                Rule matchedRule = FindMatchingRule(processName, windowTitle, controlName);
+                //Rule matchedRule = FindMatchingRule(processName, windowTitle, controlName);
 
                 if (matchedRule != null)
                 {
@@ -344,7 +366,7 @@ namespace SmartIme
                                 WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                             }
 
-                            ChangeCursorColorByIme(targetIme);
+                            //ChangeCursorColorByIme(targetIme);
                             break;
                         }
                     }
@@ -369,6 +391,8 @@ namespace SmartIme
             {
                 throw;
             }
+
+
         }
 
         private Rule FindMatchingRule(string appName, string windowTitle, string controlClass)
@@ -577,6 +601,7 @@ namespace SmartIme
                         {
                             whitelistedApps.Add(app.Name);
                         }
+                        whitelistedApps.Add("explorer"); // 永远忽略资源管理器
                         return;
                     }
 
@@ -711,7 +736,12 @@ namespace SmartIme
             try
             {
                 UpdateTrayIconColor(color);
-                ShowFloatingHint(color, imeName ?? currentImeName);
+
+                if (!whitelistedApps.Contains(changeColorProcessName))
+                {
+                    ShowFloatingHint(color, imeName ?? currentImeName);
+                }
+
                 //TryUpdateCaretWidth(color);
             }
             catch (Exception ex)
@@ -800,12 +830,32 @@ namespace SmartIme
 
         private void ChangeCursorColorByIme(string imeName)
         {
+            if (imeName == "中文" || imeName == "英文")
+            {
+                string layoutName = null;
+                if (imeName == "中文")
+                {
+                    layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName.Contains("中"))?.LayoutName;
+                }
+                else
+                {
+                    layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName == ("美式键盘"))?.LayoutName;
+                    if (layoutName == null)
+                    {
+                        layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName.Contains("英"))?.LayoutName;
+                    }
+                }
+                imeColors.TryGetValue(layoutName ?? imeName, out Color color);
+                ChangeCursorColor(color, imeName);
+                return;
+            }
+
             if (string.IsNullOrEmpty(currentImeName))
             {
                 currentImeName = imeName;
                 return;
             }
-            string activeProcessName = AppHelper.GetActiveWindowProcessName();
+            string activeProcessName = AppHelper.GetForegroundProcessName();
             if (activeProcessName == "explorer")
             {
                 return;

@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Text;
 
 namespace SmartIme.Utilities
 {
@@ -198,6 +199,122 @@ namespace SmartIme.Utilities
             return point.X >= 0 && point.Y >= 0 &&
                    point.X <= Screen.PrimaryScreen.Bounds.Width &&
                    point.Y <= Screen.PrimaryScreen.Bounds.Height;
+        }
+
+        static string currentInputMethod = "";
+        public static bool MonitorInputMethodSwitch(out string newImeName, out string processName)
+        {
+            try
+            {
+                string newInputMethod = GetCurrentInputMethod();
+
+                // 调试输出
+
+                //string winTitle = WinApi.GetWindowText(WinApi.GetForegroundWindow());
+                processName = AppHelper.GetForegroundProcessName();
+                if (processName == "explorer")
+                {
+                    // 如果是资源管理器，直接返回不处理
+                    newImeName = "";
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(newInputMethod) && newInputMethod != currentInputMethod)
+                {
+                    newImeName = newInputMethod;
+
+                    // 如果设置不显示英文输入法切换，且新输入法是英文，则跳过
+                    //if (!config.ShowEnglishInputMethod &&
+                    //    (newInputMethod.Contains("英语") || newInputMethod.Contains("English") || newInputMethod.Contains("美国")))
+                    //{
+                    //    if (config.EnableDebugMode)
+                    //    {
+                    //        Console.WriteLine("跳过英文输入法显示");
+                    //    }
+                    //    currentInputMethod = newInputMethod;
+                    //    return;
+                    //}
+
+
+
+                    currentInputMethod = newInputMethod;
+                    return true;
+                }
+                else
+                {
+                    newImeName = "";
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        private static string GetCurrentInputMethod()
+        {
+            try
+            {
+                IntPtr foregroundWindow = WinApi.GetForegroundWindow();
+                if (foregroundWindow == IntPtr.Zero) return "";
+                //打印foregroundWindow窗口名称
+
+                string windowTitle = WinApi.GetWindowText(foregroundWindow);
+                //Console.WriteLine($"{DateTime.Now} {windowTitle}");
+                uint threadId = WinApi.GetWindowThreadProcessId(foregroundWindow, out uint processId);
+                IntPtr keyboardLayout = WinApi.GetKeyboardLayout(threadId);
+
+                if (keyboardLayout == IntPtr.Zero) return "";
+
+                // 获取语言ID
+                uint langId = (uint)(keyboardLayout.ToInt64() & 0xFFFF);
+
+                StringBuilder langName = new StringBuilder(256);
+                int result = WinApi.GetLocaleInfo(langId, WinApi.LOCALE_SLANGUAGE, langName, langName.Capacity);
+
+                //Debug.WriteLine($"检测到的语言ID: {langId:X4}  {langName}");
+                //Console.WriteLine($"检测到的语言ID: {langId:X4}, 语言名称: {langName}");
+                if (result > 0)
+                {
+                    var lang = GetInputMethodNameById(langId);
+                    if (!string.IsNullOrEmpty(lang))
+                    {
+                        return lang;
+                    }
+                    return langName.ToString();
+                }
+
+                // 如果获取不到语言名称，尝试获取英文名称
+                result = WinApi.GetLocaleInfo(langId, WinApi.LOCALE_SENGLANGUAGE, langName, langName.Capacity);
+                if (result > 0)
+                {
+                    return langName.ToString();
+                }
+
+                // 根据常见的输入法布局ID返回中文名称
+                return GetInputMethodNameById(langId);
+            }
+            catch (Exception ex)
+            {
+                throw;
+                return $"检测失败: {ex.Message}";
+            }
+        }
+
+        private static string GetInputMethodNameById(uint langId)
+        {
+            return langId switch
+            {
+                0x0804 => "中文",
+                0x0404 => "中文(繁体)",
+                0x0409 => "英文",
+                0x0809 => "英文",
+                0x0411 => "日语",
+                0x0412 => "韩语",
+                //_ => $"未知输入法 (ID: {langId:X4})"
+                _ => ""
+            };
         }
     }
 }
