@@ -181,7 +181,12 @@ namespace SmartIme
 
             Properties.Settings.Default.Save();
 
-            monitorTimer.Stop();
+            //monitorTimer.Stop();
+            // 修复 SYSLIB0006: 不再使用 thread.Abort()，改为安全地请求线程停止
+            if (thread != null && thread.IsAlive)
+            {
+                thread.Interrupt();
+            }
         }
 
         public void SaveRulesToJson(bool updateTreeView = true)
@@ -253,6 +258,7 @@ namespace SmartIme
 
         private System.Windows.Forms.Timer monitorTimer2;
 
+        Thread thread;
         private void SetupMonitor()
         {
             //monitorTimer.Interval = 300;
@@ -264,11 +270,14 @@ namespace SmartIme
             monitorTimer2.Interval = 300;
             monitorTimer2.Tick += CheckActiveWindowChanged;
             monitorTimer2.Start();
+
+
+
         }
 
         private void CheckActiveWindowChanged(object sender, EventArgs e)
         {
-            //monitorTimer.Stop();
+            monitorTimer2.Stop();
             IntPtr currentWindow = WinApi.GetForegroundWindow();
 
             if (currentWindow != lastActiveWindow)
@@ -278,13 +287,14 @@ namespace SmartIme
             MonitorActiveApp();
 
             var imeSwitched = CaretHelper.MonitorInputMethodSwitch(out string newImeName, out changeColorProcessName);
-            //Debug.WriteLine($"监测输入法切换: {imeSwitched}");
+
             if (imeSwitched)
             {
+                Debug.WriteLine($"监测输入法切换: {imeSwitched}");
                 ChangeCursorColorByIme(newImeName);
             }
 
-            //monitorTimer.Start();
+            monitorTimer2.Start();
         }
 
         private void MonitorActiveApp()
@@ -366,7 +376,7 @@ namespace SmartIme
                                 WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                             }
 
-                            //ChangeCursorColorByIme(targetIme);
+                            ChangeCursorColorByIme(targetIme);
                             break;
                         }
                     }
@@ -832,13 +842,19 @@ namespace SmartIme
         {
             if (imeName == "中文" || imeName == "英文")
             {
+                //Debug.WriteLine("输入法变化: " + imeName);
+
                 string layoutName = null;
                 if (imeName == "中文")
                 {
+                    Debug.WriteLine("currentImeName:" + currentImeName);
+                    //if (currentImeName.Contains("中")) return;
                     layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName.Contains("中"))?.LayoutName;
                 }
                 else
                 {
+                    Debug.WriteLine("currentImeName:" + currentImeName);
+                    //if (currentImeName.Contains("英") || currentImeName.Contains("美")) return;
                     layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName == ("美式键盘"))?.LayoutName;
                     if (layoutName == null)
                     {
@@ -849,7 +865,7 @@ namespace SmartIme
                 ChangeCursorColor(color, imeName);
                 return;
             }
-
+            Debug.WriteLine("输入法变化: " + imeName);
             if (string.IsNullOrEmpty(currentImeName))
             {
                 currentImeName = imeName;
