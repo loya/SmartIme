@@ -114,9 +114,10 @@ namespace SmartIme
             {
                 this.Show();
                 this.WindowState = FormWindowState.Normal;
+                this.Activate();
             });
 
-            trayMenu.Items.Add("退出", null, (s, e) => Application.Exit());
+            trayMenu.Items.Add("退出", null, (s, e) => this.Close());
 
             trayIcon = new NotifyIcon
             {
@@ -125,7 +126,12 @@ namespace SmartIme
                 ContextMenuStrip = trayMenu,
                 Visible = true
             };
-            trayIcon.DoubleClick += (s, e) => { this.Show(); this.WindowState = FormWindowState.Normal; };
+            trayIcon.DoubleClick += (s, e) =>
+            {
+                this.Show();
+                this.WindowState = FormWindowState.Normal;
+                this.Activate();
+            };
         }
 
         private bool IsAppSetToStartup()
