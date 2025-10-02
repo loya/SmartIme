@@ -136,7 +136,7 @@ namespace SmartIme
 
         private bool IsAppSetToStartup()
         {
-            using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", false))
+            using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", false))
             {
                 string appName = Assembly.GetExecutingAssembly().GetName().Name;
                 return key?.GetValue(appName) != null;
@@ -150,7 +150,7 @@ namespace SmartIme
             string appName = Application.ProductName;
             string appPath = Application.ExecutablePath;
 
-            using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true))
+            using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true))
             {
                 if (enable)
                 {
@@ -747,10 +747,16 @@ namespace SmartIme
             }
         }
 
+        /// <summary>
+        /// 改变光标颜色
+        /// </summary>
+        /// <param name="color"></param>
+        /// <param name="imeName"></param>
         private void ChangeCursorColor(Color color, string imeName = null)
         {
             try
             {
+                ChangeCaretColor(color);
                 UpdateTrayIconColor(color);
 
                 if (!whitelistedApps.Contains(changeColorProcessName))
@@ -759,6 +765,23 @@ namespace SmartIme
                 }
 
                 //TryUpdateCaretWidth(color);
+            }
+            catch (Exception ex)
+            {
+                lblLog.Text = $"视觉提示设置失败: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// 改变插入符号颜色
+        /// </summary>
+        /// <param name="color"></param>
+        /// <param name="imeName"></param>
+        private void ChangeCaretColor(Color color)
+        {
+            try
+            {
+                CaretHelper.SetCaretColor(color);
             }
             catch (Exception ex)
             {
@@ -831,7 +854,7 @@ namespace SmartIme
                     int caretWidth = GetCaretWidthFromColor(color);
                     CreateCaret(hWnd, IntPtr.Zero, caretWidth, 20);
                     ShowCaret(hWnd);
-                    SetCaretBlinkTime(500);
+                    //SetCaretBlinkTime(500);
                 }
             }
             catch
@@ -844,6 +867,10 @@ namespace SmartIme
             return Math.Max(1, color.GetHashCode() % 5 + 1);
         }
 
+        /// <summary>
+        /// 根据输入法改变光标颜色
+        /// </summary>
+        /// <param name="imeName"></param>
         private void ChangeCursorColorByIme(string imeName)
         {
             if (imeName == "中文" || imeName == "英文")

@@ -316,5 +316,10 @@ namespace SmartIme.Utilities
                 _ => ""
             };
         }
+
+        internal static void SetCaretColor(Color color)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

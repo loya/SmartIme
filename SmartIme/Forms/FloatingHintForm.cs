@@ -1,9 +1,5 @@
-using System;
-using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Windows.Forms;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace SmartIme.Forms
 {
@@ -19,15 +15,12 @@ namespace SmartIme.Forms
 
         private readonly Color hintColor;
         private readonly string imeName;
+        private int formWidth = 100;
 
         public FloatingHintForm(Color color, string name)
         {
             hintColor = color;
             imeName = name;
-            this.Load += (sender, e) =>
-            {
-                
-            };
             InitializeForm();
         }
 
@@ -52,7 +45,7 @@ namespace SmartIme.Forms
         {
             // 等待1秒后自动关闭窗口
             await Task.Delay(800);
-            
+
             // 在UI线程中安全关闭窗口
             if (this.InvokeRequired)
             {
@@ -67,17 +60,17 @@ namespace SmartIme.Forms
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            
+
             // 设置窗口透明度
             this.Opacity = 0.6;
-            
+
             // 确保窗口尺寸正确
-            this.Size = new Size(100, 35);
-            
+            this.Size = new Size(formWidth, 35);
+
             // 创建圆角效果（使用窗口尺寸）
             this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 6, 6));
         }
-        
+
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
 
@@ -117,6 +110,10 @@ namespace SmartIme.Forms
                 g.DrawString(displayName, font, textBrush, 28, 8);
             }
 
+            formWidth = (int)g.MeasureString(imeName, new Font("微软雅黑", 10, FontStyle.Bold)).Width + 40;
+            //this.Size = new Size(formWidth, 35);
+            this.OnLoad(e); // 重新应用圆角
+
             // 绘制颜色名称
             //using (Font smallFont = new Font("微软雅黑", 7))
             //using (Brush textBrush = new SolidBrush(Color.LightGray))
@@ -143,17 +140,17 @@ namespace SmartIme.Forms
     //            graphics.FillPath(brush, path);
     //        }
     //    }
-        
+
     //    private static System.Drawing.Drawing2D.GraphicsPath CreateRoundedRectPath(float x, float y, float width, float height, float radius)
     //    {
     //        var path = new System.Drawing.Drawing2D.GraphicsPath();
-            
+
     //        path.AddArc(x, y, radius * 2, radius * 2, 180, 90);
     //        path.AddArc(x + width - radius * 2, y, radius * 2, radius * 2, 270, 90);
     //        path.AddArc(x + width - radius * 2, y + height - radius * 2, radius * 2, radius * 2, 0, 90);
     //        path.AddArc(x, y + height - radius * 2, radius * 2, radius * 2, 90, 90);
     //        path.CloseFigure();
-            
+
     //        return path;
     //    }
     //}
