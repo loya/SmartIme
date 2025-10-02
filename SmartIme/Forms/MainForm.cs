@@ -101,10 +101,10 @@ namespace SmartIme
             // 添加开机自启动菜单项
             var startupItem = new ToolStripMenuItem("开机自启动");
             startupItem.CheckOnClick = true;
-            startupItem.Checked = IsAppSetToStartup();
+            startupItem.Checked = AppStartupHelper.IsAppSetToStartup();
             startupItem.Click += (s, e) =>
             {
-                SetAppStartup(startupItem.Checked);
+                AppStartupHelper.SetAppStartup(startupItem.Checked);
             };
             trayMenu.Items.Add(startupItem);
 
@@ -134,34 +134,7 @@ namespace SmartIme
             };
         }
 
-        private bool IsAppSetToStartup()
-        {
-            using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", false))
-            {
-                string appName = Assembly.GetExecutingAssembly().GetName().Name;
-                return key?.GetValue(appName) != null;
-            }
-        }
 
-        private void SetAppStartup(bool enable)
-        {
-            //string appName = Assembly.GetExecutingAssembly().GetName().Name;
-            //string appPath = Assembly.GetExecutingAssembly().Location;
-            string appName = Application.ProductName;
-            string appPath = Application.ExecutablePath;
-
-            using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true))
-            {
-                if (enable)
-                {
-                    key.SetValue(appName, $"\"{appPath}\" -minimized");
-                }
-                else
-                {
-                    key.DeleteValue(appName, false);
-                }
-            }
-        }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
