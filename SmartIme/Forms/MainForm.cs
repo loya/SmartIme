@@ -105,6 +105,7 @@ namespace SmartIme
             startupItem.Click += (s, e) =>
             {
                 AppStartupHelper.SetAppStartup(startupItem.Checked);
+                startupItem.Checked = AppStartupHelper.IsAppSetToStartup();
             };
             trayMenu.Items.Add(startupItem);
 

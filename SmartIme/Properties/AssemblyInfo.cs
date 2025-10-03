@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 //[assembly: AssemblyTitle("SmartIme")]
@@ -7,7 +6,7 @@ using System.Runtime.InteropServices;
 //[assembly: AssemblyConfiguration("")]
 //[assembly: AssemblyCompany("")]
 //[assembly: AssemblyProduct("SmartIme")]
-[assembly: AssemblyCopyright("Copyright ©  2025")]
+[assembly: AssemblyCopyright("Copyright ©2025 loya")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

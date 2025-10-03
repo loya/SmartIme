@@ -118,13 +118,55 @@ namespace SmartIme.Utilities
                 shortcut.Description = "智能输入法切换助手";
                 shortcut.Save();
 
+
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(shortcut);
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(shell);
+
+                // 通过修改快捷方式文件的属性来设置以管理员权限运行
+                SetShortcutRunAsAdmin(shortcutPath);
             }
             catch (Exception ex)
             {
                 throw new Exception($"创建快捷方式失败: {ex.Message}", ex);
             }
         }
+
+        /// <summary>
+        /// 设置快捷方式以管理员权限运行
+        /// </summary>
+        /// <param name="shortcutPath">快捷方式文件路径</param>
+        static void SetShortcutRunAsAdmin(string shortcutPath)
+        {
+            try
+            {
+                if (!File.Exists(shortcutPath))
+                    return;
+
+                // 通过修改快捷方式文件来设置管理员权限运行标志
+                // 这是通过在快捷方式文件中设置特定的标志位来实现的
+
+                // 读取快捷方式文件
+                byte[] data = File.ReadAllBytes(shortcutPath);
+
+                // 在快捷方式文件中查找并设置管理员权限运行标志
+                // 这个标志位于快捷方式文件的特定位置
+                const int RUNAS_ADMIN_FLAG_OFFSET = 0x15;
+
+                if (data.Length > RUNAS_ADMIN_FLAG_OFFSET)
+                {
+                    // 设置管理员权限运行标志 (0x20)
+                    data[RUNAS_ADMIN_FLAG_OFFSET] |= 0x20;
+
+                    // 写回修改后的数据
+                    File.WriteAllBytes(shortcutPath, data);
+                }
+            }
+            catch (Exception ex)
+            {
+                // 如果修改失败，不抛出异常，因为这不会影响基本功能
+                Debug.WriteLine($"设置快捷方式管理员权限失败: {ex.Message}");
+            }
+        }
     }
 }
+
