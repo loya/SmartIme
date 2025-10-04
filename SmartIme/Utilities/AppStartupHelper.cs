@@ -1,4 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Windows.Forms;
+using Microsoft.Win32.TaskScheduler;
 
 namespace SmartIme.Utilities
 {
@@ -69,18 +73,27 @@ namespace SmartIme.Utilities
         {
             try
             {
-                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-                string shortcutPath = Path.Combine(startupFolder, $"{appName}.lnk");
-
                 if (enable)
                 {
-                    CreateShortcut(shortcutPath, appPath, "-minimized");
+                    // 使用任务计划程序实现开机自启动
+                    CreateTaskScheduler(appName, appPath, "-minimized");
                 }
                 else
                 {
-                    if (File.Exists(shortcutPath))
+                    // 删除任务计划
+                    try
                     {
-                        File.Delete(shortcutPath);
+                        using (TaskService taskService = new TaskService())
+                        {
+                            if (taskService.RootFolder.Tasks.Exists(appName))
+                            {
+                                taskService.RootFolder.DeleteTask(appName);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"删除任务计划失败: {ex.Message}");
                     }
                 }
             }
@@ -94,9 +107,11 @@ namespace SmartIme.Utilities
         {
             try
             {
-                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-                string shortcutPath = Path.Combine(startupFolder, $"{Application.ProductName}.lnk");
-                return File.Exists(shortcutPath);
+                string appName = Application.ProductName;
+                using (TaskService taskService = new TaskService())
+                {
+                    return taskService.RootFolder.Tasks.Exists(appName);
+                }
             }
             catch
             {
@@ -104,67 +119,53 @@ namespace SmartIme.Utilities
             }
         }
 
-        static void CreateShortcut(string shortcutPath, string targetPath, string arguments = "")
+        static void CreateTaskScheduler(string appName, string targetPath, string arguments = "")
         {
             try
             {
-                Type shellType = Type.GetTypeFromProgID("WScript.Shell");
-                dynamic shell = Activator.CreateInstance(shellType);
-                dynamic shortcut = shell.CreateShortcut(shortcutPath);
-
-                shortcut.TargetPath = targetPath;
-                shortcut.Arguments = arguments;
-                shortcut.WorkingDirectory = Path.GetDirectoryName(targetPath);
-                shortcut.Description = "智能输入法切换助手";
-                shortcut.Save();
-
-
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(shortcut);
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(shell);
-
-                // 通过修改快捷方式文件的属性来设置以管理员权限运行
-                SetShortcutRunAsAdmin(shortcutPath);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"创建快捷方式失败: {ex.Message}", ex);
-            }
-        }
-
-        /// <summary>
-        /// 设置快捷方式以管理员权限运行
-        /// </summary>
-        /// <param name="shortcutPath">快捷方式文件路径</param>
-        static void SetShortcutRunAsAdmin(string shortcutPath)
-        {
-            try
-            {
-                if (!File.Exists(shortcutPath))
-                    return;
-
-                // 通过修改快捷方式文件来设置管理员权限运行标志
-                // 这是通过在快捷方式文件中设置特定的标志位来实现的
-
-                // 读取快捷方式文件
-                byte[] data = File.ReadAllBytes(shortcutPath);
-
-                // 在快捷方式文件中查找并设置管理员权限运行标志
-                // 这个标志位于快捷方式文件的特定位置
-                const int RUNAS_ADMIN_FLAG_OFFSET = 0x15;
-
-                if (data.Length > RUNAS_ADMIN_FLAG_OFFSET)
+                // 创建任务服务实例
+                using (TaskService taskService = new TaskService())
                 {
-                    // 设置管理员权限运行标志 (0x20)
-                    data[RUNAS_ADMIN_FLAG_OFFSET] |= 0x20;
+                    // 检查任务是否已存在，如果存在则删除
+                    if (taskService.RootFolder.Tasks.Exists(appName))
+                    {
+                        taskService.RootFolder.DeleteTask(appName);
+                    }
 
-                    // 写回修改后的数据
-                    File.WriteAllBytes(shortcutPath, data);
+                    // 创建任务定义
+                    TaskDefinition taskDefinition = taskService.NewTask();
+                    taskDefinition.RegistrationInfo.Description = "智能输入法切换助手开机自启动";
+                    taskDefinition.RegistrationInfo.Author = "SmartIme";
+
+                    // 设置任务以最高权限运行（管理员权限）
+                    taskDefinition.Principal.RunLevel = TaskRunLevel.Highest;
+                    taskDefinition.Principal.LogonType = TaskLogonType.InteractiveToken;
+
+                    // 设置任务在用户登录时触发
+                    LogonTrigger logonTrigger = new LogonTrigger();
+                    logonTrigger.Enabled = true;
+                    // 设置延迟启动，避免系统启动时资源竞争
+                    logonTrigger.Delay = TimeSpan.FromSeconds(30);
+                    taskDefinition.Triggers.Add(logonTrigger);
+
+                    // 设置任务操作：启动程序
+                    ExecAction action = new ExecAction(targetPath, arguments, Path.GetDirectoryName(targetPath));
+                    taskDefinition.Actions.Add(action);
+
+                    // 设置任务设置
+                    taskDefinition.Settings.Enabled = true;
+                    taskDefinition.Settings.DisallowStartIfOnBatteries = false; // 不在电池供电时禁用
+                    taskDefinition.Settings.RunOnlyIfIdle = false; // 不仅在空闲时运行
+                    taskDefinition.Settings.ExecutionTimeLimit = TimeSpan.Zero; // 不限制执行时间
+                    taskDefinition.Settings.Hidden = false; // 不隐藏任务
+
+                    // 注册任务
+                    taskService.RootFolder.RegisterTaskDefinition(appName, taskDefinition);
                 }
             }
             catch (Exception ex)
             {
-                // 如果修改失败，不抛出异常，因为这不会影响基本功能
-                Debug.WriteLine($"设置快捷方式管理员权限失败: {ex.Message}");
+                throw new Exception($"创建任务计划失败: {ex.Message}", ex);
             }
         }
     }

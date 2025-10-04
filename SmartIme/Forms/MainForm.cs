@@ -163,10 +163,10 @@ namespace SmartIme
 
             //monitorTimer.Stop();
             // 修复 SYSLIB0006: 不再使用 thread.Abort()，改为安全地请求线程停止
-            if (thread != null && thread.IsAlive)
-            {
-                thread.Interrupt();
-            }
+            // if (thread != null && thread.IsAlive)
+            // {
+            //     thread.Interrupt();
+            // }
         }
 
         public void SaveRulesToJson(bool updateTreeView = true)
@@ -349,12 +349,12 @@ namespace SmartIme
                     {
                         if (lang.LayoutName == targetIme)
                         {
-                            if (InputLanguage.CurrentInputLanguage.LayoutName != targetIme)
-                            {
-                                InputLanguage.CurrentInputLanguage = lang;
-                                IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
-                                WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
-                            }
+                            //if (InputLanguage.CurrentInputLanguage.LayoutName != targetIme)
+                            //{
+                            InputLanguage.CurrentInputLanguage = lang;
+                            IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
+                            WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
+                            //}
 
                             ChangeCursorColorByIme(targetIme);
                             break;
@@ -438,6 +438,7 @@ namespace SmartIme
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.Message);
+                    throw;
                 }
                 var existingGroup = AppRuleGroups.FirstOrDefault(g => g.AppName == appName);
                 if (existingGroup != null)
@@ -666,6 +667,7 @@ namespace SmartIme
                             }
                             catch
                             {
+                                throw;
                             }
                         }
                     }
@@ -743,6 +745,7 @@ namespace SmartIme
             catch (Exception ex)
             {
                 lblLog.Text = $"视觉提示设置失败: {ex.Message}";
+                throw;
             }
         }
 
@@ -760,6 +763,7 @@ namespace SmartIme
             catch (Exception ex)
             {
                 lblLog.Text = $"视觉提示设置失败: {ex.Message}";
+                throw;
             }
         }
 
@@ -813,7 +817,12 @@ namespace SmartIme
                     g.DrawEllipse(pen, 2, 2, 12, 12);
                 }
 
+                Icon oldIcon = trayIcon.Icon;
                 trayIcon.Icon = Icon.FromHandle(bmp.GetHicon());
+                if (oldIcon != null)
+                {
+                    oldIcon.Dispose();
+                }
             }
         }
 
@@ -833,6 +842,7 @@ namespace SmartIme
             }
             catch
             {
+                throw;
             }
         }
 

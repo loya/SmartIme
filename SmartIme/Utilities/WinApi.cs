@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+锘縰sing System.Runtime.InteropServices;
 using System.Text;
 
 namespace SmartIme.Utilities
@@ -131,9 +131,12 @@ namespace SmartIme.Utilities
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         public static extern int GetLocaleInfo(uint Locale, uint LCType, StringBuilder lpLCData, int cchData);
 
+        [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
+        public static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
+
 
         // Constants        
-        // 常量定义
+        // 甯搁噺瀹氫箟
         public const int SW_RESTORE = 9;
         public const int PS_SOLID = 0;
         public const int NULL_BRUSH = 5;

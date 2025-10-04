@@ -1,3 +1,4 @@
+using SmartIme.Utilities;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 
@@ -68,12 +69,10 @@ namespace SmartIme.Forms
             this.Size = new Size(formWidth, 35);
 
             // 创建圆角效果（使用窗口尺寸）
-            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 6, 6));
+            var hrgn = WinApi.CreateRoundRectRgn(0, 0, this.Width, this.Height, 6, 6);
+            this.Region = Region.FromHrgn(hrgn);
+            WinApi.DeleteObject(hrgn);
         }
-
-        [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
-        private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
-
         private void FloatingHintForm_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;

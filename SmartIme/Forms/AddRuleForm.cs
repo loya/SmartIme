@@ -90,6 +90,8 @@ namespace SmartIme
             else if (radioControl.Checked) // 控件规则
             {
                 SelectControlClass();
+                //this.Activate(); // 恢复主窗口焦点
+                this.ParentForm?.Activate();
             }
             else // 程序名称规则
             {
@@ -141,6 +143,11 @@ namespace SmartIme
                     }
 
                     WinApi.SetForegroundWindow(targetProcess.MainWindowHandle);
+                }
+                else
+                {
+                    MessageBox.Show($"未找到应用程序【{AppName}】的窗口，请先启动该应用程序。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
                 }
             }
             // 设置鼠标钩子

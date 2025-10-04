@@ -35,48 +35,51 @@ namespace SmartIme.Utilities
         /// <returns>控件类名，如果获取失败返回空字符串</returns>
         public static string GetFocusedControlName()
         {
+
+            var automation = new CUIAutomation();
+            IUIAutomationElement element = null;
             try
             {
-                // 获取鼠标位置
-                Point mousePos;
-                GetCursorPos(out mousePos);
+                // // 获取鼠标位置
+                // Point mousePos;
+                // GetCursorPos(out mousePos);
 
-                // 尝试获取焦点控件
-                IntPtr hFocus = GetFocus();
-                IntPtr hWnd;
+                // // 尝试获取焦点控件
+                // IntPtr hFocus = GetFocus();
+                // IntPtr hWnd;
 
-                if (hFocus != IntPtr.Zero)
-                {
-                    // 使用焦点控件
-                    hWnd = hFocus;
-                }
-                else
-                {
-                    // 如果没有焦点控件，使用鼠标下的窗口
-                    hWnd = WindowFromPoint(mousePos);
+                // if (hFocus != IntPtr.Zero)
+                // {
+                //     // 使用焦点控件
+                //     hWnd = hFocus;
+                // }
+                // else
+                // {
+                //     // 如果没有焦点控件，使用鼠标下的窗口
+                //     hWnd = WindowFromPoint(mousePos);
 
-                    // 尝试获取更精确的子控件
-                    IntPtr hParent = GetActiveWindow();
-                    if (hParent != IntPtr.Zero)
-                    {
-                        // 将屏幕坐标转换为窗口客户区坐标
-                        POINT clientPoint = new POINT { x = mousePos.X, y = mousePos.Y };
-                        ScreenToClient(hParent, ref clientPoint);
+                //     // 尝试获取更精确的子控件
+                //     IntPtr hParent = GetActiveWindow();
+                //     if (hParent != IntPtr.Zero)
+                //     {
+                //         // 将屏幕坐标转换为窗口客户区坐标
+                //         POINT clientPoint = new POINT { x = mousePos.X, y = mousePos.Y };
+                //         ScreenToClient(hParent, ref clientPoint);
 
-                        // 获取指定坐标下的子控件
-                        IntPtr hChild = ChildWindowFromPointEx(hParent,
-                            new Point(clientPoint.x, clientPoint.y), CWP_SKIPINVISIBLE);
+                //         // 获取指定坐标下的子控件
+                //         IntPtr hChild = ChildWindowFromPointEx(hParent,
+                //             new Point(clientPoint.x, clientPoint.y), CWP_SKIPINVISIBLE);
 
-                        if (hChild != IntPtr.Zero && hChild != hParent)
-                        {
-                            hWnd = hChild;
-                        }
-                    }
-                }
+                //         if (hChild != IntPtr.Zero && hChild != hParent)
+                //         {
+                //             hWnd = hChild;
+                //         }
+                //     }
+                // }
 
                 //if (hWnd != IntPtr.Zero)
                 //{
-                var element = new CUIAutomation().GetFocusedElement();
+                element = automation.GetFocusedElement();
                 var automationId = string.IsNullOrEmpty(element.CurrentAutomationId) ? null : element.CurrentAutomationId;
                 var classname = string.IsNullOrEmpty(element.CurrentClassName) ? null : element.CurrentClassName;
                 var name = element.CurrentName;
@@ -93,9 +96,16 @@ namespace SmartIme.Utilities
             catch
             {
                 // 忽略所有异常，返回空字符串
+                throw;
+                return string.Empty;
+            }
+            finally
+            {
+                if (element != null)
+                    Marshal.ReleaseComObject(element);
+                Marshal.ReleaseComObject(automation);
             }
 
-            return string.Empty;
         }
 
         /// <summary>

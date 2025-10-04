@@ -297,7 +297,7 @@ namespace SmartIme.Utilities
             }
             catch (Exception ex)
             {
-                throw;
+                // throw;
                 return $"检测失败: {ex.Message}";
             }
         }
@@ -319,7 +319,7 @@ namespace SmartIme.Utilities
 
         internal static void SetCaretColor(Color color)
         {
-            throw new NotImplementedException();
+            //todo: 实现插入符颜色更改功能
         }
     }
 }
