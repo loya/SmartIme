@@ -93,10 +93,10 @@ namespace SmartIme.Utilities
                 //return windowText.ToString();
                 //}
             }
-            catch
+            catch (Exception ex)
             {
                 // 忽略所有异常，返回空字符串
-                throw;
+                AppHelper.LogToFile($"GetFocusedControlName 异常: {ex.Message}", "error", true);
                 return string.Empty;
             }
             finally

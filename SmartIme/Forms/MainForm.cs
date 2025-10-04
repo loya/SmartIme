@@ -127,7 +127,7 @@ namespace SmartIme
                 ContextMenuStrip = trayMenu,
                 Visible = true
             };
-            trayIcon.DoubleClick += (s, e) =>
+            trayIcon.Click += (s, e) =>
             {
                 this.Show();
                 this.WindowState = FormWindowState.Normal;
@@ -349,12 +349,13 @@ namespace SmartIme
                     {
                         if (lang.LayoutName == targetIme)
                         {
-                            //if (InputLanguage.CurrentInputLanguage.LayoutName != targetIme)
-                            //{
+                            Debug.WriteLine("dangqian ime:" + InputLanguage.CurrentInputLanguage.LayoutName);
+                            // if (InputLanguage.CurrentInputLanguage.LayoutName != targetIme)
+                            // {
                             InputLanguage.CurrentInputLanguage = lang;
                             IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
                             WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
-                            //}
+                            // }
 
                             ChangeCursorColorByIme(targetIme);
                             break;
