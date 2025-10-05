@@ -129,9 +129,12 @@ namespace SmartIme
             };
             trayIcon.Click += (s, e) =>
             {
-                this.Show();
-                this.WindowState = FormWindowState.Normal;
-                this.Activate();
+                if (e is MouseEventArgs me && me.Button == MouseButtons.Left)
+                {
+                    this.Show();
+                    this.WindowState = FormWindowState.Normal;
+                    this.Activate();
+                }
             };
         }
 
@@ -271,6 +274,27 @@ namespace SmartIme
             if (imeSwitched)
             {
                 Debug.WriteLine($"监测输入法切换: {imeSwitched}");
+                Debug.WriteLine("当前输入法: " + CaretHelper.GetCurrentInputMethod(WinApi.GetForegroundWindow()));
+                var threadId = WinApi.GetWindowThreadProcessId(WinApi.GetForegroundWindow(), out uint processId);
+                var hkl = WinApi.GetKeyboardLayout(threadId);
+                var description = new System.Text.StringBuilder(256);
+                WinApi.ImmGetDescriptionA(hkl & 0x00ff, description, description.Capacity);
+                Debug.WriteLine("新输入法: " + description.ToString());
+
+                var hwnd = WinApi.GetForegroundWindow();
+                Debug.WriteLine("hwnd: " + hwnd);
+                var imeWnd = WinApi.ImmGetDefaultIMEWnd(hwnd);
+                var openStatus = WinApi.SendMessage(imeWnd, WinApi.WM_IME_CONTROL, WinApi.IMC_GETOPENSTATUS, IntPtr.Zero);
+                Debug.WriteLine("当前输入法状态openStatus：" + openStatus);
+                var conversionMode = WinApi.SendMessage(imeWnd, WinApi.WM_IME_CONTROL, WinApi.IMC_GETCONVERSIONMODE, IntPtr.Zero);
+                Debug.WriteLine("当前输入法转换状态conversionMode：" + conversionMode);
+
+                Debug.WriteLine("当前输入法转换状态 conv：" + (openStatus != IntPtr.Zero && (conversionMode & 3) != 0));
+
+                //var s = WinApi.ImmGetContext(WinApi.GetForegroundWindow());
+                //WinApi.ImmGetConversionStatus(s, out uint conv, out uint sent);
+                //Debug.WriteLine("当前输入法转换状态2 conv：" + conv);
+
                 ChangeCursorColorByIme(newImeName);
             }
 
@@ -858,12 +882,12 @@ namespace SmartIme
         /// <param name="imeName"></param>
         private void ChangeCursorColorByIme(string imeName)
         {
-            if (imeName == "中文" || imeName == "英文")
+            if (imeName.Contains("中文") || imeName == "英文")
             {
                 //Debug.WriteLine("输入法变化: " + imeName);
 
                 string layoutName = null;
-                if (imeName == "中文")
+                if (imeName.Contains("中文"))
                 {
                     Debug.WriteLine("currentImeName:" + currentImeName);
                     //if (currentImeName.Contains("中")) return;
@@ -881,9 +905,10 @@ namespace SmartIme
                 }
                 imeColors.TryGetValue(layoutName ?? imeName, out Color color);
                 ChangeCursorColor(color, imeName);
+                currentImeName = layoutName ?? imeName;
                 return;
             }
-            Debug.WriteLine("输入法变化: " + imeName);
+            //Debug.WriteLine("输入法变化: " + imeName);
             if (string.IsNullOrEmpty(currentImeName))
             {
                 currentImeName = imeName;
@@ -910,7 +935,8 @@ namespace SmartIme
             }
             else
             {
-                currentImeName = imeName;
+                //currentImeName = imeName;
+                currentImeName = "";
             }
         }
 

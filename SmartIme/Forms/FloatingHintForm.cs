@@ -106,6 +106,15 @@ namespace SmartIme.Forms
             using (Brush textBrush = new SolidBrush(Color.White))
             {
                 string displayName = imeName.Length > 8 ? imeName.Substring(0, 6) + "..." : imeName;
+                if (displayName.Contains("(英)"))
+                {
+                    displayName = displayName.Replace("(英)", "");
+                    g.DrawString(displayName, font, textBrush, 28, 8);
+                    using (Brush accentBrush = new SolidBrush(Color.SpringGreen)) // 亮绿色
+                    {
+                        g.DrawString("(A)", font, accentBrush, 28 + g.MeasureString(displayName, font).Width + 1, 7);
+                    }
+                }
                 g.DrawString(displayName, font, textBrush, 28, 8);
             }
 

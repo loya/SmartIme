@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace SmartIme.Utilities
@@ -202,11 +203,17 @@ namespace SmartIme.Utilities
         }
 
         static string currentInputMethod = "";
+        static string currentConversionMode = "";
         public static bool MonitorInputMethodSwitch(out string newImeName, out string processName)
         {
             try
             {
-                string newInputMethod = GetCurrentInputMethod();
+                var processNameTemp = AppHelper.GetForegroundProcessName();
+
+                IntPtr hwnd = WinApi.GetForegroundWindow();
+                string newInputMethod = GetCurrentInputMethod(hwnd);
+                string newConversionMode = GetCurrentConversionMode(hwnd);
+                Debug.WriteLine($"当前前台进程: {processNameTemp}, 当前输入法: {currentInputMethod}, 当前转换模式: {currentConversionMode}");
 
                 // 调试输出
 
@@ -235,11 +242,24 @@ namespace SmartIme.Utilities
                     //    return;
                     //}
 
-
+                    //if (newInputMethod == "中文" && newConversionMode != currentConversionMode)
+                    //{
+                    //    currentConversionMode = newConversionMode;
+                    //    newImeName = newInputMethod + newConversionMode;
+                    //}
 
                     currentInputMethod = newInputMethod;
+                    currentConversionMode = (newInputMethod == "英文") ? "" : newConversionMode;
+
                     return true;
                 }
+                //else if (newInputMethod == "中文" && newConversionMode != currentConversionMode)
+                //{
+                //    currentConversionMode = newConversionMode;
+                //    newImeName = newInputMethod + currentConversionMode;
+                //    currentInputMethod = newImeName;
+                //    return true;
+                //}
                 else
                 {
                     newImeName = "";
@@ -252,16 +272,31 @@ namespace SmartIme.Utilities
             }
         }
 
-        private static string GetCurrentInputMethod()
+        private static string GetCurrentConversionMode(IntPtr hwnd)
+        {
+            var imeWnd = WinApi.ImmGetDefaultIMEWnd(hwnd);
+            var conversionMode = WinApi.SendMessage(imeWnd, WinApi.WM_IME_CONTROL, WinApi.IMC_GETCONVERSIONMODE, IntPtr.Zero);
+            if (conversionMode == IntPtr.Zero)
+            {
+                return "(英)";
+            }
+            else
+            {
+                return "";
+            }
+        }
+
+        public static string GetCurrentInputMethod(IntPtr hwnd)
         {
             try
             {
-                IntPtr foregroundWindow = WinApi.GetForegroundWindow();
+                IntPtr foregroundWindow = hwnd;
+                Debug.WriteLine($"GetCurrentInputMethod: Focus Window = {foregroundWindow}");
                 if (foregroundWindow == IntPtr.Zero) return "";
                 //打印foregroundWindow窗口名称
 
                 string windowTitle = WinApi.GetWindowText(foregroundWindow);
-                //Console.WriteLine($"{DateTime.Now} {windowTitle}");
+                Debug.WriteLine($"{DateTime.Now} {windowTitle}");
                 uint threadId = WinApi.GetWindowThreadProcessId(foregroundWindow, out uint processId);
                 IntPtr keyboardLayout = WinApi.GetKeyboardLayout(threadId);
 
@@ -277,7 +312,7 @@ namespace SmartIme.Utilities
                 //Console.WriteLine($"检测到的语言ID: {langId:X4}, 语言名称: {langName}");
                 if (result > 0)
                 {
-                    var lang = GetInputMethodNameById(langId);
+                    var lang = GetInputMethodNameById(langId, foregroundWindow);
                     if (!string.IsNullOrEmpty(lang))
                     {
                         return lang;
@@ -293,7 +328,7 @@ namespace SmartIme.Utilities
                 }
 
                 // 根据常见的输入法布局ID返回中文名称
-                return GetInputMethodNameById(langId);
+                return GetInputMethodNameById(langId, foregroundWindow);
             }
             catch (Exception ex)
             {
@@ -302,9 +337,9 @@ namespace SmartIme.Utilities
             }
         }
 
-        private static string GetInputMethodNameById(uint langId)
+        private static string GetInputMethodNameById(uint langId, nint foregroundWindow)
         {
-            return langId switch
+            var name = langId switch
             {
                 0x0804 => "中文",
                 0x0404 => "中文(繁体)",
@@ -315,6 +350,12 @@ namespace SmartIme.Utilities
                 //_ => $"未知输入法 (ID: {langId:X4})"
                 _ => ""
             };
+            string newConversionMode = GetCurrentConversionMode(foregroundWindow);
+            if (name.Contains("中文"))
+            {
+                name += newConversionMode;
+            }
+            return name;
         }
 
         internal static void SetCaretColor(Color color)

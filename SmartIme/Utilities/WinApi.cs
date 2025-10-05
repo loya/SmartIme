@@ -133,8 +133,12 @@ namespace SmartIme.Utilities
 
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         public static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
-
-
+        [DllImport("Imm32.dll")]
+        public static extern int ImmGetConversionStatus(nint hIMC, out uint lpfdwConversion, out uint lpfdwSentence);
+        [DllImport("Imm32.dll")]
+        public static extern nint ImmGetContext(nint hWnd);
+        [DllImport("Imm32.dll")]
+        public static extern int ImmGetDescriptionA(nint hIMC, StringBuilder lpBuffer, int nBufferSize);
         // Constants        
         // 常量定义
         public const int SW_RESTORE = 9;
@@ -158,6 +162,10 @@ namespace SmartIme.Utilities
         public const uint WM_INPUTLANGCHANGE = 0x0051;
         public const uint LOCALE_SLANGUAGE = 0x00000002;
         public const uint LOCALE_SENGLANGUAGE = 0x00001001;
+
+        public const uint WM_IME_CONTROL = 0x0283;
+        public const int IMC_GETOPENSTATUS = 0x0005;
+        public const int IMC_GETCONVERSIONMODE = 0x0001;
 
         // Delegates
         public delegate nint HookProc(int nCode, nint wParam, nint lParam);

@@ -92,13 +92,14 @@ namespace SmartIme
             // 
             btnAddControl.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             btnAddControl.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            btnAddControl.Location = new Point(130, 422);
+            btnAddControl.Location = new Point(126, 422);
             btnAddControl.Margin = new Padding(4);
             btnAddControl.Name = "btnAddControl";
             btnAddControl.Size = new Size(77, 39);
             btnAddControl.TabIndex = 5;
             btnAddControl.Text = "添加控件";
             btnAddControl.UseVisualStyleBackColor = true;
+            btnAddControl.Visible = false;
             // 
             // WhitelistForm
             // 
