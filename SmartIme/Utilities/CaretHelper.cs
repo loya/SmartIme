@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 
 namespace SmartIme.Utilities
@@ -213,7 +212,7 @@ namespace SmartIme.Utilities
                 IntPtr hwnd = WinApi.GetForegroundWindow();
                 string newInputMethod = GetCurrentInputMethod(hwnd);
                 string newConversionMode = GetCurrentConversionMode(hwnd);
-                Debug.WriteLine($"当前前台进程: {processNameTemp}, 当前输入法: {currentInputMethod}, 当前转换模式: {currentConversionMode}");
+                // Debug.WriteLine($"当前前台进程: {processNameTemp}, 当前输入法: {currentInputMethod}, 当前转换模式: {currentConversionMode}");
 
                 // 调试输出
 
@@ -291,12 +290,13 @@ namespace SmartIme.Utilities
             try
             {
                 IntPtr foregroundWindow = hwnd;
-                Debug.WriteLine($"GetCurrentInputMethod: Focus Window = {foregroundWindow}");
+                //Debug.WriteLine($"GetCurrentInputMethod: Focus Window = {foregroundWindow}");
                 if (foregroundWindow == IntPtr.Zero) return "";
                 //打印foregroundWindow窗口名称
 
                 string windowTitle = WinApi.GetWindowText(foregroundWindow);
-                Debug.WriteLine($"{DateTime.Now} {windowTitle}");
+                //Debug.WriteLine($"{DateTime.Now} {windowTitle}");
+
                 uint threadId = WinApi.GetWindowThreadProcessId(foregroundWindow, out uint processId);
                 IntPtr keyboardLayout = WinApi.GetKeyboardLayout(threadId);
 
@@ -308,7 +308,7 @@ namespace SmartIme.Utilities
                 StringBuilder langName = new StringBuilder(256);
                 int result = WinApi.GetLocaleInfo(langId, WinApi.LOCALE_SLANGUAGE, langName, langName.Capacity);
 
-                //Debug.WriteLine($"检测到的语言ID: {langId:X4}  {langName}");
+                //Debug.WriteLine($"检测到的语言ID: {langId:X4} {langName}");
                 //Console.WriteLine($"检测到的语言ID: {langId:X4}, 语言名称: {langName}");
                 if (result > 0)
                 {

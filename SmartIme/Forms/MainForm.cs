@@ -273,23 +273,23 @@ namespace SmartIme
 
             if (imeSwitched)
             {
-                Debug.WriteLine($"监测输入法切换: {imeSwitched}");
-                Debug.WriteLine("当前输入法: " + CaretHelper.GetCurrentInputMethod(WinApi.GetForegroundWindow()));
-                var threadId = WinApi.GetWindowThreadProcessId(WinApi.GetForegroundWindow(), out uint processId);
-                var hkl = WinApi.GetKeyboardLayout(threadId);
-                var description = new System.Text.StringBuilder(256);
-                WinApi.ImmGetDescriptionA(hkl & 0x00ff, description, description.Capacity);
-                Debug.WriteLine("新输入法: " + description.ToString());
+                // Debug.WriteLine($"监测输入法切换: {imeSwitched}");
+                // Debug.WriteLine("当前输入法: " + CaretHelper.GetCurrentInputMethod(WinApi.GetForegroundWindow()));
+                // var threadId = WinApi.GetWindowThreadProcessId(WinApi.GetForegroundWindow(), out uint processId);
+                // var hkl = WinApi.GetKeyboardLayout(threadId);
+                // var description = new System.Text.StringBuilder(256);
+                // WinApi.ImmGetDescriptionA(hkl & 0x00ff, description, description.Capacity);
+                // Debug.WriteLine("新输入法: " + description.ToString());
 
-                var hwnd = WinApi.GetForegroundWindow();
-                Debug.WriteLine("hwnd: " + hwnd);
-                var imeWnd = WinApi.ImmGetDefaultIMEWnd(hwnd);
-                var openStatus = WinApi.SendMessage(imeWnd, WinApi.WM_IME_CONTROL, WinApi.IMC_GETOPENSTATUS, IntPtr.Zero);
-                Debug.WriteLine("当前输入法状态openStatus：" + openStatus);
-                var conversionMode = WinApi.SendMessage(imeWnd, WinApi.WM_IME_CONTROL, WinApi.IMC_GETCONVERSIONMODE, IntPtr.Zero);
-                Debug.WriteLine("当前输入法转换状态conversionMode：" + conversionMode);
+                // var hwnd = WinApi.GetForegroundWindow();
+                // Debug.WriteLine("hwnd: " + hwnd);
+                // var imeWnd = WinApi.ImmGetDefaultIMEWnd(hwnd);
+                // var openStatus = WinApi.SendMessage(imeWnd, WinApi.WM_IME_CONTROL, WinApi.IMC_GETOPENSTATUS, IntPtr.Zero);
+                // Debug.WriteLine("当前输入法状态openStatus：" + openStatus);
+                // var conversionMode = WinApi.SendMessage(imeWnd, WinApi.WM_IME_CONTROL, WinApi.IMC_GETCONVERSIONMODE, IntPtr.Zero);
+                // Debug.WriteLine("当前输入法转换状态conversionMode：" + conversionMode);
 
-                Debug.WriteLine("当前输入法转换状态 conv：" + (openStatus != IntPtr.Zero && (conversionMode & 3) != 0));
+                // Debug.WriteLine("当前输入法转换状态 conv：" + (openStatus != IntPtr.Zero && (conversionMode & 3) != 0));
 
                 //var s = WinApi.ImmGetContext(WinApi.GetForegroundWindow());
                 //WinApi.ImmGetConversionStatus(s, out uint conv, out uint sent);
@@ -660,15 +660,22 @@ namespace SmartIme
         private void InitializeCursorColorConfig()
         {
             cmbImeForColor.Items.Clear();
-            foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
+            //foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
+            //{
+            //    cmbImeForColor.Items.Add(lang.LayoutName);
+            //}
+            //if (cmbImeForColor.Items.Count > 0)
+            //{
+            //    cmbImeForColor.SelectedIndex = 0;
+            //}
+            foreach (string lang in new[] { "中文", "英文" })
             {
-                cmbImeForColor.Items.Add(lang.LayoutName);
+                cmbImeForColor.Items.Add(lang);
             }
             if (cmbImeForColor.Items.Count > 0)
             {
                 cmbImeForColor.SelectedIndex = 0;
             }
-
             LoadCursorColorConfig();
         }
 
@@ -848,6 +855,15 @@ namespace SmartIme
                 {
                     oldIcon.Dispose();
                 }
+                if (trayIcon.Visible == false)
+                {
+                    trayIcon.Visible = true;
+                }
+                if (trayIcon.Icon == null)
+                {
+                    trayIcon.Icon = this.Icon;
+                }
+
             }
         }
 
@@ -889,13 +905,13 @@ namespace SmartIme
                 string layoutName = null;
                 if (imeName.Contains("中文"))
                 {
-                    Debug.WriteLine("currentImeName:" + currentImeName);
+                    //Debug.WriteLine("currentImeName:" + currentImeName);
                     //if (currentImeName.Contains("中")) return;
                     layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName.Contains("中"))?.LayoutName;
                 }
                 else
                 {
-                    Debug.WriteLine("currentImeName:" + currentImeName);
+                    //Debug.WriteLine("currentImeName:" + currentImeName);
                     //if (currentImeName.Contains("英") || currentImeName.Contains("美")) return;
                     layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName == ("美式键盘"))?.LayoutName;
                     if (layoutName == null)
