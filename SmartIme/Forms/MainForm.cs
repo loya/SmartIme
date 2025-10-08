@@ -39,7 +39,11 @@ namespace SmartIme
         public MainForm()
         {
             InitializeComponent();
+            this.Icon = Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico") != null ?
+                new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico")) :
+                SystemIcons.Application;
             InitializeImeList();
+
             // 初始化光标颜色配置
             InitializeCursorColorConfig();
             CheckForIllegalCrossThreadCalls = false;
@@ -61,6 +65,11 @@ namespace SmartIme
                 if (this.WindowState == FormWindowState.Minimized)
                 {
                     this.Hide();
+                }
+                else
+                {
+                    _lastWindowState = this.WindowState;
+                    this.ShowInTaskbar = true;
                 }
             };
             treeApps.KeyPress += (s, e) =>
@@ -114,7 +123,7 @@ namespace SmartIme
             trayMenu.Items.Add("显示主窗口", null, (s, e) =>
             {
                 this.Show();
-                this.WindowState = FormWindowState.Normal;
+                this.WindowState = _lastWindowState;
                 this.Activate();
             });
 
@@ -123,7 +132,7 @@ namespace SmartIme
             trayIcon = new NotifyIcon
             {
                 Text = "输入法智能切换助手",
-                Icon = this.Icon,
+                Icon = (Icon)this.Icon.Clone(),
                 ContextMenuStrip = trayMenu,
                 Visible = true
             };
@@ -132,7 +141,7 @@ namespace SmartIme
                 if (e is MouseEventArgs me && me.Button == MouseButtons.Left)
                 {
                     this.Show();
-                    this.WindowState = FormWindowState.Normal;
+                    this.WindowState = _lastWindowState;
                     this.Activate();
                 }
             };
@@ -242,6 +251,8 @@ namespace SmartIme
         private System.Windows.Forms.Timer monitorTimer2;
 
         Thread thread;
+        private FormWindowState _lastWindowState;
+
         private void SetupMonitor()
         {
             //monitorTimer.Interval = 300;
@@ -381,7 +392,7 @@ namespace SmartIme
                             WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                             // }
 
-                            ChangeCursorColorByIme(targetIme);
+                            //ChangeCursorColorByIme(targetIme);
                             break;
                         }
                     }
@@ -582,7 +593,10 @@ namespace SmartIme
                 treeApps.Nodes.Add(groupNode);
                 groupNode.Expand();
             }
-            treeApps.Nodes[0]?.EnsureVisible();
+            if (treeApps.Nodes.Count > 0)
+            {
+                treeApps.Nodes[0]?.EnsureVisible();
+            }
         }
 
 
@@ -825,7 +839,6 @@ namespace SmartIme
             displayPos = AppHelper.ValidateAndAdjustPosition(displayPos);
 
             FloatingHintForm hintForm = new FloatingHintForm(color, imeName);
-            hintForm.StartPosition = FormStartPosition.Manual;
             hintForm.Location = displayPos;
 
             hintForm.Show();
@@ -834,19 +847,38 @@ namespace SmartIme
 
         private void UpdateTrayIconColor(Color color)
         {
-            using (Bitmap bmp = new Bitmap(16, 16))
+            using (Bitmap bmp = new Bitmap(18, 18))
             using (Graphics g = Graphics.FromImage(bmp))
             {
                 g.Clear(Color.Transparent);
 
-                using (Brush brush = new SolidBrush(color))
+                if (currentImeName == "中文(英)")
                 {
-                    g.FillEllipse(brush, 2, 2, 12, 12);
-                }
+                    g.Clear(Color.Transparent);
 
-                using (Pen pen = new Pen(Color.White, 1))
+                    using (Pen pen = new Pen(color, 3))
+                    {
+                        g.DrawEllipse(pen, 0, 0, 16, 16);
+                    }//在右边绘制一个绿色字符A
+                    using (Font font = new Font("Arial", 10, FontStyle.Bold))
+                    using (Brush textBrush = new SolidBrush(Color.LightGreen))
+                    {
+                        g.DrawString("A", font, textBrush, 3, 1);
+                    }
+
+                }
+                else
                 {
-                    g.DrawEllipse(pen, 2, 2, 12, 12);
+                    using (Brush brush = new SolidBrush(color))
+                    {
+                        g.FillEllipse(brush, 0, 0, 16, 16);
+                    }
+
+                    using (Pen pen = new Pen(Color.White, 2))
+                    {
+                        g.DrawEllipse(pen, 0, 0, 16, 16);
+                    }
+
                 }
 
                 Icon oldIcon = trayIcon.Icon;
@@ -861,7 +893,7 @@ namespace SmartIme
                 }
                 if (trayIcon.Icon == null)
                 {
-                    trayIcon.Icon = this.Icon;
+                    trayIcon.Icon = (Icon)this.Icon.Clone();
                 }
 
             }
@@ -898,32 +930,36 @@ namespace SmartIme
         /// <param name="imeName"></param>
         private void ChangeCursorColorByIme(string imeName)
         {
-            if (imeName.Contains("中文") || imeName == "英文")
+            if (imeName == currentImeName)
             {
-                //Debug.WriteLine("输入法变化: " + imeName);
-
-                string layoutName = null;
-                if (imeName.Contains("中文"))
-                {
-                    //Debug.WriteLine("currentImeName:" + currentImeName);
-                    //if (currentImeName.Contains("中")) return;
-                    layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName.Contains("中"))?.LayoutName;
-                }
-                else
-                {
-                    //Debug.WriteLine("currentImeName:" + currentImeName);
-                    //if (currentImeName.Contains("英") || currentImeName.Contains("美")) return;
-                    layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName == ("美式键盘"))?.LayoutName;
-                    if (layoutName == null)
-                    {
-                        layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName.Contains("英"))?.LayoutName;
-                    }
-                }
-                imeColors.TryGetValue(layoutName ?? imeName, out Color color);
-                ChangeCursorColor(color, imeName);
-                currentImeName = layoutName ?? imeName;
                 return;
             }
+            //if (imeName.Contains("中文") || imeName == "英文")
+            //{
+            //    //Debug.WriteLine("输入法变化: " + imeName);
+
+            //    string layoutName = null;
+            //    if (imeName.Contains("中文"))
+            //    {
+            //        //Debug.WriteLine("currentImeName:" + currentImeName);
+            //        //if (currentImeName.Contains("中")) return;
+            //        layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName.Contains("中"))?.LayoutName;
+            //    }
+            //    else
+            //    {
+            //        //Debug.WriteLine("currentImeName:" + currentImeName);
+            //        //if (currentImeName.Contains("英") || currentImeName.Contains("美")) return;
+            //        layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName == ("美式键盘"))?.LayoutName;
+            //        if (layoutName == null)
+            //        {
+            //            layoutName = InputLanguage.InstalledInputLanguages.Cast<InputLanguage>().FirstOrDefault(t => t.LayoutName.Contains("英"))?.LayoutName;
+            //        }
+            //    }
+            //    imeColors.TryGetValue(layoutName ?? imeName, out Color color);
+            //    ChangeCursorColor(color, imeName);
+            //    currentImeName = layoutName ?? imeName;
+            //    return;
+            //}
             //Debug.WriteLine("输入法变化: " + imeName);
             if (string.IsNullOrEmpty(currentImeName))
             {
@@ -936,24 +972,35 @@ namespace SmartIme
                 return;
             }
             Debug.WriteLine(activeProcessName);
-            if (imeName != currentImeName && !string.IsNullOrEmpty(currentImeName))
+            //if (imeName != currentImeName && !string.IsNullOrEmpty(currentImeName))
+            if (imeName != currentImeName)
             {
+                currentImeName = imeName;
                 if (imeColors.TryGetValue(imeName, out Color color))
                 {
                     ChangeCursorColor(color, imeName);
-                    currentImeName = imeName;
                 }
                 else
                 {
-                    ChangeCursorColor(Color.Black, imeName);
-                    currentImeName = "";
+
+                    switch (imeName)
+                    {
+                        case "中文(英)":
+                            color = imeColors.GetValueOrDefault("中文", Color.Black);
+                            ChangeCursorColor(color, imeName);
+                            break;
+                        default:
+                            ChangeCursorColor(Color.Black, imeName);
+                            break;
+
+                    }
                 }
             }
-            else
-            {
-                //currentImeName = imeName;
-                currentImeName = "";
-            }
+            //else
+            //{
+            //    //currentImeName = imeName;
+            //    currentImeName = "";
+            //}
         }
 
         private void BtnColorConfig_Click(object sender, EventArgs e)

@@ -25,14 +25,34 @@ namespace SmartIme.Forms
             InitializeForm();
         }
 
+        protected override bool ShowWithoutActivation => true;
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                // const int WS_EX_TOOLWINDOW = 0x00000080;
+                const int WS_EX_NOACTIVATE = 0x08000000;
+                const int WS_EX_TOPMOST = 0x00000008;
+                // const int GWL_EXSTYLE = -20;
+
+                CreateParams cp = base.CreateParams;
+                // cp.ExStyle |= WS_EX_TOOLWINDOW; // 设置为工具窗口
+                // cp.ExStyle |= WS_EX_NOACTIVATE; // 窗口不激活
+
+                cp.ExStyle |= WS_EX_NOACTIVATE | WS_EX_TOPMOST;
+                return cp;
+            }
+        }
+
         private void InitializeForm()
         {
             // 窗体设置
+            this.StartPosition = FormStartPosition.Manual;
             this.FormBorderStyle = FormBorderStyle.None;
             this.AutoSize = false;
             this.MinimumSize = Size.Empty;
             this.ShowInTaskbar = false;
-            this.TopMost = true;
+            // this.TopMost = true;
             this.BackColor = Color.Black; // 设置背景色为黑色
 
             // 添加绘制事件

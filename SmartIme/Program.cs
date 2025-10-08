@@ -38,7 +38,7 @@ namespace SmartIme
                 {
                     mainForm.WindowState = FormWindowState.Minimized;
                     mainForm.ShowInTaskbar = false;
-                    mainForm.Hide();
+                    // mainForm.Hide();
                 }
 
                 Application.Run(mainForm);

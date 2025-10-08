@@ -7,7 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplicationIcon>app.ico</ApplicationIcon>
+    <ApplicationIcon>appIcon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
@@ -17,11 +17,15 @@
     <None Remove="新文件夹\**" />
   </ItemGroup>
 
+
   <ItemGroup>
-    <Content Include="app.ico" />
     <Content Include="app.manifest">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="appIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>
