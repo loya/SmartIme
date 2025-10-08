@@ -65,7 +65,7 @@ namespace SmartIme.Forms
         private async Task AutoCloseFormAsync()
         {
             // 等待1秒后自动关闭窗口
-            await Task.Delay(800);
+            await Task.Delay(1000);
 
             // 在UI线程中安全关闭窗口
             if (this.InvokeRequired)
