@@ -1,27 +1,20 @@
 using SmartIme.Utilities;
 using System.Drawing.Drawing2D;
-using System.Runtime.InteropServices;
 
 namespace SmartIme.Forms
 {
     public partial class FloatingHintForm : Form
     {
-        [DllImport("user32.dll")]
-        static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-
-        [DllImport("user32.dll")]
-        static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-
-
+        private const double _opacity = 0.6;
+        private const int _waitClose = 800; // 毫秒
         private readonly Color hintColor;
         private readonly string imeName;
         private int formWidth = 100;
 
-        public FloatingHintForm(Color color, string name)
+        public FloatingHintForm(Color hintColor, string imeName)
         {
-            hintColor = color;
-            imeName = name;
+            this.hintColor = hintColor;
+            this.imeName = imeName;
             InitializeForm();
         }
 
@@ -54,6 +47,7 @@ namespace SmartIme.Forms
             this.ShowInTaskbar = false;
             // this.TopMost = true;
             this.BackColor = Color.Black; // 设置背景色为黑色
+            this.Opacity = _opacity;
 
             // 添加绘制事件
             this.Paint += FloatingHintForm_Paint;
@@ -64,8 +58,9 @@ namespace SmartIme.Forms
 
         private async Task AutoCloseFormAsync()
         {
-            // 等待1秒后自动关闭窗口
-            await Task.Delay(1000);
+            // 等待800毫秒后自动关闭窗口
+            await Task.Delay(_waitClose);
+            await FadeOutAsync();
 
             // 在UI线程中安全关闭窗口
             if (this.InvokeRequired)
@@ -78,21 +73,6 @@ namespace SmartIme.Forms
             }
         }
 
-        protected override void OnLoad(EventArgs e)
-        {
-            base.OnLoad(e);
-
-            // 设置窗口透明度
-            this.Opacity = 0.6;
-
-            // 确保窗口尺寸正确
-            this.Size = new Size(formWidth, 35);
-
-            // 创建圆角效果（使用窗口尺寸）
-            var hrgn = WinApi.CreateRoundRectRgn(0, 0, this.Width, this.Height, 6, 6);
-            this.Region = Region.FromHrgn(hrgn);
-            WinApi.DeleteObject(hrgn);
-        }
         private void FloatingHintForm_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
@@ -139,8 +119,11 @@ namespace SmartIme.Forms
             }
 
             formWidth = (int)g.MeasureString(imeName, new Font("微软雅黑", 10, FontStyle.Bold)).Width + 40;
-            //this.Size = new Size(formWidth, 35);
-            this.OnLoad(e); // 重新应用圆角
+            this.Size = new Size(formWidth, 35);
+            // 创建圆角效果（使用窗口尺寸）
+            var hrgn = WinApi.CreateRoundRectRgn(0, 0, this.Width, this.Height, 6, 6);
+            this.Region = Region.FromHrgn(hrgn);
+            WinApi.DeleteObject(hrgn);
 
             // 绘制颜色名称
             //using (Font smallFont = new Font("微软雅黑", 7))
@@ -154,7 +137,34 @@ namespace SmartIme.Forms
         {
             base.OnDeactivate(e);
             // 窗口失去焦点时保持置顶
-            this.TopMost = true;
+            //this.TopMost = true;
+        }
+
+        protected override async void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            await FadeInAsync();
+            //await Task.Delay(1000); // 停留时间
+            //await FadeOutAsync();
+            //this.Close();
+        }
+
+        private async Task FadeInAsync()
+        {
+            for (double i = 0; i <= _opacity; i += 0.1)
+            {
+                this.Opacity = i;
+                await Task.Delay(20);
+            }
+        }
+
+        private async Task FadeOutAsync()
+        {
+            for (double i = this.Opacity; i >= 0; i -= 0.1)
+            {
+                this.Opacity = i;
+                await Task.Delay(20);
+            }
         }
     }
 
@@ -182,4 +192,5 @@ namespace SmartIme.Forms
     //        return path;
     //    }
     //}
+
 }

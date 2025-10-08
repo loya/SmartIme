@@ -345,6 +345,7 @@ namespace SmartIme
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string processName = process.ProcessName;
+                if (processName != lastActiveApp) { _currentHintForm?.Close(); _currentHintForm = null; }
                 if (processName == "explorer") { return; }
                 string controlName = null;
                 controlName = AppHelper.GetFocusedControlName();
