@@ -5,16 +5,19 @@ namespace SmartIme.Forms
 {
     public partial class FloatingHintForm : Form
     {
-        private const double _opacity = 0.6;
         private const int _waitClose = 800; // 毫秒
-        private readonly Color hintColor;
-        private readonly string imeName;
+        private readonly double _opacity; // 目标不透明度
+        private readonly Color hintColor; // 提示颜色
+        private readonly string imeName; // 输入法名称
+        private readonly Color _backColor; // 背景颜色
         private int formWidth = 100;
 
-        public FloatingHintForm(Color hintColor, string imeName)
+        public FloatingHintForm(Color hintColor, string imeName, Color? backColor = null, double opacity = 0.6)
         {
             this.hintColor = hintColor;
             this.imeName = imeName;
+            this._backColor = backColor ?? Color.Black;
+            this._opacity = opacity;
             InitializeForm();
         }
 
@@ -46,7 +49,7 @@ namespace SmartIme.Forms
             this.MinimumSize = Size.Empty;
             this.ShowInTaskbar = false;
             // this.TopMost = true;
-            this.BackColor = Color.Black; // 设置背景色为黑色
+            this.BackColor = _backColor; // 设置背景色为黑色
             this.Opacity = _opacity;
 
             // 添加绘制事件

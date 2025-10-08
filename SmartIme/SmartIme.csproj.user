@@ -16,6 +16,9 @@
     <Compile Update="Forms\FloatingHintForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\HintColorSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -8,80 +8,129 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SmartIme.Properties {
-    
-    
+namespace SmartIme.Properties
+{
+
+
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.8.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
-        
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
+    {
+
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
-        
-        public static Settings Default {
-            get {
+
+        public static Settings Default
+        {
+            get
+            {
                 return defaultInstance;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int DefaultIme {
-            get {
+        public int DefaultIme
+        {
+            get
+            {
                 return ((int)(this["DefaultIme"]));
             }
-            set {
+            set
+            {
                 this["DefaultIme"] = value;
             }
         }
-        
 
-        
+
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
-        public global::System.Drawing.Size WindowSize {
-            get {
+        public global::System.Drawing.Size WindowSize
+        {
+            get
+            {
                 return ((global::System.Drawing.Size)(this["WindowSize"]));
             }
-            set {
+            set
+            {
                 this["WindowSize"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
-        public global::System.Drawing.Point WindowLocation {
-            get {
+        public global::System.Drawing.Point WindowLocation
+        {
+            get
+            {
                 return ((global::System.Drawing.Point)(this["WindowLocation"]));
             }
-            set {
+            set
+            {
                 this["WindowLocation"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Normal")]
-        public global::System.Windows.Forms.FormWindowState WindowState {
-            get {
+        public global::System.Windows.Forms.FormWindowState WindowState
+        {
+            get
+            {
                 return ((global::System.Windows.Forms.FormWindowState)(this["WindowState"]));
             }
-            set {
+            set
+            {
                 this["WindowState"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ImeColors {
-            get {
+        public string ImeColors
+        {
+            get
+            {
                 return ((string)(this["ImeColors"]));
             }
-            set {
+            set
+            {
                 this["ImeColors"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Black")]
+        public string FloatingHintBackColor
+        {
+            get
+            {
+                return ((string)(this["FloatingHintBackColor"]));
+            }
+            set
+            {
+                this["FloatingHintBackColor"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.6")]
+        public string FloatingHintOpacity
+        {
+            get
+            {
+                return ((string)(this["FloatingHintOpacity"]));
+            }
+            set
+            {
+                this["FloatingHintOpacity"] = value;
             }
         }
     }

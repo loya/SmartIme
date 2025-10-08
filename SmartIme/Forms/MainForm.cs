@@ -28,15 +28,21 @@ namespace SmartIme
         // 光标颜色配置
         private Dictionary<string, Color> _imeColors = new();
         private string _currentImeName = "";
-        private const int SPI_SETCURSOR = 0x0057;
 
         // 跟踪当前打开的浮动提示窗口
         private FloatingHintForm _currentHintForm = null;
-        private const int SPIF_UPDATEINIFILE = 0x01;
-        private const int SPIF_SENDCHANGE = 0x02;
 
         //改变输入法时的进程名
         private string _changeColorProcessName = "";
+
+        private IntPtr lastActiveWindow = IntPtr.Zero;
+        private string lastActiveApp = string.Empty;
+        private string lastClassName = string.Empty;
+
+        private System.Windows.Forms.Timer monitorTimer2;
+        private FormWindowState _lastWindowState;
+        private Color? _hintFormBackColor;
+        private double _hintFormOpacity;
 
         public MainForm()
         {
@@ -45,20 +51,16 @@ namespace SmartIme
                 new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico")) :
                 SystemIcons.Application;
             InitializeImeList();
-
-            // 初始化光标颜色配置
-            InitializeCursorColorConfig();
             CheckForIllegalCrossThreadCalls = false;
 
-
-            // TreeView不需要设置ItemHeight
+            // 初始化光标颜色配置
+            _imeColors = new Dictionary<string, Color>();
+            LoadCursorColorConfig();
 
             // 绑定事件处理程序
             btnSwitchIme.Click += BtnSwitchIme_Click;
             btnAddApp.Click += BtnAddApp_Click;
             btnRemoveApp.Click += BtnRemoveApp_Click;
-            btnPickColor.Click += BtnPickColor_Click;
-            cmbImeForColor.SelectedIndexChanged += CmbImeForColor_SelectedIndexChanged;
             this.FormClosing += MainForm_FormClosing;
             this.SizeChanged += (s, e) =>
             {
@@ -82,10 +84,19 @@ namespace SmartIme
             };
 
             // 加载保存的设置
+            loadAppSetting();
             cmbDefaultIme.SelectedIndex = Properties.Settings.Default.DefaultIme;
             LoadRulesFromJson();
             LoadWhitelist();
+            UpdateTreeView();
+            SetupTrayIcon();
+            //SetupMonitor();
+            _ = MonitorSystemAsync(_cancellationTokenSource.Token);
 
+        }
+
+        public void loadAppSetting()
+        {
             // 恢复窗口大小和位置
             if (Properties.Settings.Default.WindowSize != System.Drawing.Size.Empty)
             {
@@ -100,12 +111,17 @@ namespace SmartIme
                 this.WindowState = Properties.Settings.Default.WindowState;
             }
 
-            UpdateTreeView();
 
-            SetupTrayIcon();
-            //SetupMonitor();
-            _ = MonitorSystemAsync(_cancellationTokenSource.Token);
+            LoadFloatingHintSettings();
 
+        }
+
+        private void LoadFloatingHintSettings()
+        {
+            // 恢复悬浮提示窗设置
+            _hintFormBackColor = Properties.Settings.Default.FloatingHintBackColor != null ?
+                ColorTranslator.FromHtml(Properties.Settings.Default.FloatingHintBackColor) : Color.Black;
+            _hintFormOpacity = double.TryParse(Properties.Settings.Default.FloatingHintOpacity, out double opacity) ? opacity : 0.6;
         }
 
         private void SetupTrayIcon()
@@ -151,8 +167,6 @@ namespace SmartIme
                 }
             };
         }
-
-
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -247,31 +261,6 @@ namespace SmartIme
             {
                 cmbDefaultIme.SelectedIndex = 0;
             }
-        }
-
-        private IntPtr lastActiveWindow = IntPtr.Zero;
-        private string lastActiveApp = string.Empty;
-        private string lastClassName = string.Empty;
-
-        private System.Windows.Forms.Timer monitorTimer2;
-
-        Thread thread;
-        private FormWindowState _lastWindowState;
-
-        private void SetupMonitor()
-        {
-            //monitorTimer.Interval = 300;
-            //monitorTimer.Elapsed += CheckActiveWindowChanged;
-            //monitorTimer.Enabled = true;
-            //monitorTimer.Start();
-
-            monitorTimer2 = new System.Windows.Forms.Timer();
-            monitorTimer2.Interval = 300;
-            monitorTimer2.Tick += CheckActiveWindowChanged;
-            monitorTimer2.Start();
-
-
-
         }
 
         private void CheckActiveWindowChanged(object sender, EventArgs e)
@@ -697,27 +686,9 @@ namespace SmartIme
         [DllImport("user32.dll")]
         private static extern bool DestroyCaret();
 
-        private void InitializeCursorColorConfig()
-        {
-            cmbImeForColor.Items.Clear();
-            //foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
-            //{
-            //    cmbImeForColor.Items.Add(lang.LayoutName);
-            //}
-            //if (cmbImeForColor.Items.Count > 0)
-            //{
-            //    cmbImeForColor.SelectedIndex = 0;
-            //}
-            foreach (string lang in new[] { "中文", "英文" })
-            {
-                cmbImeForColor.Items.Add(lang);
-            }
-            if (cmbImeForColor.Items.Count > 0)
-            {
-                cmbImeForColor.SelectedIndex = 0;
-            }
-            LoadCursorColorConfig();
-        }
+
+
+
 
         private void LoadCursorColorConfig()
         {
@@ -739,7 +710,7 @@ namespace SmartIme
                             }
                             catch
                             {
-                                throw;
+                                // 忽略无效颜色
                             }
                         }
                     }
@@ -747,12 +718,9 @@ namespace SmartIme
 
                 if (_imeColors.Count == 0)
                 {
-                    _imeColors["中文(简体) - 微软拼音"] = Color.Red;
-                    _imeColors["英语(美国)"] = Color.Blue;
-                    _imeColors["中文(简体) - 美式键盘"] = Color.Green;
+                    _imeColors["中文"] = Color.Red;
+                    _imeColors["英文"] = Color.Blue;
                 }
-
-                UpdateCursorColorDisplay();
             }
             catch (Exception ex)
             {
@@ -777,23 +745,7 @@ namespace SmartIme
             }
         }
 
-        private void UpdateCursorColorDisplay()
-        {
-            if (cmbImeForColor.SelectedItem != null)
-            {
-                string imeName = cmbImeForColor.SelectedItem.ToString();
-                if (_imeColors.TryGetValue(imeName, out Color color))
-                {
-                    pnlCursorColor.BackColor = color;
-                    lblCursorColor.Text = color.Name;
-                }
-                else
-                {
-                    pnlCursorColor.BackColor = Color.Black;
-                    lblCursorColor.Text = "黑色";
-                }
-            }
-        }
+
 
         /// <summary>
         /// 改变光标颜色
@@ -866,7 +818,7 @@ namespace SmartIme
             // 验证和调整坐标
             displayPos = AppHelper.ValidateAndAdjustPosition(displayPos);
 
-            FloatingHintForm hintForm = new FloatingHintForm(color, imeName);
+            FloatingHintForm hintForm = new FloatingHintForm(color, imeName, _hintFormBackColor, _hintFormOpacity);
             hintForm.Location = displayPos;
             hintForm.Show();
             _currentHintForm = hintForm;
@@ -923,26 +875,6 @@ namespace SmartIme
                     _trayIcon.Icon = (Icon)this.Icon.Clone();
                 }
 
-            }
-        }
-
-        private void TryUpdateCaretWidth(Color color)
-        {
-            try
-            {
-                IntPtr hWnd = GetFocus();
-                if (hWnd != IntPtr.Zero)
-                {
-                    DestroyCaret();
-                    int caretWidth = GetCaretWidthFromColor(color);
-                    CreateCaret(hWnd, IntPtr.Zero, caretWidth, 20);
-                    ShowCaret(hWnd);
-                    //SetCaretBlinkTime(500);
-                }
-            }
-            catch
-            {
-                throw;
             }
         }
 
@@ -1036,42 +968,7 @@ namespace SmartIme
                 "光标颜色配置", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void BtnPickColor_Click(object sender, EventArgs e)
-        {
-            if (cmbImeForColor.SelectedItem != null)
-            {
-                string imeName = cmbImeForColor.SelectedItem.ToString();
-                if (_imeColors.TryGetValue(imeName, out Color currentColor))
-                {
-                    colorDialog.Color = currentColor;
-                }
-                else
-                {
-                    colorDialog.Color = Color.Black;
-                }
 
-                if (colorDialog.ShowDialog() == DialogResult.OK)
-                {
-                    _imeColors[imeName] = colorDialog.Color;
-                    UpdateCursorColorDisplay();
-                    SaveCursorColorConfig();
-
-                    if (imeName == _currentImeName)
-                    {
-                        ChangeCursorColor(colorDialog.Color);
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.Show("请先选择一个输入法", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        private void CmbImeForColor_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            UpdateCursorColorDisplay();
-        }
 
         #endregion
 
@@ -1089,6 +986,32 @@ namespace SmartIme
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             UpdateTreeView();
+        }
+
+        private void BtnHintColorSettings_Click(object sender, EventArgs e)
+        {
+            OpenHintColorSettings();
+        }
+
+        private void OpenHintColorSettings()
+        {
+            using (var colorSettingsForm = new HintColorSettingsForm())
+            {
+                colorSettingsForm.ImeColors = new Dictionary<string, Color>(_imeColors);
+
+                if (colorSettingsForm.ShowDialog() == DialogResult.OK)
+                {
+                    _imeColors = colorSettingsForm.ImeColors;
+                    SaveCursorColorConfig();
+
+                    // 如果当前输入法有颜色设置，更新光标颜色
+                    if (_imeColors.TryGetValue(_currentImeName, out Color currentColor))
+                    {
+                        ChangeCursorColor(currentColor);
+                    }
+                    LoadFloatingHintSettings();
+                }
+            }
         }
     }
 }

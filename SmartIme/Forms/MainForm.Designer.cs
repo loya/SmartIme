@@ -21,6 +21,7 @@ namespace SmartIme
         private System.Windows.Forms.ComboBox cmbDefaultIme;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button btnHintColorSettings;
 
         private void InitializeComponent()
         {
@@ -34,13 +35,9 @@ namespace SmartIme
             label2 = new Label();
             lblLog = new Label();
             btnExit = new Button();
-            pnlCursorColor = new Panel();
-            lblCursorColor = new Label();
-            btnPickColor = new Button();
-            cmbImeForColor = new ComboBox();
-            label4 = new Label();
             colorDialog = new ColorDialog();
             btnWhitelist = new Button();
+            btnHintColorSettings = new Button();
             btnExpanAll = new Button();
             btnCollapseAll = new Button();
             btnRefresh = new Button();
@@ -160,64 +157,17 @@ namespace SmartIme
             btnExit.UseVisualStyleBackColor = true;
             btnExit.Click += BtnExit_Click;
             // 
-            // pnlCursorColor
+            // btnHintColorSettings
             // 
-            pnlCursorColor.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            pnlCursorColor.BorderStyle = BorderStyle.FixedSingle;
-            pnlCursorColor.Location = new Point(336, 480);
-            pnlCursorColor.Margin = new Padding(4);
-            pnlCursorColor.Name = "pnlCursorColor";
-            pnlCursorColor.Size = new Size(20, 20);
-            pnlCursorColor.TabIndex = 11;
-            // 
-            // lblCursorColor
-            // 
-            lblCursorColor.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            lblCursorColor.AutoSize = true;
-            lblCursorColor.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            lblCursorColor.Location = new Point(369, 482);
-            lblCursorColor.Margin = new Padding(4, 0, 4, 0);
-            lblCursorColor.Name = "lblCursorColor";
-            lblCursorColor.Size = new Size(32, 17);
-            lblCursorColor.TabIndex = 12;
-            lblCursorColor.Text = "黑色";
-            // 
-            // btnPickColor
-            // 
-            btnPickColor.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnPickColor.AutoSize = true;
-            btnPickColor.Location = new Point(233, 477);
-            btnPickColor.Margin = new Padding(4);
-            btnPickColor.Name = "btnPickColor";
-            btnPickColor.Size = new Size(90, 27);
-            btnPickColor.TabIndex = 13;
-            btnPickColor.Text = "选择提示颜色";
-            btnPickColor.UseVisualStyleBackColor = true;
-            btnPickColor.Click += BtnPickColor_Click;
-            // 
-            // cmbImeForColor
-            // 
-            cmbImeForColor.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            cmbImeForColor.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbImeForColor.FormattingEnabled = true;
-            cmbImeForColor.Location = new Point(80, 478);
-            cmbImeForColor.Margin = new Padding(4);
-            cmbImeForColor.Name = "cmbImeForColor";
-            cmbImeForColor.Size = new Size(140, 25);
-            cmbImeForColor.TabIndex = 14;
-            cmbImeForColor.SelectedIndexChanged += CmbImeForColor_SelectedIndexChanged;
-            // 
-            // label4
-            // 
-            label4.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            label4.AutoSize = true;
-            label4.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            label4.Location = new Point(23, 482);
-            label4.Margin = new Padding(4, 0, 4, 0);
-            label4.Name = "label4";
-            label4.Size = new Size(56, 17);
-            label4.TabIndex = 15;
-            label4.Text = "输入法：";
+            btnHintColorSettings.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnHintColorSettings.Location = new Point(23, 477);
+            btnHintColorSettings.Margin = new Padding(4);
+            btnHintColorSettings.Name = "btnHintColorSettings";
+            btnHintColorSettings.Size = new Size(120, 27);
+            btnHintColorSettings.TabIndex = 11;
+            btnHintColorSettings.Text = "提示颜色设置";
+            btnHintColorSettings.UseVisualStyleBackColor = true;
+            btnHintColorSettings.Click += BtnHintColorSettings_Click;
             // 
             // colorDialog
             // 
@@ -284,11 +234,7 @@ namespace SmartIme
             Controls.Add(btnRefresh);
             Controls.Add(btnCollapseAll);
             Controls.Add(btnExpanAll);
-            Controls.Add(label4);
-            Controls.Add(cmbImeForColor);
-            Controls.Add(btnPickColor);
-            Controls.Add(lblCursorColor);
-            Controls.Add(pnlCursorColor);
+            Controls.Add(btnHintColorSettings);
             Controls.Add(lblLog);
             Controls.Add(label2);
             Controls.Add(label1);
@@ -311,11 +257,6 @@ namespace SmartIme
 
         private System.Windows.Forms.Label lblLog;
         private Button btnExit;
-        private Panel pnlCursorColor;
-        private Label lblCursorColor;
-        private Button btnPickColor;
-        private ComboBox cmbImeForColor;
-        private Label label4;
         private ColorDialog colorDialog;
         private Button btnWhitelist;
         private Button btnExpanAll;
