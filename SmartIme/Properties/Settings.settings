@@ -25,5 +25,11 @@
     <Setting Name="FloatingHintOpacity" Type="System.String" Scope="User">
       <Value Profile="(Default)">0.6</Value>
     </Setting>
+    <Setting Name="FloatingHintFont" Type="System.String" Scope="User">
+      <Value Profile="(Default)">微软雅黑, 10pt, style=Bold</Value>
+    </Setting>
+    <Setting Name="FloatingHintTextColor" Type="System.String" Scope="User">
+      <Value Profile="(Default)">White</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

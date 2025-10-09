@@ -5,12 +5,26 @@ namespace SmartIme.Forms
 {
     public partial class FloatingHintForm : Form
     {
-        private const int _waitClose = 800; // 毫秒
+        private const int _waitClose = 1000; // 毫秒
         private readonly double _opacity; // 目标不透明度
         private readonly Color hintColor; // 提示颜色
         private readonly string imeName; // 输入法名称
         private readonly Color _backColor; // 背景颜色
+        private readonly Font _font; // 字体
+        private readonly Color _textColor; // 文字颜色
         private int formWidth = 100;
+        private int formHeight = 35;
+
+        public FloatingHintForm(Color hintColor, string imeName, Color backColor, double opacity, Font font, Color textColor)
+        {
+            this.hintColor = hintColor;
+            this.imeName = imeName;
+            this._backColor = backColor;
+            this._opacity = opacity;
+            this._font = font;
+            this._textColor = textColor;
+            InitializeForm();
+        }
 
         public FloatingHintForm(Color hintColor, string imeName, Color? backColor = null, double opacity = 0.6)
         {
@@ -18,9 +32,10 @@ namespace SmartIme.Forms
             this.imeName = imeName;
             this._backColor = backColor ?? Color.Black;
             this._opacity = opacity;
+            this._font = new Font("微软雅黑", 10, FontStyle.Bold);
+            this._textColor = Color.White;
             InitializeForm();
         }
-
         protected override bool ShowWithoutActivation => true;
         protected override CreateParams CreateParams
         {
@@ -51,6 +66,7 @@ namespace SmartIme.Forms
             // this.TopMost = true;
             this.BackColor = _backColor; // 设置背景色为黑色
             this.Opacity = _opacity;
+            this.Height = (int)(_font.Size + 8);
 
             // 添加绘制事件
             this.Paint += FloatingHintForm_Paint;
@@ -79,6 +95,21 @@ namespace SmartIme.Forms
         private void FloatingHintForm_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
+            string displayName = imeName.Length > 8 ? imeName.Substring(0, 6) + "..." : imeName;
+            var fontWidth = (int)g.MeasureString(displayName, _font).Width;
+            var fontHeight = (int)g.MeasureString(displayName, _font).Height;
+
+
+            formHeight = fontHeight + 8;
+            //圆宽度
+            int ellipeWidth = formHeight / 2;
+            formWidth = fontWidth + ellipeWidth + 30;
+            this.Size = new Size(formWidth, formHeight);
+
+            // 创建圆角效果（使用窗口尺寸）
+            var hrgn = WinApi.CreateRoundRectRgn(0, 0, this.Width, this.Height, 6, 6);
+            this.Region = Region.FromHrgn(hrgn);
+            WinApi.DeleteObject(hrgn);
 
             // 设置高质量渲染
             g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -87,7 +118,10 @@ namespace SmartIme.Forms
             // 绘制半透明黑色背景
             using (Brush bgBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0))) // 40% 透明黑色
             {
-                g.FillRectangle(bgBrush, 0, 0, this.ClientSize.Width, this.ClientSize.Height);
+                g.FillRectangle(bgBrush, 0, 0, this.Width, this.Height);
+                System.Diagnostics.Debug.WriteLine($"{this.Width},{this.ClientSize.Width}");
+
+                System.Diagnostics.Debug.WriteLine($"{this.Height},{this.ClientSize.Height}");
             }
 
             // 圆角边框由Region处理，不需要额外绘制
@@ -95,38 +129,38 @@ namespace SmartIme.Forms
             // 绘制颜色指示圆
             using (Brush colorBrush = new SolidBrush(hintColor))
             {
-                g.FillEllipse(colorBrush, 10, 10, 14, 14);
+                g.FillEllipse(colorBrush, 10, ellipeWidth / 2, ellipeWidth, ellipeWidth);
             }
 
             // 绘制边框
             using (Pen borderPen = new Pen(Color.White, 1))
             {
-                g.DrawEllipse(borderPen, 10, 10, 14, 14);
+                g.DrawEllipse(borderPen, 10, ellipeWidth / 2, ellipeWidth, ellipeWidth);
             }
 
             // 绘制输入法名称
-            using (Font font = new Font("微软雅黑", 10, FontStyle.Bold))
-            using (Brush textBrush = new SolidBrush(Color.White))
+            using (Brush textBrush = new SolidBrush(_textColor))
             {
-                string displayName = imeName.Length > 8 ? imeName.Substring(0, 6) + "..." : imeName;
                 if (displayName.Contains("(英)"))
                 {
                     displayName = displayName.Replace("(英)", "");
-                    g.DrawString(displayName, font, textBrush, 28, 8);
+                    g.DrawString(displayName, _font, textBrush, ellipeWidth + 20, 3);
                     using (Brush accentBrush = new SolidBrush(Color.SpringGreen)) // 亮绿色
                     {
-                        g.DrawString("(A)", font, accentBrush, 28 + g.MeasureString(displayName, font).Width + 1, 7);
+                        g.DrawString("(A)", _font, accentBrush, ellipeWidth + g.MeasureString(displayName, _font).Width + 20, 2);
                     }
                 }
-                g.DrawString(displayName, font, textBrush, 28, 8);
+                else
+                    g.DrawString(displayName, _font, textBrush, ellipeWidth + 20, 3);
             }
 
-            formWidth = (int)g.MeasureString(imeName, new Font("微软雅黑", 10, FontStyle.Bold)).Width + 40;
-            this.Size = new Size(formWidth, 35);
-            // 创建圆角效果（使用窗口尺寸）
-            var hrgn = WinApi.CreateRoundRectRgn(0, 0, this.Width, this.Height, 6, 6);
-            this.Region = Region.FromHrgn(hrgn);
-            WinApi.DeleteObject(hrgn);
+            // formWidth = fontWidth + ellipeWidth + 30;
+            // formHeight = fontHeight + 8;
+            // this.Size = new Size(formWidth, formHeight);
+            // // 创建圆角效果（使用窗口尺寸）
+            // var hrgn = WinApi.CreateRoundRectRgn(0, 0, this.Width, this.Height, 6, 6);
+            // this.Region = Region.FromHrgn(hrgn);
+            // WinApi.DeleteObject(hrgn);
 
             // 绘制颜色名称
             //using (Font smallFont = new Font("微软雅黑", 7))

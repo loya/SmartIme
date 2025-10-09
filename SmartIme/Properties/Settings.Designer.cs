@@ -133,5 +133,35 @@ namespace SmartIme.Properties
                 this["FloatingHintOpacity"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("微软雅黑, 10pt, style=Bold")]
+        public string FloatingHintFont
+        {
+            get
+            {
+                return ((string)(this["FloatingHintFont"]));
+            }
+            set
+            {
+                this["FloatingHintFont"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("White")]
+        public string FloatingHintTextColor
+        {
+            get
+            {
+                return ((string)(this["FloatingHintTextColor"]));
+            }
+            set
+            {
+                this["FloatingHintTextColor"] = value;
+            }
+        }
     }
 }

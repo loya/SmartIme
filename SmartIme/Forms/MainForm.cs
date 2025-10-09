@@ -43,6 +43,8 @@ namespace SmartIme
         private FormWindowState _lastWindowState;
         private Color? _hintFormBackColor;
         private double _hintFormOpacity;
+        private Font _hintFormFont;
+        private Color _hintFormTextColor;
 
         public MainForm()
         {
@@ -122,6 +124,25 @@ namespace SmartIme
             _hintFormBackColor = Properties.Settings.Default.FloatingHintBackColor != null ?
                 ColorTranslator.FromHtml(Properties.Settings.Default.FloatingHintBackColor) : Color.Black;
             _hintFormOpacity = double.TryParse(Properties.Settings.Default.FloatingHintOpacity, out double opacity) ? opacity : 0.6;
+
+            // 恢复悬浮提示窗字体和文字颜色设置
+            try
+            {
+                _hintFormFont = (Font)new FontConverter().ConvertFromString(Properties.Settings.Default.FloatingHintFont);
+            }
+            catch
+            {
+                _hintFormFont = new Font("微软雅黑", 10, FontStyle.Bold);
+            }
+
+            try
+            {
+                _hintFormTextColor = ColorTranslator.FromHtml(Properties.Settings.Default.FloatingHintTextColor);
+            }
+            catch
+            {
+                _hintFormTextColor = Color.White;
+            }
         }
 
         private void SetupTrayIcon()
@@ -334,6 +355,7 @@ namespace SmartIme
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string processName = process.ProcessName;
+                // 切换窗口立即关闭提示窗
                 if (processName != lastActiveApp) { _currentHintForm?.Close(); _currentHintForm = null; }
                 if (processName == "explorer") { return; }
                 string controlName = null;
@@ -759,7 +781,8 @@ namespace SmartIme
                 ChangeCaretColor(color);
                 UpdateTrayIconColor(color);
 
-                if (!string.IsNullOrEmpty(_changeColorProcessName) && !_whitelistedApps.Contains(_changeColorProcessName))
+                Debug.WriteLine("chagneName:" + _changeColorProcessName);
+                if (_changeColorProcessName != "explorer" && !string.IsNullOrEmpty(_changeColorProcessName) && !_whitelistedApps.Contains(_changeColorProcessName))
                 {
                     ShowFloatingHint(color, imeName ?? _currentImeName);
                 }
@@ -818,7 +841,8 @@ namespace SmartIme
             // 验证和调整坐标
             displayPos = AppHelper.ValidateAndAdjustPosition(displayPos);
 
-            FloatingHintForm hintForm = new FloatingHintForm(color, imeName, _hintFormBackColor, _hintFormOpacity);
+            Color backColor = _hintFormBackColor ?? Color.Black;
+            FloatingHintForm hintForm = new FloatingHintForm(color, imeName, backColor, _hintFormOpacity, _hintFormFont, _hintFormTextColor);
             hintForm.Location = displayPos;
             hintForm.Show();
             _currentHintForm = hintForm;
@@ -891,7 +915,8 @@ namespace SmartIme
         {
             if (imeName == _currentImeName)
             {
-                return;
+                //todo 是否需要判断
+                // return;
             }
             //if (imeName.Contains("中文") || imeName == "英文")
             //{
@@ -932,7 +957,8 @@ namespace SmartIme
             }
             Debug.WriteLine(activeProcessName);
             //if (imeName != currentImeName && !string.IsNullOrEmpty(currentImeName))
-            if (imeName != _currentImeName)
+            // 
+            if (true)
             {
                 _currentImeName = imeName;
                 if (_imeColors.TryGetValue(imeName, out Color color))
