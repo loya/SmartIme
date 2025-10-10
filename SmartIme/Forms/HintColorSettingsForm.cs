@@ -1,4 +1,6 @@
+using SmartIme.Utilities;
 using System.ComponentModel;
+using System.Drawing.Drawing2D;
 
 namespace SmartIme.Forms
 {
@@ -11,6 +13,8 @@ namespace SmartIme.Forms
         private double _floatingHintOpacity;
         private Font _floatingHintFont;
         private Color _floatingHintTextColor;
+        private PictureBox picChinesePreview;
+        private PictureBox picEnglishPreview;
 
         public Dictionary<string, Color> ImeColors
         {
@@ -29,30 +33,48 @@ namespace SmartIme.Forms
         public Color FloatingHintBackColor
         {
             get => _floatingHintBackColor;
-            set => _floatingHintBackColor = value;
+            set
+            {
+                _floatingHintBackColor = value;
+                UpdatePreviewImages();
+            }
         }
 
         public double FloatingHintOpacity
         {
             get => _floatingHintOpacity;
-            set => _floatingHintOpacity = value;
+            set
+            {
+                _floatingHintOpacity = value;
+                UpdatePreviewImages();
+            }
         }
 
         public Font FloatingHintFont
         {
             get => _floatingHintFont;
-            set => _floatingHintFont = value;
+            set
+            {
+                _floatingHintFont = value;
+                UpdatePreviewImages();
+            }
         }
 
         public Color FloatingHintTextColor
         {
             get => _floatingHintTextColor;
-            set => _floatingHintTextColor = value;
+            set
+            {
+                _floatingHintTextColor = value;
+                UpdatePreviewImages();
+            }
         }
 
         public HintColorSettingsForm()
         {
             InitializeComponent();
+
+
             _colorDialog = new ColorDialog();
             _imeColorItems = new BindingList<ImeColorItem>();
             InitializeImeList();
@@ -78,6 +100,130 @@ namespace SmartIme.Forms
             // 设置数据源
             dgvHintColors.AutoGenerateColumns = false;
             dgvHintColors.DataSource = _imeColorItems;
+
+            // 初始化预览图像
+            InitializePreviewImages();
+        }
+
+        private void InitializePreviewImages()
+        {
+            // 创建中文预览图像
+            picChinesePreview = new PictureBox
+            {
+                Location = new Point(20, 40),
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = FloatingHintBackColor,
+                Font = FloatingHintFont
+            };
+            picChinesePreview.Paint += (sender, e) =>
+            {
+                var chineseItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "中文");
+                if (chineseItem != null)
+                {
+                    DrawPreviewImage(picChinesePreview, e.Graphics, "中文", chineseItem.Color);
+                }
+            };
+            this.Controls.Add(picChinesePreview);
+
+            // 创建英文预览图像
+            picEnglishPreview = new PictureBox
+            {
+                Location = new Point(190, 40),
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = FloatingHintBackColor,
+                Font = FloatingHintFont
+            };
+            picEnglishPreview.Paint += (sender, e) =>
+            {
+                var englishItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "英文");
+                if (englishItem != null)
+                {
+                    DrawPreviewImage(picEnglishPreview, e.Graphics, "English", englishItem.Color);
+                }
+            };
+            this.Controls.Add(picEnglishPreview);
+
+            // 加载默认预览图像
+            UpdatePreviewImages();
+        }
+
+        private void DrawPreviewImage(PictureBox pictureBox, Graphics g, string text, Color hintColor)
+        {
+
+            var fontSize = g.MeasureString(text, FloatingHintFont).ToSize();
+            int fontWidth = fontSize.Width;
+            int fontHeight = fontSize.Height;
+
+            var ellipeWidth = (int)FloatingHintFont.Size;
+            var formWidth = fontWidth + ellipeWidth + 30;
+            var formHeight = fontHeight + 8;
+
+            // 动态设置预览图像尺寸
+            pictureBox.Size = new Size(formWidth, formHeight);
+
+            // 创建圆角效果
+            var hrgn = WinApi.CreateRoundRectRgn(0, 0, pictureBox.Width, pictureBox.Height, 6, 6);
+            pictureBox.Region = Region.FromHrgn(hrgn);
+            WinApi.DeleteObject(hrgn);
+
+            // 设置高质量渲染
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.CompositingQuality = CompositingQuality.HighQuality;
+
+            // 绘制半透明黑色背景
+            using (Brush bgBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0)))
+            {
+                g.FillRectangle(bgBrush, 0, 0, pictureBox.Width, pictureBox.Height);
+            }
+
+            // 绘制颜色指示圆
+            using (Brush colorBrush = new SolidBrush(hintColor))
+            {
+                g.FillEllipse(colorBrush, 10, ellipeWidth / 2 + 1, ellipeWidth, ellipeWidth);
+            }
+
+            // 绘制颜色指示圆边框
+            using (Pen borderPen = new Pen(Color.White, 1))
+            {
+                g.DrawEllipse(borderPen, 10, ellipeWidth / 2 + 1, ellipeWidth, ellipeWidth);
+            }
+
+            // 绘制输入法名称
+            using (Brush textBrush = new SolidBrush(FloatingHintTextColor))
+            {
+                g.DrawString(text, FloatingHintFont, textBrush, ellipeWidth + 20, 3);
+            }
+
+            picEnglishPreview.Left = picChinesePreview.Width + 30;
+            var w = picChinesePreview.Width + picEnglishPreview.Width + 60;
+            this.Width = w >= this.Width ? w : this.MinimumSize.Width;
+            this.Height = 450 + (int)pictureBox.Height + 0;
+            //this.panel1.Height = 400 + (int)FloatingHintFont.Size;
+            //dgvHintColors.Top = pictureBox.Bottom;
+        }
+
+        private void UpdatePreviewImages()
+        {
+            // 更新中文预览图像
+            var chineseItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "中文");
+            if (chineseItem != null)
+            {
+                picChinesePreview.BackColor = FloatingHintBackColor;
+                picChinesePreview.Font = FloatingHintFont;
+                picChinesePreview.ForeColor = FloatingHintTextColor;
+                picChinesePreview.Invalidate(); // 触发重绘
+            }
+
+            // 更新英文预览图像
+            var englishItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "英文");
+            if (englishItem != null)
+            {
+                picEnglishPreview.BackColor = FloatingHintBackColor;
+                picEnglishPreview.Font = FloatingHintFont;
+                picEnglishPreview.ForeColor = FloatingHintTextColor;
+                picEnglishPreview.Invalidate(); // 触发重绘
+            }
+
         }
 
         private void SetupDataGridViewColumns()
@@ -194,6 +340,7 @@ namespace SmartIme.Forms
                 }
             }
             dgvHintColors.Refresh();
+            UpdatePreviewImages();
         }
 
         private Color GetDefaultColorForIme(string imeName)
@@ -215,22 +362,22 @@ namespace SmartIme.Forms
                 var backColorStr = Properties.Settings.Default.FloatingHintBackColor;
                 if (!string.IsNullOrEmpty(backColorStr))
                 {
-                    _floatingHintBackColor = ColorTranslator.FromHtml(backColorStr);
+                    FloatingHintBackColor = ColorTranslator.FromHtml(backColorStr);
                 }
                 else
                 {
-                    _floatingHintBackColor = Color.Black; // 默认背景色
+                    FloatingHintBackColor = Color.Black; // 默认背景色
                 }
 
                 // 加载透明度
                 var opacityStr = Properties.Settings.Default.FloatingHintOpacity;
                 if (!string.IsNullOrEmpty(opacityStr) && double.TryParse(opacityStr, out double opacity))
                 {
-                    _floatingHintOpacity = opacity;
+                    FloatingHintOpacity = opacity;
                 }
                 else
                 {
-                    _floatingHintOpacity = 0.6; // 默认透明度
+                    FloatingHintOpacity = 0.6; // 默认透明度
                 }
 
                 // 加载字体
@@ -239,36 +386,36 @@ namespace SmartIme.Forms
                 {
                     try
                     {
-                        _floatingHintFont = (Font)new FontConverter().ConvertFromString(fontStr);
+                        FloatingHintFont = (Font)new FontConverter().ConvertFromString(fontStr);
                     }
                     catch
                     {
-                        _floatingHintFont = new Font("微软雅黑", 10, FontStyle.Bold); // 默认字体
+                        FloatingHintFont = new Font("微软雅黑", 10, FontStyle.Bold); // 默认字体
                     }
                 }
                 else
                 {
-                    _floatingHintFont = new Font("微软雅黑", 10, FontStyle.Bold); // 默认字体
+                    FloatingHintFont = new Font("微软雅黑", 10, FontStyle.Bold); // 默认字体
                 }
 
                 // 加载文字颜色
                 var textColorStr = Properties.Settings.Default.FloatingHintTextColor;
                 if (!string.IsNullOrEmpty(textColorStr))
                 {
-                    _floatingHintTextColor = ColorTranslator.FromHtml(textColorStr);
+                    FloatingHintTextColor = ColorTranslator.FromHtml(textColorStr);
                 }
                 else
                 {
-                    _floatingHintTextColor = Color.White; // 默认文字颜色
+                    FloatingHintTextColor = Color.White; // 默认文字颜色
                 }
             }
             catch
             {
                 // 如果加载失败，使用默认值
-                _floatingHintBackColor = Color.Black;
-                _floatingHintOpacity = 0.6;
-                _floatingHintFont = new Font("微软雅黑", 10, FontStyle.Bold);
-                _floatingHintTextColor = Color.White;
+                FloatingHintBackColor = Color.Black;
+                FloatingHintOpacity = 0.6;
+                FloatingHintFont = new Font("微软雅黑", 10, FontStyle.Bold);
+                FloatingHintTextColor = Color.White;
             }
         }
 
@@ -277,10 +424,10 @@ namespace SmartIme.Forms
             // 保存悬浮提示窗的背景色、透明度、字体和文字颜色到应用程序设置
             try
             {
-                Properties.Settings.Default.FloatingHintBackColor = ColorTranslator.ToHtml(_floatingHintBackColor);
-                Properties.Settings.Default.FloatingHintOpacity = _floatingHintOpacity.ToString();
-                Properties.Settings.Default.FloatingHintFont = new FontConverter().ConvertToString(_floatingHintFont);
-                Properties.Settings.Default.FloatingHintTextColor = ColorTranslator.ToHtml(_floatingHintTextColor);
+                Properties.Settings.Default.FloatingHintBackColor = ColorTranslator.ToHtml(FloatingHintBackColor);
+                Properties.Settings.Default.FloatingHintOpacity = FloatingHintOpacity.ToString();
+                Properties.Settings.Default.FloatingHintFont = new FontConverter().ConvertToString(FloatingHintFont);
+                Properties.Settings.Default.FloatingHintTextColor = ColorTranslator.ToHtml(FloatingHintTextColor);
                 Properties.Settings.Default.Save();
             }
             catch
@@ -335,32 +482,31 @@ namespace SmartIme.Forms
         private void InitializeFloatingHintControls()
         {
             // 设置背景色预览
-            pnlBackColorPreview.BackColor = _floatingHintBackColor;
-            lblBackColor.Text = convertColorName(_floatingHintBackColor);
+            pnlBackColorPreview.BackColor = FloatingHintBackColor;
+            lblBackColor.Text = convertColorName(FloatingHintBackColor);
 
             // 设置透明度滑块和标签
-            trackOpacity.Value = (int)(_floatingHintOpacity * 100);
+            trackOpacity.Value = (int)(FloatingHintOpacity * 100);
             lblOpacityValue.Text = $"{trackOpacity.Value}%";
 
             // 设置字体预览
-            // lblFontPreview.Text = $"{_floatingHintFont.Name}, {_floatingHintFont.Size}pt";
-            lblFontPreview.Text = $"{_floatingHintFont.Name}";
-            lblFontPreview.Font = _floatingHintFont;
+            lblFontPreview.Text = $"{FloatingHintFont.Name}, {FloatingHintFont.Size}pt";
+            //lblFontPreview.Font = FloatingHintFont;
             lblFontPreview.Top = label4.Top - (lblFontPreview.Height - label4.Height) / 2;
 
             // 设置文字颜色预览
-            pnlTextColorPreview.BackColor = _floatingHintTextColor;
-            lblTextColor.Text = convertColorName(_floatingHintTextColor);
+            pnlTextColorPreview.BackColor = FloatingHintTextColor;
+            lblTextColor.Text = convertColorName(FloatingHintTextColor);
         }
 
         private void BtnBackColor_Click(object sender, EventArgs e)
         {
-            _colorDialog.Color = _floatingHintBackColor;
+            _colorDialog.Color = FloatingHintBackColor;
             if (_colorDialog.ShowDialog() == DialogResult.OK)
             {
-                _floatingHintBackColor = _colorDialog.Color;
-                pnlBackColorPreview.BackColor = _floatingHintBackColor;
-                lblBackColor.Text = convertColorName(_floatingHintBackColor);
+                FloatingHintBackColor = _colorDialog.Color;
+                pnlBackColorPreview.BackColor = FloatingHintBackColor;
+                lblBackColor.Text = convertColorName(FloatingHintBackColor);
             }
         }
 
@@ -371,31 +517,30 @@ namespace SmartIme.Forms
 
         private void TrackOpacity_Scroll(object sender, EventArgs e)
         {
-            _floatingHintOpacity = trackOpacity.Value / 100.0;
+            FloatingHintOpacity = trackOpacity.Value / 100.0;
             lblOpacityValue.Text = $"{trackOpacity.Value}%";
         }
 
         private void BtnFont_Click(object sender, EventArgs e)
         {
-            fontDialog.Font = _floatingHintFont;
+            fontDialog.Font = FloatingHintFont;
             if (fontDialog.ShowDialog() == DialogResult.OK)
             {
-                _floatingHintFont = fontDialog.Font;
-                // lblFontPreview.Text = $"{_floatingHintFont.Name}, {_floatingHintFont.Size}pt";
-                lblFontPreview.Text = $"{_floatingHintFont.Name}";
-                lblFontPreview.Font = _floatingHintFont;
+                FloatingHintFont = fontDialog.Font;
+                lblFontPreview.Text = $"{FloatingHintFont.Name}, {FloatingHintFont.Size}pt";
+                // lblFontPreview.Font = FloatingHintFont;
                 lblFontPreview.Top = label4.Top - (lblFontPreview.Height - label4.Height) / 2;
             }
         }
 
         private void BtnTextColor_Click(object sender, EventArgs e)
         {
-            _colorDialog.Color = _floatingHintTextColor;
+            _colorDialog.Color = FloatingHintTextColor;
             if (_colorDialog.ShowDialog() == DialogResult.OK)
             {
-                _floatingHintTextColor = _colorDialog.Color;
-                pnlTextColorPreview.BackColor = _floatingHintTextColor;
-                lblTextColor.Text = convertColorName(_floatingHintTextColor);
+                FloatingHintTextColor = _colorDialog.Color;
+                pnlTextColorPreview.BackColor = FloatingHintTextColor;
+                lblTextColor.Text = convertColorName(FloatingHintTextColor);
             }
         }
     }

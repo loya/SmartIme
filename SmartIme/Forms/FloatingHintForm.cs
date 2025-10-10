@@ -99,13 +99,14 @@ namespace SmartIme.Forms
         {
             Graphics g = e.Graphics;
             string displayName = _imeName.Length > 8 ? _imeName.Substring(0, 6) + "..." : _imeName;
-            var fontWidth = (int)g.MeasureString(displayName, _font).Width;
-            var fontHeight = (int)g.MeasureString(displayName, _font).Height;
+            var fontSize = g.MeasureString(displayName, _font).ToSize();
+            int fontWidth = fontSize.Width;
+            int fontHeight = fontSize.Height;
 
 
             _formHeight = fontHeight + 8;
             //圆宽度
-            int ellipeWidth = _formHeight / 2 - 2;
+            int ellipeWidth = (int)_font.Size;
             formWidth = fontWidth + ellipeWidth + 30;
             this.Size = new Size(formWidth, _formHeight);
 
@@ -132,13 +133,13 @@ namespace SmartIme.Forms
             // 绘制颜色指示圆
             using (Brush colorBrush = new SolidBrush(_hintColor))
             {
-                g.FillEllipse(colorBrush, 10, ellipeWidth / 2 + 1, ellipeWidth, ellipeWidth);
+                g.FillEllipse(colorBrush, 10, (_formHeight - ellipeWidth) / 2, ellipeWidth, ellipeWidth);
             }
 
             // 绘制颜色指示圆边框
             using (Pen borderPen = new Pen(Color.White, 1))
             {
-                g.DrawEllipse(borderPen, 10, ellipeWidth / 2 + 1, ellipeWidth, ellipeWidth);
+                g.DrawEllipse(borderPen, 10, (_formHeight - ellipeWidth) / 2, ellipeWidth, ellipeWidth);
             }
 
             // 绘制输入法名称
@@ -147,14 +148,14 @@ namespace SmartIme.Forms
                 if (displayName.Contains("(英)"))
                 {
                     displayName = displayName.Replace("(英)", "");
-                    g.DrawString(displayName, _font, textBrush, ellipeWidth + 20, 3);
+                    g.DrawString(displayName, _font, textBrush, ellipeWidth + 20, 4);
                     using (Brush accentBrush = new SolidBrush(Color.SpringGreen)) // 亮绿色
                     {
-                        g.DrawString("(A)", _font, accentBrush, ellipeWidth + g.MeasureString(displayName, _font).Width + 20, 2);
+                        g.DrawString("(A)", _font, accentBrush, ellipeWidth + g.MeasureString(displayName, _font).Width + 20, 4);
                     }
                 }
                 else
-                    g.DrawString(displayName, _font, textBrush, ellipeWidth + 20, 3);
+                    g.DrawString(displayName, _font, textBrush, ellipeWidth + 20, 4);
             }
 
             // formWidth = fontWidth + ellipeWidth + 30;
