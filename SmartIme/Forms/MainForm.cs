@@ -45,6 +45,38 @@ namespace SmartIme
         private bool _alwayShowHint = true;
         // private bool _InputMethodChanged = false;
 
+        #region 属性
+
+        public string AppDirectory
+        {
+            get
+            {
+                string assemblyPath = Assembly.GetExecutingAssembly().Location;
+                string appDirectory = Path.GetDirectoryName(assemblyPath);
+                return appDirectory;
+            }
+        }
+        public string settingDir => Path.Combine(AppDirectory, "setting");
+
+        #endregion
+
+        #region 获取设置文件路径方法
+
+
+        public string GetRulesJsonPath()
+        {
+            var path = Path.Combine(settingDir, "rules.json");
+            return path;
+        }
+
+        public string GetWhitelistJsonPath()
+        {
+            var path = Path.Combine(settingDir, "whitelist.json");
+            return path;
+        }
+
+        #endregion
+
         public MainForm()
         {
             InitializeComponent();
@@ -84,6 +116,11 @@ namespace SmartIme
                 }
             };
 
+            //检查设置路径是否存在
+            if (!Directory.Exists(settingDir))
+            {
+                Directory.CreateDirectory(settingDir);
+            }
             // 加载保存的设置
             loadAppSetting();
             cmbDefaultIme.SelectedIndex = Properties.Settings.Default.DefaultIme;
@@ -263,12 +300,6 @@ namespace SmartIme
             }
         }
 
-        private string GetRulesJsonPath()
-        {
-            string assemblyPath = Assembly.GetExecutingAssembly().Location;
-            string appDirectory = Path.GetDirectoryName(assemblyPath);
-            return Path.Combine(appDirectory, "rules.json");
-        }
 
         private void InitializeImeList()
         {
@@ -664,36 +695,6 @@ namespace SmartIme
             }
         }
 
-        private string GetWhitelistJsonPath()
-        {
-            string assemblyPath = Assembly.GetExecutingAssembly().Location;
-            string appDirectory = Path.GetDirectoryName(assemblyPath);
-            return Path.Combine(appDirectory, "whitelist.json");
-        }
-
-        #region 光标颜色配置功能
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool SystemParametersInfo(int uiAction, int uiParam, IntPtr pvParam, int fWinIni);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetFocus();
-
-        [DllImport("user32.dll")]
-        private static extern bool SetCaretBlinkTime(int wMSeconds);
-
-        [DllImport("user32.dll")]
-        private static extern bool CreateCaret(IntPtr hWnd, IntPtr hBitmap, int nWidth, int nHeight);
-
-        [DllImport("user32.dll")]
-        private static extern bool ShowCaret(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern bool DestroyCaret();
-
-
-
-
 
         private void LoadCursorColorConfig()
         {
@@ -992,10 +993,6 @@ namespace SmartIme
                 "光标颜色配置", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-
-
-        #endregion
-
         private void btnExpanAll_Click(object sender, EventArgs e)
         {
             treeApps.ExpandAll();
@@ -1009,6 +1006,7 @@ namespace SmartIme
 
         private void btnRefresh_Click(object sender, EventArgs e)
         {
+            LoadRulesFromJson();
             UpdateTreeView();
         }
 

@@ -1,7 +1,6 @@
 using SmartIme.Forms;
 using SmartIme.Models;
 using System.ComponentModel;
-using System.Reflection;
 using System.Text.Json;
 
 namespace SmartIme
@@ -33,7 +32,7 @@ namespace SmartIme
         {
             try
             {
-                string jsonPath = GetWhitelistJsonPath();
+                string jsonPath = mainForm.GetWhitelistJsonPath();
                 if (File.Exists(jsonPath))
                 {
                     string json = File.ReadAllText(jsonPath);
@@ -58,7 +57,7 @@ namespace SmartIme
         {
             try
             {
-                string jsonPath = GetWhitelistJsonPath();
+                string jsonPath = mainForm.GetWhitelistJsonPath();
                 string json = JsonSerializer.Serialize(whitelistedApps.ToList(), options);
                 File.WriteAllText(jsonPath, json);
             }
@@ -68,12 +67,7 @@ namespace SmartIme
             }
         }
 
-        private string GetWhitelistJsonPath()
-        {
-            string assemblyPath = Assembly.GetExecutingAssembly().Location;
-            string appDirectory = Path.GetDirectoryName(assemblyPath);
-            return Path.Combine(appDirectory, "whitelist.json");
-        }
+
 
         private void BtnAddApp_Click(object sender, EventArgs e)
         {

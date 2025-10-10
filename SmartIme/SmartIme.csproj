@@ -11,12 +11,6 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="新文件夹\**" />
-    <EmbeddedResource Remove="新文件夹\**" />
-    <None Remove="新文件夹\**" />
-  </ItemGroup>
-
 
   <ItemGroup>
     <Content Include="app.manifest">
@@ -55,6 +49,10 @@
     <EmbeddedResource Update="Forms\WhitelistForm.resx">
       <DependentUpon>WhitelistForm.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="setting\" />
   </ItemGroup>
 
 </Project>
