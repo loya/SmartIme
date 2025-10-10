@@ -349,6 +349,7 @@ namespace SmartIme
 
         private void MonitorActiveApp()
         {
+            bool isAppChagned = false;
             IntPtr hWnd = WinApi.GetForegroundWindow();
             _ = WinApi.GetWindowThreadProcessId(hWnd, out uint processId);
             try
@@ -391,6 +392,10 @@ namespace SmartIme
                         return;
                     }
                 }
+                else
+                {
+                    isAppChagned = true;
+                }
 
                 //if (string.IsNullOrEmpty(controlName))
                 //{
@@ -410,6 +415,7 @@ namespace SmartIme
                 }
 
                 //Rule matchedRule = FindMatchingRule(processName, windowTitle, controlName);
+                Debug.WriteLine("lastApp:" + processName);
 
                 if (matchedRule != null)
                 {
@@ -434,6 +440,13 @@ namespace SmartIme
                         }
                     }
                 }
+
+                if (isAppChagned)
+                {
+                    var inputMethod = CaretHelper.GetCurrentInputMethod(hWnd);
+                    ChangeCursorColorByIme(inputMethod);
+                }
+
                 //else
                 //{
                 //    lblCurrentIme.Text = "当前输入法：" + cmbDefaultIme.Text + " (默认)";
@@ -786,6 +799,11 @@ namespace SmartIme
                 {
                     ShowFloatingHint(color, imeName ?? _currentImeName);
                 }
+                else if (lastActiveApp != "explorer" && !string.IsNullOrEmpty(lastActiveApp) && !_whitelistedApps.Contains(lastActiveApp))
+                {
+                    ShowFloatingHint(color, imeName ?? _currentImeName);
+                }
+
 
                 //TryUpdateCaretWidth(color);
             }
