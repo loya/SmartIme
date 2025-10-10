@@ -1,14 +1,9 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings"
-  CurrentProfile="(Default)" GeneratedClassNamespace="SmartIme.Properties"
-  GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SmartIme.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
     <Setting Name="DefaultIme" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
-    </Setting>
-    <Setting Name="AppRules" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="WindowSize" Type="System.Drawing.Size" Scope="User">
       <Value Profile="(Default)">0, 0</Value>
@@ -30,6 +25,9 @@
     </Setting>
     <Setting Name="FloatingHintTextColor" Type="System.String" Scope="User">
       <Value Profile="(Default)">White</Value>
+    </Setting>
+    <Setting Name="ImeColors" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

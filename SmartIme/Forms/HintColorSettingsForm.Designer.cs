@@ -28,14 +28,14 @@ namespace SmartIme.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle9 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle10 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             label1 = new Label();
             fontDialog = new FontDialog();
             btnOK = new Button();
             groupBox1 = new GroupBox();
+            chkSameHintColor = new CheckBox();
             lblTextColor = new Label();
-            btnCancel = new Button();
             label2 = new Label();
             pnlTextColorPreview = new Panel();
             btnBackColor = new Button();
@@ -48,6 +48,7 @@ namespace SmartIme.Forms
             btnFont = new Button();
             label3 = new Label();
             pnlBackColorPreview = new Panel();
+            btnCancel = new Button();
             dgvHintColors = new DataGridView();
             panel1 = new Panel();
             groupBox1.SuspendLayout();
@@ -79,6 +80,7 @@ namespace SmartIme.Forms
             // groupBox1
             // 
             groupBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            groupBox1.Controls.Add(chkSameHintColor);
             groupBox1.Controls.Add(lblTextColor);
             groupBox1.Controls.Add(label2);
             groupBox1.Controls.Add(pnlTextColorPreview);
@@ -100,25 +102,24 @@ namespace SmartIme.Forms
             groupBox1.TabStop = false;
             groupBox1.Text = "提示窗设置";
             // 
+            // chkSameHintColor
+            // 
+            chkSameHintColor.AutoSize = true;
+            chkSameHintColor.Location = new Point(10, 170);
+            chkSameHintColor.Name = "chkSameHintColor";
+            chkSameHintColor.Size = new Size(135, 21);
+            chkSameHintColor.TabIndex = 17;
+            chkSameHintColor.Text = "跟随输入法提示颜色";
+            chkSameHintColor.UseVisualStyleBackColor = true;
+            // 
             // lblTextColor
             // 
             lblTextColor.AutoSize = true;
-            lblTextColor.Location = new Point(145, 172);
+            lblTextColor.Location = new Point(233, 172);
             lblTextColor.Name = "lblTextColor";
             lblTextColor.Size = new Size(32, 17);
             lblTextColor.TabIndex = 16;
             lblTextColor.Text = "白色";
-            // 
-            // btnCancel
-            // 
-            btnCancel.Anchor = AnchorStyles.Bottom;
-            btnCancel.Location = new Point(202, 321);
-            btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(75, 30);
-            btnCancel.TabIndex = 2;
-            btnCancel.Text = "取消";
-            btnCancel.UseVisualStyleBackColor = true;
-            btnCancel.Click += BtnCancel_Click;
             // 
             // label2
             // 
@@ -132,7 +133,7 @@ namespace SmartIme.Forms
             // pnlTextColorPreview
             // 
             pnlTextColorPreview.BorderStyle = BorderStyle.FixedSingle;
-            pnlTextColorPreview.Location = new Point(94, 170);
+            pnlTextColorPreview.Location = new Point(187, 173);
             pnlTextColorPreview.Name = "pnlTextColorPreview";
             pnlTextColorPreview.Size = new Size(16, 16);
             pnlTextColorPreview.TabIndex = 15;
@@ -235,29 +236,40 @@ namespace SmartIme.Forms
             pnlBackColorPreview.Size = new Size(16, 16);
             pnlBackColorPreview.TabIndex = 10;
             // 
+            // btnCancel
+            // 
+            btnCancel.Anchor = AnchorStyles.Bottom;
+            btnCancel.Location = new Point(202, 321);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(75, 30);
+            btnCancel.TabIndex = 2;
+            btnCancel.Text = "取消";
+            btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.Click += BtnCancel_Click;
+            // 
             // dgvHintColors
             // 
             dgvHintColors.AllowUserToAddRows = false;
             dgvHintColors.AllowUserToDeleteRows = false;
             dgvHintColors.BackgroundColor = SystemColors.InactiveBorder;
             dgvHintColors.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle9.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle9.BackColor = SystemColors.Control;
-            dataGridViewCellStyle9.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            dataGridViewCellStyle9.ForeColor = SystemColors.WindowText;
-            dataGridViewCellStyle9.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle9.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle9.WrapMode = DataGridViewTriState.True;
-            dgvHintColors.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = SystemColors.Control;
+            dataGridViewCellStyle1.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dgvHintColors.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvHintColors.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle10.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle10.BackColor = SystemColors.Window;
-            dataGridViewCellStyle10.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
-            dataGridViewCellStyle10.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle10.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle10.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle10.WrapMode = DataGridViewTriState.False;
-            dgvHintColors.DefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = SystemColors.Window;
+            dataGridViewCellStyle2.Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvHintColors.DefaultCellStyle = dataGridViewCellStyle2;
             dgvHintColors.Location = new Point(12, 3);
             dgvHintColors.Name = "dgvHintColors";
             dgvHintColors.ReadOnly = true;
@@ -328,5 +340,6 @@ namespace SmartIme.Forms
     private System.Windows.Forms.FontDialog fontDialog;
     private GroupBox groupBox1;
         private Panel panel1;
+        private CheckBox chkSameHintColor;
     }
 }
