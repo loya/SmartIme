@@ -12,8 +12,7 @@ namespace SmartIme
     public partial class MainForm : Form
     {
         public BindingList<AppRuleGroup> AppRuleGroups = new();
-        private readonly System.Timers.Timer monitorTimer = new();
-        private readonly int _monitorInterval = 200; // 监测间隔，单位毫秒
+        private readonly int _monitorInterval = 50; // 监测间隔，单位毫秒
         private CancellationTokenSource _cancellationTokenSource = new();
         private NotifyIcon _trayIcon;
         private ContextMenuStrip _trayMenu;
@@ -30,21 +29,21 @@ namespace SmartIme
         private string _currentImeName = "";
 
         // 跟踪当前打开的浮动提示窗口
-        private FloatingHintForm _currentHintForm = null;
+        private FloatingHintForm _hintForm = null;
 
         //改变输入法时的进程名
         private string _changeColorProcessName = "";
 
-        private IntPtr lastActiveWindow = IntPtr.Zero;
-        private string lastActiveApp = string.Empty;
-        private string lastClassName = string.Empty;
+        private string _lastActiveApp = string.Empty;
+        private string _lastClassName = string.Empty;
 
-        private System.Windows.Forms.Timer monitorTimer2;
         private FormWindowState _lastWindowState;
         private Color? _hintFormBackColor;
         private double _hintFormOpacity;
         private Font _hintFormFont;
         private Color _hintFormTextColor;
+        private bool _alwayShowHint = true;
+        // private bool _InputMethodChanged = false;
 
         public MainForm()
         {
@@ -284,67 +283,33 @@ namespace SmartIme
             }
         }
 
-        private void CheckActiveWindowChanged(object sender, EventArgs e)
-        {
-            monitorTimer2.Stop();
-            IntPtr currentWindow = WinApi.GetForegroundWindow();
-
-            if (currentWindow != lastActiveWindow)
-            {
-                lastActiveWindow = currentWindow;
-            }
-            MonitorActiveApp();
-
-            var imeSwitched = CaretHelper.MonitorInputMethodSwitch(out string newImeName, out _changeColorProcessName);
-
-            if (imeSwitched)
-            {
-                // Debug.WriteLine($"监测输入法切换: {imeSwitched}");
-                // Debug.WriteLine("当前输入法: " + CaretHelper.GetCurrentInputMethod(WinApi.GetForegroundWindow()));
-                // var threadId = WinApi.GetWindowThreadProcessId(WinApi.GetForegroundWindow(), out uint processId);
-                // var hkl = WinApi.GetKeyboardLayout(threadId);
-                // var description = new System.Text.StringBuilder(256);
-                // WinApi.ImmGetDescriptionA(hkl & 0x00ff, description, description.Capacity);
-                // Debug.WriteLine("新输入法: " + description.ToString());
-
-                // var hwnd = WinApi.GetForegroundWindow();
-                // Debug.WriteLine("hwnd: " + hwnd);
-                // var imeWnd = WinApi.ImmGetDefaultIMEWnd(hwnd);
-                // var openStatus = WinApi.SendMessage(imeWnd, WinApi.WM_IME_CONTROL, WinApi.IMC_GETOPENSTATUS, IntPtr.Zero);
-                // Debug.WriteLine("当前输入法状态openStatus：" + openStatus);
-                // var conversionMode = WinApi.SendMessage(imeWnd, WinApi.WM_IME_CONTROL, WinApi.IMC_GETCONVERSIONMODE, IntPtr.Zero);
-                // Debug.WriteLine("当前输入法转换状态conversionMode：" + conversionMode);
-
-                // Debug.WriteLine("当前输入法转换状态 conv：" + (openStatus != IntPtr.Zero && (conversionMode & 3) != 0));
-
-                //var s = WinApi.ImmGetContext(WinApi.GetForegroundWindow());
-                //WinApi.ImmGetConversionStatus(s, out uint conv, out uint sent);
-                //Debug.WriteLine("当前输入法转换状态2 conv：" + conv);
-
-                ChangeCursorColorByIme(newImeName);
-            }
-
-            monitorTimer2.Start();
-        }
-
         private async Task MonitorSystemAsync(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
-                MonitorActiveApp();
-                MonitorInputMathChange();
+                if (!MonitorInputMathChange())
+                {
+                    MonitorActiveApp();
+                }
                 await Task.Delay(_monitorInterval, token);
             }
         }
 
-        private void MonitorInputMathChange()
+        private bool MonitorInputMathChange()
         {
-            if (CaretHelper.MonitorInputMethodSwitch(out string newImeName, out _changeColorProcessName))
+            var imeSwitched = CaretHelper.MonitorInputMethodSwitch(out string newImeName, out _changeColorProcessName);
+            if (imeSwitched)
             {
-                Debug.WriteLine($"监测输入法切换: {newImeName} 进程: {_changeColorProcessName}");
+                Debug.WriteLine($"\n\r监测输入法切换: {newImeName} 进程: {_changeColorProcessName}");
                 this.lblLog.Text = DateTime.Now.ToLongTimeString() + " --[输入法切换] " + newImeName + " 进程: " + _changeColorProcessName;
+                _lastActiveApp = _changeColorProcessName;
                 ChangeCursorColorByIme(newImeName);
             }
+            else
+            {
+
+            }
+            return imeSwitched;
         }
 
         private void MonitorActiveApp()
@@ -356,8 +321,6 @@ namespace SmartIme
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string processName = process.ProcessName;
-                // 切换窗口立即关闭提示窗
-                if (processName != lastActiveApp) { _currentHintForm?.Close(); _currentHintForm = null; }
                 if (processName == "explorer") { return; }
                 string controlName = null;
                 controlName = AppHelper.GetFocusedControlName();
@@ -370,11 +333,11 @@ namespace SmartIme
                 string windowTitle = process.MainWindowTitle;
 
                 Rule matchedRule = FindMatchingRule(processName, windowTitle, controlName);
-                if (processName == lastActiveApp)
+                if (processName == _lastActiveApp)
                 {
                     controlName = AppHelper.GetFocusedControlName();
 
-                    if (controlName == lastClassName)
+                    if (controlName == _lastClassName)
                     {
 
                         //if (matchedRule != null && InputLanguage.CurrentInputLanguage.LayoutName != matchedRule.InputMethod)
@@ -394,6 +357,9 @@ namespace SmartIme
                 }
                 else
                 {
+                    // 切换窗口立即关闭提示窗
+                    if (processName != _lastActiveApp) { _hintForm?.Close(); _hintForm = null; }
+
                     isAppChagned = true;
                 }
 
@@ -403,8 +369,10 @@ namespace SmartIme
                 //}
                 //Debug.WriteLine($"当前窗口: {processName} {controlName}");
                 //Debug.WriteLine($"前次窗口: {lastActiveApp} {lastClassName}");
-                lastActiveApp = processName;
-                lastClassName = controlName;
+                _lastActiveApp = processName;
+                _lastClassName = controlName;
+                Debug.WriteLine("last App:" + processName);
+                Debug.WriteLine("last ClassName:" + _lastClassName);
 
                 windowTitle = WinApi.GetWindowText(hWnd);
                 lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
@@ -415,7 +383,7 @@ namespace SmartIme
                 }
 
                 //Rule matchedRule = FindMatchingRule(processName, windowTitle, controlName);
-                Debug.WriteLine("lastApp:" + processName);
+
 
                 if (matchedRule != null)
                 {
@@ -444,7 +412,9 @@ namespace SmartIme
                 if (isAppChagned)
                 {
                     var inputMethod = CaretHelper.GetCurrentInputMethod(hWnd);
-                    ChangeCursorColorByIme(inputMethod);
+                    if (_alwayShowHint)
+                        ChangeCursorColorByIme(inputMethod);
+
                 }
 
                 //else
@@ -794,15 +764,9 @@ namespace SmartIme
                 ChangeCaretColor(color);
                 UpdateTrayIconColor(color);
 
-                Debug.WriteLine("chagneName:" + _changeColorProcessName);
-                if (_changeColorProcessName != "explorer" && !string.IsNullOrEmpty(_changeColorProcessName) && !_whitelistedApps.Contains(_changeColorProcessName))
-                {
-                    ShowFloatingHint(color, imeName ?? _currentImeName);
-                }
-                else if (lastActiveApp != "explorer" && !string.IsNullOrEmpty(lastActiveApp) && !_whitelistedApps.Contains(lastActiveApp))
-                {
-                    ShowFloatingHint(color, imeName ?? _currentImeName);
-                }
+
+                ShowFloatingHint(color, imeName ?? _currentImeName);
+
 
 
                 //TryUpdateCaretWidth(color);
@@ -834,8 +798,24 @@ namespace SmartIme
 
         private void ShowFloatingHint(Color color, string imeName)
         {
+            Debug.WriteLine("chagne color Process Name:" + _changeColorProcessName);
+            Debug.WriteLine("last Active App:" + _lastActiveApp);
+
+            _hintForm?.Close();
+            _hintForm?.Dispose();
+            _hintForm = null;
+            if (string.IsNullOrEmpty(_changeColorProcessName) || string.IsNullOrEmpty(_lastActiveApp))
+            {
+                return;
+            }
+            if (_changeColorProcessName == "explorer" && _lastActiveApp == "explorer")
+            {
+                return;
+            }
+
+
             // 检查是否在白名单中
-            if (_whitelistedApps.Contains(lastActiveApp))
+            if (_whitelistedApps.Any(app => app == _changeColorProcessName || app == _lastActiveApp))
             {
                 return;
             }
@@ -852,7 +832,6 @@ namespace SmartIme
             //    currentHintForm = null;
             //}
 
-            _currentHintForm?.Close();
 
             Point displayPos = CaretHelper.GetBestFloatingHintPosition();
 
@@ -860,10 +839,11 @@ namespace SmartIme
             displayPos = AppHelper.ValidateAndAdjustPosition(displayPos);
 
             Color backColor = _hintFormBackColor ?? Color.Black;
-            FloatingHintForm hintForm = new FloatingHintForm(color, imeName, backColor, _hintFormOpacity, _hintFormFont, _hintFormTextColor);
-            hintForm.Location = displayPos;
-            hintForm.Show();
-            _currentHintForm = hintForm;
+            _hintForm = new FloatingHintForm(color, imeName, backColor, _hintFormOpacity, _hintFormFont, _hintFormTextColor);
+            _hintForm.Location = displayPos;
+            _hintForm.Show();
+            Debug.WriteLine($"{DateTime.Now.ToLongTimeString()}  ShowFloatingHint:{imeName}\n");
+            // _currentHintForm = hintForm;
         }
 
         private void UpdateTrayIconColor(Color color)
@@ -973,7 +953,7 @@ namespace SmartIme
             {
                 return;
             }
-            Debug.WriteLine(activeProcessName);
+            Debug.WriteLine("activeProcessName:" + activeProcessName);
             //if (imeName != currentImeName && !string.IsNullOrEmpty(currentImeName))
             // 
             if (true)

@@ -145,7 +145,7 @@ namespace SmartIme.Utilities
                     LogonTrigger logonTrigger = new LogonTrigger();
                     logonTrigger.Enabled = true;
                     // 设置延迟启动，避免系统启动时资源竞争
-                    logonTrigger.Delay = TimeSpan.FromSeconds(30);
+                    logonTrigger.Delay = TimeSpan.FromSeconds(2000);
                     taskDefinition.Triggers.Add(logonTrigger);
 
                     // 设置任务操作：启动程序

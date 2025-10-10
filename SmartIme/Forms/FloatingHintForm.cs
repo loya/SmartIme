@@ -5,20 +5,20 @@ namespace SmartIme.Forms
 {
     public partial class FloatingHintForm : Form
     {
-        private const int _waitClose = 1000; // 毫秒
+        private const int _waitClose = 800; // 毫秒
         private readonly double _opacity; // 目标不透明度
-        private readonly Color hintColor; // 提示颜色
-        private readonly string imeName; // 输入法名称
+        private readonly Color _hintColor; // 提示颜色
+        private readonly string _imeName; // 输入法名称
         private readonly Color _backColor; // 背景颜色
         private readonly Font _font; // 字体
         private readonly Color _textColor; // 文字颜色
         private int formWidth = 100;
-        private int formHeight = 35;
+        private int _formHeight = 35;
 
         public FloatingHintForm(Color hintColor, string imeName, Color backColor, double opacity, Font font, Color textColor)
         {
-            this.hintColor = hintColor;
-            this.imeName = imeName;
+            this._hintColor = hintColor;
+            this._imeName = imeName;
             this._backColor = backColor;
             this._opacity = opacity;
             this._font = font;
@@ -28,8 +28,8 @@ namespace SmartIme.Forms
 
         public FloatingHintForm(Color hintColor, string imeName, Color? backColor = null, double opacity = 0.6)
         {
-            this.hintColor = hintColor;
-            this.imeName = imeName;
+            this._hintColor = hintColor;
+            this._imeName = imeName;
             this._backColor = backColor ?? Color.Black;
             this._opacity = opacity;
             this._font = new Font("微软雅黑", 10, FontStyle.Bold);
@@ -41,7 +41,7 @@ namespace SmartIme.Forms
         {
             get
             {
-                // const int WS_EX_TOOLWINDOW = 0x00000080;
+                const int WS_EX_TOOLWINDOW = 0x00000080;
                 const int WS_EX_NOACTIVATE = 0x08000000;
                 const int WS_EX_TOPMOST = 0x00000008;
                 // const int GWL_EXSTYLE = -20;
@@ -50,7 +50,7 @@ namespace SmartIme.Forms
                 // cp.ExStyle |= WS_EX_TOOLWINDOW; // 设置为工具窗口
                 // cp.ExStyle |= WS_EX_NOACTIVATE; // 窗口不激活
 
-                cp.ExStyle |= WS_EX_NOACTIVATE | WS_EX_TOPMOST;
+                cp.ExStyle |= WS_EX_NOACTIVATE | WS_EX_TOPMOST | WS_EX_TOOLWINDOW;
                 return cp;
             }
         }
@@ -65,14 +65,17 @@ namespace SmartIme.Forms
             this.ShowInTaskbar = false;
             // this.TopMost = true;
             this.BackColor = _backColor; // 设置背景色为黑色
-            this.Opacity = _opacity;
+            this.Opacity = 0;
             this.Height = (int)(_font.Size + 8);
+            this.Size = new Size(0, 0);
+            this.ClientSize = new Size(0, 0);
+
 
             // 添加绘制事件
             this.Paint += FloatingHintForm_Paint;
 
             // 使用异步Task.Delay自动关闭窗口，避免使用Timer导致阻塞
-            _ = AutoCloseFormAsync();
+            // _ = AutoCloseFormAsync();
         }
 
         private async Task AutoCloseFormAsync()
@@ -95,16 +98,16 @@ namespace SmartIme.Forms
         private void FloatingHintForm_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            string displayName = imeName.Length > 8 ? imeName.Substring(0, 6) + "..." : imeName;
+            string displayName = _imeName.Length > 8 ? _imeName.Substring(0, 6) + "..." : _imeName;
             var fontWidth = (int)g.MeasureString(displayName, _font).Width;
             var fontHeight = (int)g.MeasureString(displayName, _font).Height;
 
 
-            formHeight = fontHeight + 8;
+            _formHeight = fontHeight + 8;
             //圆宽度
-            int ellipeWidth = formHeight / 2;
+            int ellipeWidth = _formHeight / 2 - 2;
             formWidth = fontWidth + ellipeWidth + 30;
-            this.Size = new Size(formWidth, formHeight);
+            this.Size = new Size(formWidth, _formHeight);
 
             // 创建圆角效果（使用窗口尺寸）
             var hrgn = WinApi.CreateRoundRectRgn(0, 0, this.Width, this.Height, 6, 6);
@@ -119,23 +122,23 @@ namespace SmartIme.Forms
             using (Brush bgBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0))) // 40% 透明黑色
             {
                 g.FillRectangle(bgBrush, 0, 0, this.Width, this.Height);
-                System.Diagnostics.Debug.WriteLine($"{this.Width},{this.ClientSize.Width}");
+                // System.Diagnostics.Debug.WriteLine($"{this.Width},{this.ClientSize.Width}");
 
-                System.Diagnostics.Debug.WriteLine($"{this.Height},{this.ClientSize.Height}");
+                // System.Diagnostics.Debug.WriteLine($"{this.Height},{this.ClientSize.Height}");
             }
 
             // 圆角边框由Region处理，不需要额外绘制
 
             // 绘制颜色指示圆
-            using (Brush colorBrush = new SolidBrush(hintColor))
+            using (Brush colorBrush = new SolidBrush(_hintColor))
             {
-                g.FillEllipse(colorBrush, 10, ellipeWidth / 2, ellipeWidth, ellipeWidth);
+                g.FillEllipse(colorBrush, 10, ellipeWidth / 2 + 1, ellipeWidth, ellipeWidth);
             }
 
-            // 绘制边框
+            // 绘制颜色指示圆边框
             using (Pen borderPen = new Pen(Color.White, 1))
             {
-                g.DrawEllipse(borderPen, 10, ellipeWidth / 2, ellipeWidth, ellipeWidth);
+                g.DrawEllipse(borderPen, 10, ellipeWidth / 2 + 1, ellipeWidth, ellipeWidth);
             }
 
             // 绘制输入法名称
@@ -174,24 +177,24 @@ namespace SmartIme.Forms
         {
             base.OnDeactivate(e);
             // 窗口失去焦点时保持置顶
-            //this.TopMost = true;
+            this.TopMost = true;
         }
 
         protected override async void OnShown(EventArgs e)
         {
             base.OnShown(e);
             await FadeInAsync();
-            //await Task.Delay(1000); // 停留时间
-            //await FadeOutAsync();
-            //this.Close();
+            await Task.Delay(_waitClose); // 停留时间
+            await FadeOutAsync();
+            this?.Close();
         }
 
         private async Task FadeInAsync()
         {
-            for (double i = 0; i <= _opacity; i += 0.1)
+            for (double i = 0.1; i <= _opacity; i += 0.1)
             {
                 this.Opacity = i;
-                await Task.Delay(20);
+                await Task.Delay(10);
             }
         }
 
