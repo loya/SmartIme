@@ -13,8 +13,21 @@ namespace SmartIme.Forms
         private double _floatingHintOpacity;
         private Font _floatingHintFont;
         private Color _floatingHintTextColor;
+        private bool _sameHintColor;
         private PictureBox picChinesePreview;
         private PictureBox picEnglishPreview;
+
+        public bool SameHintColor
+        {
+            get => _sameHintColor;
+            set
+            {
+                _sameHintColor = value;
+                if (chkSameHintColor != null)
+                    chkSameHintColor.Checked = value;
+                UpdatePreviewImages();
+            }
+        }
 
         public Dictionary<string, Color> ImeColors
         {
@@ -192,7 +205,7 @@ namespace SmartIme.Forms
             }
 
             // 绘制输入法名称
-            using (Brush textBrush = new SolidBrush(FloatingHintTextColor))
+            using (Brush textBrush = new SolidBrush(SameHintColor ? pictureBox.ForeColor : FloatingHintTextColor))
             {
                 g.DrawString(text, FloatingHintFont, textBrush, ellipeWidth + 20, 3);
             }
@@ -215,8 +228,8 @@ namespace SmartIme.Forms
                 //     picChinesePreview.BackColor = Color.FromArgb(150 - (int)FloatingHintOpacity,
                 //    FloatingHintBackColor.R, FloatingHintBackColor.G, FloatingHintBackColor.B);
 
-                picChinesePreview.Font = FloatingHintFont;
-                picChinesePreview.ForeColor = FloatingHintTextColor;
+                // picChinesePreview.Font = FloatingHintFont;
+                picChinesePreview.ForeColor = SameHintColor ? chineseItem.Color : FloatingHintTextColor;
                 picChinesePreview.Invalidate(); // 触发重绘
             }
 
@@ -225,8 +238,8 @@ namespace SmartIme.Forms
             if (englishItem != null)
             {
                 // picEnglishPreview.BackColor = FloatingHintBackColor;
-                picEnglishPreview.Font = FloatingHintFont;
-                picEnglishPreview.ForeColor = FloatingHintTextColor;
+                // picEnglishPreview.Font = FloatingHintFont;
+                picEnglishPreview.ForeColor = SameHintColor ? englishItem.Color : FloatingHintTextColor;
                 picEnglishPreview.Invalidate(); // 触发重绘
             }
 
@@ -365,8 +378,9 @@ namespace SmartIme.Forms
             // 从应用程序设置加载悬浮提示窗的背景色、透明度、字体和文字颜色
             try
             {
+                var settings = AppSettings.Load();
                 // 加载背景色
-                var backColorStr = AppSettings.Load().FloatingHintBackColor;
+                var backColorStr = settings.FloatingHintBackColor;
                 if (!string.IsNullOrEmpty(backColorStr))
                 {
                     FloatingHintBackColor = ColorTranslator.FromHtml(backColorStr);
@@ -377,7 +391,7 @@ namespace SmartIme.Forms
                 }
 
                 // 加载透明度
-                var opacityStr = AppSettings.Load().FloatingHintOpacity.ToString();
+                var opacityStr = settings.FloatingHintOpacity.ToString();
                 if (!string.IsNullOrEmpty(opacityStr) && double.TryParse(opacityStr, out double opacity))
                 {
                     FloatingHintOpacity = opacity;
@@ -388,7 +402,7 @@ namespace SmartIme.Forms
                 }
 
                 // 加载字体
-                var fontStr = AppSettings.Load().FloatingHintFont;
+                var fontStr = settings.FloatingHintFont;
                 if (!string.IsNullOrEmpty(fontStr))
                 {
                     try
@@ -406,7 +420,7 @@ namespace SmartIme.Forms
                 }
 
                 // 加载文字颜色
-                var textColorStr = AppSettings.Load().FloatingHintTextColor;
+                var textColorStr = settings.FloatingHintTextColor;
                 if (!string.IsNullOrEmpty(textColorStr))
                 {
                     FloatingHintTextColor = ColorTranslator.FromHtml(textColorStr);
@@ -415,6 +429,9 @@ namespace SmartIme.Forms
                 {
                     FloatingHintTextColor = Color.White; // 默认文字颜色
                 }
+
+                //加载SameHintColor设置
+                SameHintColor = settings.SameHintColor;
             }
             catch
             {
@@ -436,6 +453,7 @@ namespace SmartIme.Forms
                 settings.FloatingHintOpacity = FloatingHintOpacity;
                 settings.FloatingHintFont = new FontConverter().ConvertToString(FloatingHintFont);
                 settings.FloatingHintTextColor = ColorTranslator.ToHtml(FloatingHintTextColor);
+                settings.SameHintColor = SameHintColor; // 保存SameHintColor设置
                 settings.Save();
             }
             catch
@@ -506,6 +524,18 @@ namespace SmartIme.Forms
             // 设置文字颜色预览
             pnlTextColorPreview.BackColor = FloatingHintTextColor;
             lblTextColor.Text = convertColorName(FloatingHintTextColor);
+
+            // 加载 SameHintColor 设置
+            SameHintColor = SameHintColor;
+            chkSameHintColor.Checked = SameHintColor;
+
+            // 订阅 SameHintColor 复选框的事件
+            chkSameHintColor.CheckedChanged += ChkSameHintColor_CheckedChanged;
+        }
+
+        private void ChkSameHintColor_CheckedChanged(object sender, EventArgs e)
+        {
+            SameHintColor = chkSameHintColor.Checked;
         }
 
         private void BtnBackColor_Click(object sender, EventArgs e)

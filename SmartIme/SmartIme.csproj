@@ -28,7 +28,6 @@
   </ItemGroup>
 
 
-
   <ItemGroup>
     <Compile Update="Forms\WhitelistForm.Designer.cs">
       <DependentUpon>WhitelistForm.cs</DependentUpon>

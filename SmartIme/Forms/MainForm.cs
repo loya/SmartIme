@@ -137,6 +137,10 @@ namespace SmartIme
         /// Loads application settings from AppSettings.json file using the new settings system.
         /// Previously, settings were stored in the legacy Properties.Settings system which has been migrated.
         /// </summary>
+        /// <summary>
+        /// Loads application settings from AppSettings.json file using the new settings system.
+        /// Previously, settings were stored in the legacy Properties.Settings system which has been migrated.
+        /// </summary>
         public void loadAppSetting()
         {
             // 恢复窗口大小和位置

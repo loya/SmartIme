@@ -75,7 +75,8 @@ SmartIme/
 - `rules.json`: 存储应用程序的输入法切换规则
 - `whitelist.json`: 存储白名单应用程序列表
 - `app.config`: 存储应用程序的基本配置
-- 用户设置存储在 `Properties.Settings` 中
+- `settings/AppSettings.json`: 新的统一配置文件，存储所有用户设置 (DefaultIme, WindowSize, WindowLocation, WindowState, ImeColors 等)
+- 用户设置已从旧的 `Properties.Settings` 系统迁移至 `AppSettings.json`
 
 ## 权限要求
 
