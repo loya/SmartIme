@@ -380,7 +380,7 @@ namespace SmartIme.Forms
             {
                 var settings = AppSettings.Load();
                 // 加载背景色
-                var backColorStr = settings.FloatingHintBackColor;
+                var backColorStr = settings.HintBackColor;
                 if (!string.IsNullOrEmpty(backColorStr))
                 {
                     FloatingHintBackColor = ColorTranslator.FromHtml(backColorStr);
@@ -391,7 +391,7 @@ namespace SmartIme.Forms
                 }
 
                 // 加载透明度
-                var opacityStr = settings.FloatingHintOpacity.ToString();
+                var opacityStr = settings.HintOpacity.ToString();
                 if (!string.IsNullOrEmpty(opacityStr) && double.TryParse(opacityStr, out double opacity))
                 {
                     FloatingHintOpacity = opacity;
@@ -402,7 +402,7 @@ namespace SmartIme.Forms
                 }
 
                 // 加载字体
-                var fontStr = settings.FloatingHintFont;
+                var fontStr = settings.HintFont;
                 if (!string.IsNullOrEmpty(fontStr))
                 {
                     try
@@ -420,7 +420,7 @@ namespace SmartIme.Forms
                 }
 
                 // 加载文字颜色
-                var textColorStr = settings.FloatingHintTextColor;
+                var textColorStr = settings.HintTextColor;
                 if (!string.IsNullOrEmpty(textColorStr))
                 {
                     FloatingHintTextColor = ColorTranslator.FromHtml(textColorStr);
@@ -449,10 +449,10 @@ namespace SmartIme.Forms
             try
             {
                 var settings = AppSettings.Load();
-                settings.FloatingHintBackColor = ColorTranslator.ToHtml(FloatingHintBackColor);
-                settings.FloatingHintOpacity = FloatingHintOpacity;
-                settings.FloatingHintFont = new FontConverter().ConvertToString(FloatingHintFont);
-                settings.FloatingHintTextColor = ColorTranslator.ToHtml(FloatingHintTextColor);
+                settings.HintBackColor = ColorTranslator.ToHtml(FloatingHintBackColor);
+                settings.HintOpacity = FloatingHintOpacity;
+                settings.HintFont = new FontConverter().ConvertToString(FloatingHintFont);
+                settings.HintTextColor = ColorTranslator.ToHtml(FloatingHintTextColor);
                 settings.SameHintColor = SameHintColor; // 保存SameHintColor设置
                 settings.Save();
             }

@@ -4,7 +4,6 @@ using SmartIme.Utilities;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace SmartIme
@@ -167,14 +166,14 @@ namespace SmartIme
         {
             // 恢复悬浮提示窗设置
             var settings = AppSettings.Load();
-            _hintFormBackColor = settings.FloatingHintBackColor != null ?
-                ColorTranslator.FromHtml(settings.FloatingHintBackColor) : Color.Black;
-            _hintFormOpacity = settings.FloatingHintOpacity;
+            _hintFormBackColor = settings.HintBackColor != null ?
+                ColorTranslator.FromHtml(settings.HintBackColor) : Color.Black;
+            _hintFormOpacity = settings.HintOpacity;
 
             // 恢复悬浮提示窗字体和文字颜色设置
             try
             {
-                _hintFormFont = (Font)new FontConverter().ConvertFromString(settings.FloatingHintFont);
+                _hintFormFont = (Font)new FontConverter().ConvertFromString(settings.HintFont);
             }
             catch
             {
@@ -183,7 +182,7 @@ namespace SmartIme
 
             try
             {
-                _hintFormTextColor = ColorTranslator.FromHtml(AppSettings.Load().FloatingHintTextColor);
+                _hintFormTextColor = ColorTranslator.FromHtml(AppSettings.Load().HintTextColor);
             }
             catch
             {
@@ -853,10 +852,14 @@ namespace SmartIme
             displayPos = AppHelper.ValidateAndAdjustPosition(displayPos);
 
             Color backColor = _hintFormBackColor ?? Color.Black;
-            _hintForm = new FloatingHintForm(color, imeName, backColor, _hintFormOpacity, _hintFormFont, _hintFormTextColor);
+
+            // 根据SameHintColor设置决定提示窗文本颜色
+            Color textColor = AppSettings.Load().SameHintColor ? color : _hintFormTextColor;
+
+            _hintForm = new FloatingHintForm(color, imeName, backColor, _hintFormOpacity, _hintFormFont, textColor);
             _hintForm.Location = displayPos;
             _hintForm.Show();
-            Debug.WriteLine($"{DateTime.Now.ToLongTimeString()}  ShowFloatingHint:{imeName}\n");
+            Debug.WriteLine($"{DateTime.Now:T}  ShowFloatingHint:{imeName}\n");
             // _currentHintForm = hintForm;
         }
 

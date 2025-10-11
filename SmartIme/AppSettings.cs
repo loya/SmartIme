@@ -13,10 +13,10 @@ namespace SmartIme
     /// </summary>
     public class AppSettings
     {
-        public string FloatingHintBackColor { get; set; }
-        public double FloatingHintOpacity { get; set; }
-        public string FloatingHintFont { get; set; }
-        public string FloatingHintTextColor { get; set; }
+        public string HintBackColor { get; set; }
+        public double HintOpacity { get; set; }
+        public string HintFont { get; set; }
+        public string HintTextColor { get; set; }
         public bool SameHintColor { get; set; }
         public int DefaultIme { get; set; }
         public Size WindowSize { get; set; }
@@ -41,10 +41,10 @@ namespace SmartIme
             {
                 settings = new AppSettings
                 {
-                    FloatingHintBackColor = "#000000",
-                    FloatingHintOpacity = 0.7,
-                    FloatingHintFont = "Microsoft YaHei, 12pt",
-                    FloatingHintTextColor = "#FFFFFF",
+                    HintBackColor = "#000000",
+                    HintOpacity = 0.7,
+                    HintFont = "Microsoft YaHei, 12pt",
+                    HintTextColor = "#FFFFFF",
                     SameHintColor = false,
                     DefaultIme = 0,
                     WindowSize = Size.Empty,
