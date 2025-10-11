@@ -111,7 +111,7 @@ namespace SmartIme.Forms
             picChinesePreview = new PictureBox
             {
                 Location = new Point(20, 40),
-                BorderStyle = BorderStyle.FixedSingle,
+                BorderStyle = BorderStyle.None,
                 BackColor = FloatingHintBackColor,
                 Font = FloatingHintFont
             };
@@ -129,7 +129,7 @@ namespace SmartIme.Forms
             picEnglishPreview = new PictureBox
             {
                 Location = new Point(190, 40),
-                BorderStyle = BorderStyle.FixedSingle,
+                BorderStyle = BorderStyle.None,
                 BackColor = FloatingHintBackColor,
                 Font = FloatingHintFont
             };
@@ -171,7 +171,10 @@ namespace SmartIme.Forms
             g.CompositingQuality = CompositingQuality.HighQuality;
 
             // 绘制半透明黑色背景
-            using (Brush bgBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0)))
+            // using (Brush bgBrush = new SolidBrush(Color.FromArgb(255, 0, 0, 0)))
+            System.Diagnostics.Debug.WriteLine(FloatingHintOpacity);
+            using (Brush bgBrush = new SolidBrush(Color.FromArgb((int)(255 * FloatingHintOpacity),
+               FloatingHintBackColor.R, FloatingHintBackColor.G, FloatingHintBackColor.B)))
             {
                 g.FillRectangle(bgBrush, 0, 0, pictureBox.Width, pictureBox.Height);
             }
@@ -208,7 +211,10 @@ namespace SmartIme.Forms
             var chineseItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "中文");
             if (chineseItem != null)
             {
-                picChinesePreview.BackColor = FloatingHintBackColor;
+                // picChinesePreview.BackColor = FloatingHintBackColor;
+                //     picChinesePreview.BackColor = Color.FromArgb(150 - (int)FloatingHintOpacity,
+                //    FloatingHintBackColor.R, FloatingHintBackColor.G, FloatingHintBackColor.B);
+
                 picChinesePreview.Font = FloatingHintFont;
                 picChinesePreview.ForeColor = FloatingHintTextColor;
                 picChinesePreview.Invalidate(); // 触发重绘
@@ -218,7 +224,7 @@ namespace SmartIme.Forms
             var englishItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "英文");
             if (englishItem != null)
             {
-                picEnglishPreview.BackColor = FloatingHintBackColor;
+                // picEnglishPreview.BackColor = FloatingHintBackColor;
                 picEnglishPreview.Font = FloatingHintFont;
                 picEnglishPreview.ForeColor = FloatingHintTextColor;
                 picEnglishPreview.Invalidate(); // 触发重绘
@@ -272,6 +278,7 @@ namespace SmartIme.Forms
                 UseColumnTextForButtonValue = true,
                 Width = 80,
             };
+
             buttonColumn.DefaultCellStyle.Padding = new Padding(3, 2, 3, 2);
             dgvHintColors.Columns.Add(buttonColumn);
 
@@ -340,7 +347,7 @@ namespace SmartIme.Forms
                 }
             }
             dgvHintColors.Refresh();
-            UpdatePreviewImages();
+            // UpdatePreviewImages();
         }
 
         private Color GetDefaultColorForIme(string imeName)
@@ -359,7 +366,7 @@ namespace SmartIme.Forms
             try
             {
                 // 加载背景色
-                var backColorStr = Properties.Settings.Default.FloatingHintBackColor;
+                var backColorStr = AppSettings.Load().FloatingHintBackColor;
                 if (!string.IsNullOrEmpty(backColorStr))
                 {
                     FloatingHintBackColor = ColorTranslator.FromHtml(backColorStr);
@@ -370,7 +377,7 @@ namespace SmartIme.Forms
                 }
 
                 // 加载透明度
-                var opacityStr = Properties.Settings.Default.FloatingHintOpacity;
+                var opacityStr = AppSettings.Load().FloatingHintOpacity.ToString();
                 if (!string.IsNullOrEmpty(opacityStr) && double.TryParse(opacityStr, out double opacity))
                 {
                     FloatingHintOpacity = opacity;
@@ -381,7 +388,7 @@ namespace SmartIme.Forms
                 }
 
                 // 加载字体
-                var fontStr = Properties.Settings.Default.FloatingHintFont;
+                var fontStr = AppSettings.Load().FloatingHintFont;
                 if (!string.IsNullOrEmpty(fontStr))
                 {
                     try
@@ -399,7 +406,7 @@ namespace SmartIme.Forms
                 }
 
                 // 加载文字颜色
-                var textColorStr = Properties.Settings.Default.FloatingHintTextColor;
+                var textColorStr = AppSettings.Load().FloatingHintTextColor;
                 if (!string.IsNullOrEmpty(textColorStr))
                 {
                     FloatingHintTextColor = ColorTranslator.FromHtml(textColorStr);
@@ -424,11 +431,12 @@ namespace SmartIme.Forms
             // 保存悬浮提示窗的背景色、透明度、字体和文字颜色到应用程序设置
             try
             {
-                Properties.Settings.Default.FloatingHintBackColor = ColorTranslator.ToHtml(FloatingHintBackColor);
-                Properties.Settings.Default.FloatingHintOpacity = FloatingHintOpacity.ToString();
-                Properties.Settings.Default.FloatingHintFont = new FontConverter().ConvertToString(FloatingHintFont);
-                Properties.Settings.Default.FloatingHintTextColor = ColorTranslator.ToHtml(FloatingHintTextColor);
-                Properties.Settings.Default.Save();
+                var settings = AppSettings.Load();
+                settings.FloatingHintBackColor = ColorTranslator.ToHtml(FloatingHintBackColor);
+                settings.FloatingHintOpacity = FloatingHintOpacity;
+                settings.FloatingHintFont = new FontConverter().ConvertToString(FloatingHintFont);
+                settings.FloatingHintTextColor = ColorTranslator.ToHtml(FloatingHintTextColor);
+                settings.Save();
             }
             catch
             {
@@ -447,6 +455,7 @@ namespace SmartIme.Forms
                 {
                     item.Color = _colorDialog.Color;
                     dgvHintColors.Refresh();
+                    UpdatePreviewImages();
                 }
             }
         }

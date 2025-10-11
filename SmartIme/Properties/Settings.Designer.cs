@@ -73,54 +73,6 @@ namespace SmartIme.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Black")]
-        public string FloatingHintBackColor {
-            get {
-                return ((string)(this["FloatingHintBackColor"]));
-            }
-            set {
-                this["FloatingHintBackColor"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0.6")]
-        public string FloatingHintOpacity {
-            get {
-                return ((string)(this["FloatingHintOpacity"]));
-            }
-            set {
-                this["FloatingHintOpacity"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("微软雅黑, 10pt, style=Bold")]
-        public string FloatingHintFont {
-            get {
-                return ((string)(this["FloatingHintFont"]));
-            }
-            set {
-                this["FloatingHintFont"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("White")]
-        public string FloatingHintTextColor {
-            get {
-                return ((string)(this["FloatingHintTextColor"]));
-            }
-            set {
-                this["FloatingHintTextColor"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string ImeColors {
             get {

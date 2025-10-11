@@ -275,6 +275,7 @@ namespace SmartIme.Forms
             dgvHintColors.ReadOnly = true;
             dgvHintColors.RowHeadersVisible = false;
             dgvHintColors.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            dgvHintColors.ShowCellToolTips = false;
             dgvHintColors.Size = new Size(380, 86);
             dgvHintColors.TabIndex = 0;
             dgvHintColors.CellClick += DgvHintColors_CellClick;

@@ -7,3 +7,6 @@ obj
 SmartIme/.vs
 SmartIme/bin
 SmartIme/obj
+.qwen/PROJECT_SUMMARY.md
+.gitignore
+QWEN.md

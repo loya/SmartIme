@@ -56,7 +56,7 @@ namespace SmartIme
                 return appDirectory;
             }
         }
-        public string settingDir => Path.Combine(AppDirectory, "setting");
+        public string SettingsDir => Path.Combine(AppDirectory, "settings");
 
         #endregion
 
@@ -65,13 +65,13 @@ namespace SmartIme
 
         public string GetRulesJsonPath()
         {
-            var path = Path.Combine(settingDir, "rules.json");
+            var path = Path.Combine(SettingsDir, "rules.json");
             return path;
         }
 
         public string GetWhitelistJsonPath()
         {
-            var path = Path.Combine(settingDir, "whitelist.json");
+            var path = Path.Combine(SettingsDir, "whitelist.json");
             return path;
         }
 
@@ -117,13 +117,13 @@ namespace SmartIme
             };
 
             //检查设置路径是否存在
-            if (!Directory.Exists(settingDir))
+            if (!Directory.Exists(SettingsDir))
             {
-                Directory.CreateDirectory(settingDir);
+                Directory.CreateDirectory(SettingsDir);
             }
             // 加载保存的设置
             loadAppSetting();
-            cmbDefaultIme.SelectedIndex = Properties.Settings.Default.DefaultIme;
+            cmbDefaultIme.SelectedIndex = AppSettings.Load().DefaultIme;
             LoadRulesFromJson();
             LoadWhitelist();
             UpdateTreeView();
@@ -133,20 +133,25 @@ namespace SmartIme
 
         }
 
+        /// <summary>
+        /// Loads application settings from AppSettings.json file using the new settings system.
+        /// Previously, settings were stored in the legacy Properties.Settings system which has been migrated.
+        /// </summary>
         public void loadAppSetting()
         {
             // 恢复窗口大小和位置
-            if (Properties.Settings.Default.WindowSize != System.Drawing.Size.Empty)
+            var settings = AppSettings.Load();
+            if (settings.WindowSize != System.Drawing.Size.Empty)
             {
-                this.Size = Properties.Settings.Default.WindowSize;
+                this.Size = settings.WindowSize;
             }
-            if (Properties.Settings.Default.WindowLocation != System.Drawing.Point.Empty)
+            if (settings.WindowLocation != System.Drawing.Point.Empty)
             {
-                this.Location = Properties.Settings.Default.WindowLocation;
+                this.Location = settings.WindowLocation;
             }
-            if (Properties.Settings.Default.WindowState != FormWindowState.Minimized)
+            if (settings.WindowState != FormWindowState.Minimized)
             {
-                this.WindowState = Properties.Settings.Default.WindowState;
+                this.WindowState = settings.WindowState;
             }
 
 
@@ -157,14 +162,15 @@ namespace SmartIme
         private void LoadFloatingHintSettings()
         {
             // 恢复悬浮提示窗设置
-            _hintFormBackColor = Properties.Settings.Default.FloatingHintBackColor != null ?
-                ColorTranslator.FromHtml(Properties.Settings.Default.FloatingHintBackColor) : Color.Black;
-            _hintFormOpacity = double.TryParse(Properties.Settings.Default.FloatingHintOpacity, out double opacity) ? opacity : 0.6;
+            var settings = AppSettings.Load();
+            _hintFormBackColor = settings.FloatingHintBackColor != null ?
+                ColorTranslator.FromHtml(settings.FloatingHintBackColor) : Color.Black;
+            _hintFormOpacity = settings.FloatingHintOpacity;
 
             // 恢复悬浮提示窗字体和文字颜色设置
             try
             {
-                _hintFormFont = (Font)new FontConverter().ConvertFromString(Properties.Settings.Default.FloatingHintFont);
+                _hintFormFont = (Font)new FontConverter().ConvertFromString(settings.FloatingHintFont);
             }
             catch
             {
@@ -173,7 +179,7 @@ namespace SmartIme
 
             try
             {
-                _hintFormTextColor = ColorTranslator.FromHtml(Properties.Settings.Default.FloatingHintTextColor);
+                _hintFormTextColor = ColorTranslator.FromHtml(AppSettings.Load().FloatingHintTextColor);
             }
             catch
             {
@@ -227,27 +233,28 @@ namespace SmartIme
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // 保存设置
-            Properties.Settings.Default.DefaultIme = cmbDefaultIme.SelectedIndex;
+            // 保存设置 to the new AppSettings.json file
+            var settings = AppSettings.Load();
+            settings.DefaultIme = cmbDefaultIme.SelectedIndex;
             //SaveRulesToJson();
 
             // 保存窗口状态
             if (this.WindowState == FormWindowState.Normal)
             {
-                Properties.Settings.Default.WindowSize = this.Size;
-                Properties.Settings.Default.WindowLocation = this.Location;
+                settings.WindowSize = this.Size;
+                settings.WindowLocation = this.Location;
             }
             else
             {
-                Properties.Settings.Default.WindowSize = this.RestoreBounds.Size;
-                Properties.Settings.Default.WindowLocation = this.RestoreBounds.Location;
+                settings.WindowSize = this.RestoreBounds.Size;
+                settings.WindowLocation = this.RestoreBounds.Location;
             }
-            Properties.Settings.Default.WindowState = this.WindowState;
+            settings.WindowState = this.WindowState;
 
             // 保存光标颜色配置
             SaveCursorColorConfig();
 
-            Properties.Settings.Default.Save();
+            settings.Save();
 
             //monitorTimer.Stop();
             // 修复 SYSLIB0006: 不再使用 thread.Abort()，改为安全地请求线程停止
@@ -701,7 +708,7 @@ namespace SmartIme
             try
             {
                 _imeColors.Clear();
-                var savedColors = Properties.Settings.Default.ImeColors;
+                var savedColors = AppSettings.Load().ImeColors;
                 if (!string.IsNullOrEmpty(savedColors))
                 {
                     var colorDict = JsonSerializer.Deserialize<Dictionary<string, string>>(savedColors);
@@ -725,7 +732,7 @@ namespace SmartIme
                 if (_imeColors.Count == 0)
                 {
                     _imeColors["中文"] = Color.Red;
-                    _imeColors["英文"] = Color.Blue;
+                    _imeColors["英文"] = Color.Lime;
                 }
             }
             catch (Exception ex)
@@ -743,7 +750,9 @@ namespace SmartIme
                 {
                     colorDict[kvp.Key] = ColorTranslator.ToHtml(kvp.Value);
                 }
-                Properties.Settings.Default.ImeColors = JsonSerializer.Serialize(colorDict);
+                var settings = AppSettings.Load();
+                settings.ImeColors = JsonSerializer.Serialize(colorDict);
+                settings.Save();
             }
             catch (Exception ex)
             {
@@ -987,11 +996,6 @@ namespace SmartIme
             //}
         }
 
-        private void BtnColorConfig_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("请在下方选择输入法并设置对应的光标颜色。切换输入法时，光标颜色会自动改变。",
-                "光标颜色配置", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
 
         private void btnExpanAll_Click(object sender, EventArgs e)
         {
