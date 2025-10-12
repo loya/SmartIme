@@ -41,6 +41,7 @@ namespace SmartIme
             btnExpanAll = new Button();
             btnCollapseAll = new Button();
             btnRefresh = new Button();
+            chkAlwayShowHint = new CheckBox();
             SuspendLayout();
             // 
             // lblCurrentIme
@@ -157,18 +158,6 @@ namespace SmartIme
             btnExit.UseVisualStyleBackColor = true;
             btnExit.Click += BtnExit_Click;
             // 
-            // btnHintColorSettings
-            // 
-            btnHintColorSettings.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnHintColorSettings.Location = new Point(23, 477);
-            btnHintColorSettings.Margin = new Padding(4);
-            btnHintColorSettings.Name = "btnHintColorSettings";
-            btnHintColorSettings.Size = new Size(120, 27);
-            btnHintColorSettings.TabIndex = 11;
-            btnHintColorSettings.Text = "提示颜色设置";
-            btnHintColorSettings.UseVisualStyleBackColor = true;
-            btnHintColorSettings.Click += BtnHintColorSettings_Click;
-            // 
             // colorDialog
             // 
             colorDialog.AnyColor = true;
@@ -185,6 +174,18 @@ namespace SmartIme
             btnWhitelist.Text = "白名单";
             btnWhitelist.UseVisualStyleBackColor = true;
             btnWhitelist.Click += BtnWhitelist_Click;
+            // 
+            // btnHintColorSettings
+            // 
+            btnHintColorSettings.Anchor = AnchorStyles.Bottom;
+            btnHintColorSettings.Location = new Point(405, 463);
+            btnHintColorSettings.Margin = new Padding(4);
+            btnHintColorSettings.Name = "btnHintColorSettings";
+            btnHintColorSettings.Size = new Size(93, 44);
+            btnHintColorSettings.TabIndex = 11;
+            btnHintColorSettings.Text = "提示设置";
+            btnHintColorSettings.UseVisualStyleBackColor = true;
+            btnHintColorSettings.Click += BtnHintColorSettings_Click;
             // 
             // btnExpanAll
             // 
@@ -226,11 +227,26 @@ namespace SmartIme
             btnRefresh.UseVisualStyleBackColor = true;
             btnRefresh.Click += btnRefresh_Click;
             // 
+            // chkAlwayShowHint
+            // 
+            chkAlwayShowHint.Anchor = AnchorStyles.Bottom;
+            chkAlwayShowHint.AutoSize = true;
+            chkAlwayShowHint.Checked = true;
+            chkAlwayShowHint.CheckState = CheckState.Checked;
+            chkAlwayShowHint.Location = new Point(85, 475);
+            chkAlwayShowHint.Name = "chkAlwayShowHint";
+            chkAlwayShowHint.Size = new Size(231, 21);
+            chkAlwayShowHint.TabIndex = 20;
+            chkAlwayShowHint.Text = "切换窗口时输入法未切换也显示提示框";
+            chkAlwayShowHint.UseVisualStyleBackColor = true;
+            chkAlwayShowHint.CheckedChanged += chkAlwayShowHint_CheckedChanged;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(579, 592);
+            Controls.Add(chkAlwayShowHint);
             Controls.Add(btnRefresh);
             Controls.Add(btnCollapseAll);
             Controls.Add(btnExpanAll);
@@ -262,5 +278,6 @@ namespace SmartIme
         private Button btnExpanAll;
         private Button btnCollapseAll;
         private Button btnRefresh;
+        private CheckBox chkAlwayShowHint;
     }
 }

@@ -1,9 +1,5 @@
-using System;
-using System.IO;
+using SmartIme.Utilities;
 using System.Text.Json;
-using System.Configuration;
-using System.Windows.Forms; // Needed for FormWindowState
-
 
 namespace SmartIme
 {
@@ -13,51 +9,72 @@ namespace SmartIme
     /// </summary>
     public class AppSettings
     {
-        public string HintBackColor { get; set; }
-        public double HintOpacity { get; set; }
-        public string HintFont { get; set; }
-        public string HintTextColor { get; set; }
-        public bool SameHintColor { get; set; }
-        public int DefaultIme { get; set; }
         public Size WindowSize { get; set; }
         public Point WindowLocation { get; set; }
         public FormWindowState WindowState { get; set; }
-        public string ImeColors { get; set; }
+        public double HintOpacity { get; set; }
+        public bool TextColorSameHintColor { get; set; }
+        public int DefaultIme { get; set; }
 
+        public Font HintFont { get; set; }
+        public Color? HintBackColor { get; set; }
+        public Color? HintTextColor { get; set; }
+        public Dictionary<string, Color> ImeColors { get; set; }
+        public bool AlwayShowHint { get; set; }
+
+        #region 方法
         private static readonly string SettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings", "AppSettings.json");
 
         private static readonly JsonSerializerOptions _options = new()
         {
             WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            Converters = { new ColorJsonConverter(), new FontJsonConverter() }
         };
-
         public static AppSettings Load()
         {
-            var settings = new AppSettings();
-
-
+            AppSettings settings;
             if (!File.Exists(SettingsPath))
             {
                 settings = new AppSettings
                 {
-                    HintBackColor = "#000000",
-                    HintOpacity = 0.7,
-                    HintFont = "Microsoft YaHei, 12pt",
-                    HintTextColor = "#FFFFFF",
-                    SameHintColor = false,
+                    AlwayShowHint = true,
+                    HintBackColor = Color.Black,
+                    HintOpacity = 0.6,
+                    HintFont = (Font)new FontConverter().ConvertFromString("Microsoft YaHei, 12pt"),
+                    HintTextColor = Color.White,
+                    TextColorSameHintColor = false,
                     DefaultIme = 0,
                     WindowSize = Size.Empty,
                     WindowLocation = Point.Empty,
                     WindowState = FormWindowState.Normal,
-                    ImeColors = ""
+                    ImeColors = new Dictionary<string, Color>()
+                    {
+                        { "中文",Color.Red },
+                        { "英文", Color.Lime},
+                    }
+
                 };
                 settings.Save();
                 return settings;
             }
 
             string json = File.ReadAllText(SettingsPath);
-            return JsonSerializer.Deserialize<AppSettings>(json, _options);
+            settings = JsonSerializer.Deserialize<AppSettings>(json, _options);
+            if (settings.ImeColors == null || settings.ImeColors.Count == 0)
+            {
+                settings.ImeColors = new Dictionary<string, Color>()
+                    {
+                        { "中文",Color.Red },
+                        { "英文", Color.Lime},
+                    };
+            }
+            if (settings.HintFont == null)
+            {
+                settings.HintFont = (Font)new FontConverter().ConvertFromString("Microsoft YaHei, 12pt,style=bold");
+            }
+            return settings;
+
         }
 
         public void Save()
@@ -65,6 +82,7 @@ namespace SmartIme
             string json = JsonSerializer.Serialize(this, _options);
             File.WriteAllText(SettingsPath, json);
         }
+        #endregion
 
     }
 }

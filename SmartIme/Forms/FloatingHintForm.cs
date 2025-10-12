@@ -120,9 +120,12 @@ namespace SmartIme.Forms
             g.CompositingQuality = CompositingQuality.HighQuality;
 
             // 绘制半透明黑色背景
-            using (Brush bgBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0))) // 40% 透明黑色
+            var bc = Color.FromArgb((int)(255 * _opacity),
+               _backColor.R, _backColor.G, _backColor.B);
+            using (Brush bgBrush = new SolidBrush(_backColor))// 40% 透明黑色
+            // using (Brush bgBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0))) // 40% 透明黑色
             {
-                g.FillRectangle(bgBrush, 0, 0, this.Width, this.Height);
+                // g.FillRectangle(bgBrush, -1, -1, this.Width, this.Height);
                 // System.Diagnostics.Debug.WriteLine($"{this.Width},{this.ClientSize.Width}");
 
                 // System.Diagnostics.Debug.WriteLine($"{this.Height},{this.ClientSize.Height}");
@@ -192,9 +195,10 @@ namespace SmartIme.Forms
 
         private async Task FadeInAsync()
         {
-            for (double i = 0.1; i <= _opacity; i += 0.1)
+            for (double i = 0.1; i <= _opacity; i += 0.05)
             {
                 this.Opacity = i;
+                System.Diagnostics.Debug.WriteLine("opacity: " + i);
                 await Task.Delay(10);
             }
         }
@@ -204,6 +208,7 @@ namespace SmartIme.Forms
             for (double i = this.Opacity; i >= 0; i -= 0.1)
             {
                 this.Opacity = i;
+                System.Diagnostics.Debug.WriteLine("opacity: " + i);
                 await Task.Delay(20);
             }
         }

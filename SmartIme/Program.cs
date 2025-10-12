@@ -28,8 +28,15 @@ namespace SmartIme
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
 
+                //检查settings文件夹是否存在，不存在则创建
+                if (!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings")))
+                {
+                    Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings"));
+                }
+
                 // 处理命令行参数
                 bool startMinimized = args.Length > 0 && args.Contains("-minimized", StringComparer.OrdinalIgnoreCase);
+
 
                 var mainForm = new MainForm();
 

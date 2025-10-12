@@ -23,8 +23,11 @@ namespace SmartIme
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
+        // 全局AppSettings字段
+        private AppSettings _appSettings;
+
         // 光标颜色配置
-        private Dictionary<string, Color> _imeColors = new();
+        // private Dictionary<string, Color> _imeColors = new();
         private string _currentImeName = "";
 
         // 跟踪当前打开的浮动提示窗口
@@ -37,11 +40,6 @@ namespace SmartIme
         private string _lastClassName = string.Empty;
 
         private FormWindowState _lastWindowState;
-        private Color? _hintFormBackColor;
-        private double _hintFormOpacity;
-        private Font _hintFormFont;
-        private Color _hintFormTextColor;
-        private bool _alwayShowHint = true;
         // private bool _InputMethodChanged = false;
 
         #region 属性
@@ -82,12 +80,17 @@ namespace SmartIme
             this.Icon = Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico") != null ?
                 new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico")) :
                 SystemIcons.Application;
+
+
+            // 加载保存的应用设置
+            loadAppSetting();
+
             InitializeImeList();
             CheckForIllegalCrossThreadCalls = false;
 
             // 初始化光标颜色配置
-            _imeColors = new Dictionary<string, Color>();
-            LoadCursorColorConfig();
+            // _imeColors = new Dictionary<string, Color>();
+            // LoadCursorColorConfig();
 
             // 绑定事件处理程序
             btnSwitchIme.Click += BtnSwitchIme_Click;
@@ -121,8 +124,7 @@ namespace SmartIme
                 Directory.CreateDirectory(SettingsDir);
             }
             // 加载保存的设置
-            loadAppSetting();
-            cmbDefaultIme.SelectedIndex = AppSettings.Load().DefaultIme;
+            cmbDefaultIme.SelectedIndex = _appSettings.DefaultIme;
             LoadRulesFromJson();
             LoadWhitelist();
             UpdateTreeView();
@@ -142,52 +144,31 @@ namespace SmartIme
         /// </summary>
         public void loadAppSetting()
         {
+            // 加载AppSettings并保存为全局字段
+            _appSettings = AppSettings.Load();
+
             // 恢复窗口大小和位置
-            var settings = AppSettings.Load();
-            if (settings.WindowSize != System.Drawing.Size.Empty)
+            if (_appSettings.WindowSize != System.Drawing.Size.Empty)
             {
-                this.Size = settings.WindowSize;
+                this.Size = _appSettings.WindowSize;
             }
-            if (settings.WindowLocation != System.Drawing.Point.Empty)
+            if (_appSettings.WindowLocation != System.Drawing.Point.Empty)
             {
-                this.Location = settings.WindowLocation;
+                this.Location = _appSettings.WindowLocation;
             }
-            if (settings.WindowState != FormWindowState.Minimized)
+            if (_appSettings.WindowState != FormWindowState.Minimized)
             {
-                this.WindowState = settings.WindowState;
+                this.WindowState = _appSettings.WindowState;
             }
+            chkAlwayShowHint.Checked = _appSettings.AlwayShowHint;
 
-
-            LoadFloatingHintSettings();
-
+            // 浮动提示设置现在直接从AppSettings的属性获取，无需额外加载
         }
 
         private void LoadFloatingHintSettings()
         {
-            // 恢复悬浮提示窗设置
-            var settings = AppSettings.Load();
-            _hintFormBackColor = settings.HintBackColor != null ?
-                ColorTranslator.FromHtml(settings.HintBackColor) : Color.Black;
-            _hintFormOpacity = settings.HintOpacity;
-
-            // 恢复悬浮提示窗字体和文字颜色设置
-            try
-            {
-                _hintFormFont = (Font)new FontConverter().ConvertFromString(settings.HintFont);
-            }
-            catch
-            {
-                _hintFormFont = new Font("微软雅黑", 10, FontStyle.Bold);
-            }
-
-            try
-            {
-                _hintFormTextColor = ColorTranslator.FromHtml(AppSettings.Load().HintTextColor);
-            }
-            catch
-            {
-                _hintFormTextColor = Color.White;
-            }
+            // 恢复悬浮提示窗设置 - 现在直接使用AppSettings的转换属性
+            _appSettings = AppSettings.Load(); // 重新加载以确保所有转换属性是最新的
         }
 
         private void SetupTrayIcon()
@@ -237,7 +218,7 @@ namespace SmartIme
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // 保存设置 to the new AppSettings.json file
-            var settings = AppSettings.Load();
+            var settings = _appSettings;
             settings.DefaultIme = cmbDefaultIme.SelectedIndex;
             //SaveRulesToJson();
 
@@ -254,8 +235,8 @@ namespace SmartIme
             }
             settings.WindowState = this.WindowState;
 
-            // 保存光标颜色配置
-            SaveCursorColorConfig();
+            // // 保存光标颜色配置
+            // SaveCursorColorConfig();
 
             settings.Save();
 
@@ -453,7 +434,7 @@ namespace SmartIme
                 if (isAppChagned)
                 {
                     var inputMethod = CaretHelper.GetCurrentInputMethod(hWnd);
-                    if (_alwayShowHint)
+                    if (_appSettings.AlwayShowHint)
                         ChangeCursorColorByIme(inputMethod);
 
                 }
@@ -706,56 +687,22 @@ namespace SmartIme
         }
 
 
-        private void LoadCursorColorConfig()
-        {
-            try
-            {
-                _imeColors.Clear();
-                var savedColors = AppSettings.Load().ImeColors;
-                if (!string.IsNullOrEmpty(savedColors))
-                {
-                    var colorDict = JsonSerializer.Deserialize<Dictionary<string, string>>(savedColors);
-                    if (colorDict != null)
-                    {
-                        foreach (var kvp in colorDict)
-                        {
-                            try
-                            {
-                                var color = ColorTranslator.FromHtml(kvp.Value);
-                                _imeColors[kvp.Key] = color;
-                            }
-                            catch
-                            {
-                                // 忽略无效颜色
-                            }
-                        }
-                    }
-                }
-
-                if (_imeColors.Count == 0)
-                {
-                    _imeColors["中文"] = Color.Red;
-                    _imeColors["英文"] = Color.Lime;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"加载光标颜色配置失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
 
         private void SaveCursorColorConfig()
         {
             try
             {
                 var colorDict = new Dictionary<string, string>();
-                foreach (var kvp in _imeColors)
-                {
-                    colorDict[kvp.Key] = ColorTranslator.ToHtml(kvp.Value);
-                }
-                var settings = AppSettings.Load();
-                settings.ImeColors = JsonSerializer.Serialize(colorDict);
-                settings.Save();
+                // foreach (var kvp in _imeColors)
+                // {
+                //     colorDict[kvp.Key] = ColorTranslator.ToHtml(kvp.Value);
+                // }
+                // var settings = _appSettings;
+                // //todo
+                // // settings.ImeColors = JsonSerializer.Serialize(colorDict);
+                // settings.ImeColors = _imeColors;
+
+                // settings.Save();
             }
             catch (Exception ex)
             {
@@ -851,12 +798,12 @@ namespace SmartIme
             // 验证和调整坐标
             displayPos = AppHelper.ValidateAndAdjustPosition(displayPos);
 
-            Color backColor = _hintFormBackColor ?? Color.Black;
+            Color backColor = _appSettings.HintBackColor.Value;
 
             // 根据SameHintColor设置决定提示窗文本颜色
-            Color textColor = AppSettings.Load().SameHintColor ? color : _hintFormTextColor;
+            Color textColor = _appSettings.TextColorSameHintColor ? color : _appSettings.HintTextColor.Value;
 
-            _hintForm = new FloatingHintForm(color, imeName, backColor, _hintFormOpacity, _hintFormFont, textColor);
+            _hintForm = new FloatingHintForm(color, imeName, backColor, _appSettings.HintOpacity, _appSettings.HintFont, textColor);
             _hintForm.Location = displayPos;
             _hintForm.Show();
             Debug.WriteLine($"{DateTime.Now:T}  ShowFloatingHint:{imeName}\n");
@@ -976,7 +923,7 @@ namespace SmartIme
             if (true)
             {
                 _currentImeName = imeName;
-                if (_imeColors.TryGetValue(imeName, out Color color))
+                if (_appSettings.ImeColors.TryGetValue(imeName, out Color color))
                 {
                     ChangeCursorColor(color, imeName);
                 }
@@ -986,7 +933,7 @@ namespace SmartIme
                     switch (imeName)
                     {
                         case "中文(英)":
-                            color = _imeColors.GetValueOrDefault("中文", Color.Black);
+                            color = _appSettings.ImeColors.GetValueOrDefault("中文", Color.Black);
                             ChangeCursorColor(color, imeName);
                             break;
                         default:
@@ -1030,21 +977,31 @@ namespace SmartIme
         {
             using (var colorSettingsForm = new HintColorSettingsForm())
             {
-                colorSettingsForm.ImeColors = new Dictionary<string, Color>(_imeColors);
+                colorSettingsForm.ImeColors = new Dictionary<string, Color>(_appSettings.ImeColors);
 
                 if (colorSettingsForm.ShowDialog() == DialogResult.OK)
                 {
-                    _imeColors = colorSettingsForm.ImeColors;
+                    //todo
+                    // _appSettings.ImeFormColors = colorSettingsForm.ImeColors;
                     SaveCursorColorConfig();
 
+                    // 重新加载appSettings以确保获取最新保存的配置
+                    _appSettings = AppSettings.Load();
+
                     // 如果当前输入法有颜色设置，更新光标颜色
-                    if (_imeColors.TryGetValue(_currentImeName, out Color currentColor))
+                    if (_appSettings.ImeColors.TryGetValue(_currentImeName, out Color currentColor))
                     {
                         ChangeCursorColor(currentColor);
                     }
-                    LoadFloatingHintSettings();
+                    // LoadFloatingHintSettings不再需要，因为我们直接使用_appSettings的属性
                 }
             }
+        }
+
+        private void chkAlwayShowHint_CheckedChanged(object sender, EventArgs e)
+        {
+            //this._alwayShowHint = chkAlwayShowHint.Checked;
+            _appSettings.AlwayShowHint = chkAlwayShowHint.Checked;
         }
     }
 }
