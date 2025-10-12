@@ -106,11 +106,15 @@ namespace SmartIme
             {
                 if (lstRules.SelectedItem is Rule rule)
                 {
-                    using var editRuleForm = new EditRuleForm(rule, inputMethods);
-                    if (editRuleForm.ShowDialog(this) == DialogResult.OK)
+                    using var addRuleForm = new AddRuleForm(inputMethods, rule);
+                    if (addRuleForm.ShowDialog(this) == DialogResult.OK)
                     {
-                        RefreshRulesList();
-                        _isModify = true;
+                        if (addRuleForm.CreatedRule != null)
+                        {
+                            rule = addRuleForm.CreatedRule;
+                            RefreshRulesList();
+                            _isModify = true;
+                        }
                     }
                 }
             }

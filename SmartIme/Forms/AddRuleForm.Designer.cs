@@ -85,7 +85,6 @@ namespace SmartIme
             radioProgram.TabStop = true;
             radioProgram.Text = "程序名称";
             radioProgram.UseVisualStyleBackColor = true;
-            radioProgram.CheckedChanged += RadioButton_CheckedChanged;
             // 
             // radioTitle
             // 
@@ -97,7 +96,6 @@ namespace SmartIme
             radioTitle.TabIndex = 4;
             radioTitle.Text = "窗口标题";
             radioTitle.UseVisualStyleBackColor = true;
-            radioTitle.CheckedChanged += RadioButton_CheckedChanged;
             // 
             // radioControl
             // 
@@ -109,7 +107,6 @@ namespace SmartIme
             radioControl.TabIndex = 5;
             radioControl.Text = "控件类型";
             radioControl.UseVisualStyleBackColor = true;
-            radioControl.CheckedChanged += RadioButton_CheckedChanged;
             // 
             // lblContent
             // 

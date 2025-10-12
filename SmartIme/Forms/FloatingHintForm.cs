@@ -195,22 +195,30 @@ namespace SmartIme.Forms
 
         private async Task FadeInAsync()
         {
-            for (double i = 0.1; i <= _opacity; i += 0.05)
+            //var start = DateTime.Now;
+            //Debug.WriteLine(start.ToString("ffff"));
+            for (double i = 0.1; i <= _opacity; i += 0.1)
             {
                 this.Opacity = i;
-                System.Diagnostics.Debug.WriteLine("opacity: " + i);
+                //System.Diagnostics.Debug.WriteLine("opacity in: " + i);
                 await Task.Delay(10);
             }
+            var end = DateTime.Now;
+            //Debug.WriteLine(end.ToString("ffff"));
+            //System.Diagnostics.Debug.WriteLine($"耗时：{end - start}");
         }
 
         private async Task FadeOutAsync()
         {
-            for (double i = this.Opacity; i >= 0; i -= 0.1)
+            //var start = DateTime.Now;
+            for (double i = this.Opacity; i >= 0; i -= 0.05)
             {
                 this.Opacity = i;
-                System.Diagnostics.Debug.WriteLine("opacity: " + i);
-                await Task.Delay(20);
+                //System.Diagnostics.Debug.WriteLine("opacity out3: " + i);
+                await Task.Delay(10);
             }
+            //System.Diagnostics.Debug.WriteLine($"耗时：{DateTime.Now - start}");
+
         }
     }
 

@@ -15,7 +15,7 @@ namespace SmartIme
         public AddRuleForm(IEnumerable<object> imeList, int defaultImeIndex, string appName = null)
         {
             InitializeComponent();
-            // 添加RadioButton事件处理
+            InitControls();
 
             // 初始化输入法列表
             cmbIme.Items.AddRange(imeList.ToArray());
@@ -24,12 +24,6 @@ namespace SmartIme
                 cmbIme.SelectedIndex = defaultImeIndex;
             }
 
-            // 初始化匹配模式下拉框
-            cmbMatchPattern.Items.AddRange(Enum.GetValues(typeof(RuleMatchPattern)).Cast<object>().ToArray());
-            if (cmbMatchPattern.Items.Count > 0)
-            {
-                cmbMatchPattern.SelectedIndex = 0; // 默认选择"等于"模式
-            }
 
             // 设置默认选择程序名称规则
             radioProgram.Checked = true;
@@ -41,6 +35,73 @@ namespace SmartIme
                 txtContent.Text = appName;
                 txtName.Text = Rule.CreateDefaultName(appName, RuleNams.程序名称);
             }
+        }
+
+        public AddRuleForm(IEnumerable<object> imeList, Rule editRule)
+        {
+
+            InitializeComponent();
+
+            // 根据规则类型设置对应的单选按钮和按钮文本
+            switch (editRule.RuleType)
+            {
+                case RuleType.Program:
+                    radioProgram.Checked = true;
+                    btnSelectProcess.Visible = false;
+                    break;
+                case RuleType.Title:
+                    radioTitle.Checked = true;
+                    btnSelectProcess.Text = "选择窗口标题";
+                    btnSelectProcess.Visible = true;
+                    break;
+                case RuleType.Control:
+                    radioControl.Checked = true;
+                    btnSelectProcess.Text = "选择窗口控件";
+                    btnSelectProcess.Visible = true;
+                    break;
+            }
+            InitControls();
+
+            // 初始化输入法列表
+            cmbIme.Items.AddRange(imeList.ToArray());
+            if (cmbIme.Items.Count > 0)
+            {
+                int index = imeList.ToList().IndexOf(editRule.InputMethod);
+                cmbIme.SelectedIndex = index >= 0 ? index : 0;
+            }
+
+            // 设置规则名称
+            txtName.Text = editRule.RuleName;
+
+            // 设置匹配内容
+            txtContent.Text = editRule.MatchContent;
+
+            // 设置匹配模式
+            int matchPatternIndex = cmbMatchPattern.Items.IndexOf(editRule.MatchPattern);
+            if (matchPatternIndex >= 0)
+            {
+                cmbMatchPattern.SelectedIndex = matchPatternIndex;
+            }
+
+
+            // 设置App名称用于编辑
+            AppName = editRule.AppName;
+
+        }
+
+        private void InitControls()
+        {
+            // 初始化匹配模式下拉框
+            cmbMatchPattern.Items.AddRange(Enum.GetValues(typeof(RuleMatchPattern)).Cast<object>().ToArray());
+            if (cmbMatchPattern.Items.Count > 0)
+            {
+                cmbMatchPattern.SelectedIndex = 0; // 默认选择"等于"模式
+            }
+
+            // 添加RadioButton事件处理
+            radioProgram.CheckedChanged += RadioButton_CheckedChanged;
+            radioTitle.CheckedChanged += RadioButton_CheckedChanged;
+            radioControl.CheckedChanged += RadioButton_CheckedChanged;
         }
 
         private void RadioButton_CheckedChanged(object sender, EventArgs e)
@@ -168,6 +229,7 @@ namespace SmartIme
                 WinApi.SetForegroundWindow(this.Handle); // 恢复主窗口的焦点
                 if (r == DialogResult.Cancel)
                 {
+
                     return;
                 }
                 if (selectWindowProcessName != AppName)
@@ -527,6 +589,7 @@ namespace SmartIme
             RuleMatchPattern matchPattern = (RuleMatchPattern)cmbMatchPattern.SelectedItem;
 
             CreatedRule = new Rule(txtName.Text, type, matchPattern, txtContent.Text, cmbIme.Text);
+            CreatedRule.AppName = AppName;
             DialogResult = DialogResult.OK;
             Close();
         }
