@@ -80,7 +80,7 @@ namespace SmartIme
                     //tempAppRuleGroup.InsertRule(index, rule);
                     tempAppRuleGroup.AddRule(rule);
                     tempAppRuleGroup.Rules = tempAppRuleGroup.Rules
-                        .OrderByDescending(t => t.Priority).ThenBy(t => t.Name).ToList();
+                        .OrderByDescending(t => t.Priority).ThenBy(t => t.RuleName).ToList();
                     RefreshRulesList();
                     _isModify = true;
                 }

@@ -71,23 +71,45 @@ namespace SmartIme.Models
             var sortedRules = Rules.OrderByDescending(r => r.Priority).ToList();
 
             // 先检查控件规则
-            foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Control))
+            foreach (var rule in sortedRules.Where(r => r.RuleType == RuleType.Control))
             {
-                if (controlClass == rule.Pattern)
+                //MessageBox.Show(rule.MatchPattern.ToString(), "模式");
+                bool isMatch = rule.MatchPattern switch
+                {
+                    RuleMatchPattern.等于 => controlClass == rule.MatchContent,
+                    RuleMatchPattern.包含 => controlClass?.Contains(rule.MatchContent) == true,
+                    _ => controlClass == rule.MatchContent
+                };
+
+                if (isMatch)
                     return rule;
             }
 
             // 再检查标题规则
-            foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Title))
+            foreach (var rule in sortedRules.Where(r => r.RuleType == RuleType.Title))
             {
-                if (windowTitle == rule.Pattern)
+                bool isMatch = rule.MatchPattern switch
+                {
+                    RuleMatchPattern.等于 => windowTitle == rule.MatchContent,
+                    RuleMatchPattern.包含 => windowTitle?.Contains(rule.MatchContent) == true,
+                    _ => windowTitle == rule.MatchContent
+                };
+
+                if (isMatch)
                     return rule;
             }
 
             // 最后检查程序规则
-            foreach (var rule in sortedRules.Where(r => r.Type == RuleType.Program))
+            foreach (var rule in sortedRules.Where(r => r.RuleType == RuleType.Program))
             {
-                if (appName == rule.Pattern)
+                bool isMatch = rule.MatchPattern switch
+                {
+                    RuleMatchPattern.等于 => appName == rule.MatchContent,
+                    RuleMatchPattern.包含 => appName?.Contains(rule.MatchContent) == true,
+                    _ => appName == rule.MatchContent
+                };
+
+                if (isMatch)
                     return rule;
             }
 

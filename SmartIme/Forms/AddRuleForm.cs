@@ -11,19 +11,24 @@ namespace SmartIme
         public Rule CreatedRule { get; private set; }
         public string AppName { get; set; }
 
+
         public AddRuleForm(IEnumerable<object> imeList, int defaultImeIndex, string appName = null)
         {
             InitializeComponent();
             // 添加RadioButton事件处理
-            this.radioProgram.CheckedChanged += RadioButton_CheckedChanged;
-            this.radioTitle.CheckedChanged += RadioButton_CheckedChanged;
-            this.radioControl.CheckedChanged += RadioButton_CheckedChanged;
 
             // 初始化输入法列表
             cmbIme.Items.AddRange(imeList.ToArray());
             if (cmbIme.Items.Count > 0)
             {
                 cmbIme.SelectedIndex = defaultImeIndex;
+            }
+
+            // 初始化匹配模式下拉框
+            cmbMatchPattern.Items.AddRange(Enum.GetValues(typeof(RuleMatchPattern)).Cast<object>().ToArray());
+            if (cmbMatchPattern.Items.Count > 0)
+            {
+                cmbMatchPattern.SelectedIndex = 0; // 默认选择"等于"模式
             }
 
             // 设置默认选择程序名称规则
@@ -33,7 +38,7 @@ namespace SmartIme
             if (!string.IsNullOrEmpty(appName))
             {
                 AppName = appName;
-                txtPattern.Text = appName;
+                txtContent.Text = appName;
                 txtName.Text = Rule.CreateDefaultName(appName, RuleNams.程序名称);
             }
         }
@@ -56,11 +61,11 @@ namespace SmartIme
                 List<string> titles = GetCurrentAppTitles();
                 if (titles.Count > 0)
                 {
-                    txtPattern.Text = titles[0];
+                    txtContent.Text = titles[0];
                 }
                 else
                 {
-                    txtPattern.Text = null;
+                    txtContent.Text = null;
                 }
 
             }
@@ -69,14 +74,14 @@ namespace SmartIme
                 txtName.Text = Rule.CreateDefaultName(AppName, RuleNams.控件);
                 btnSelectProcess.Text = "选择窗口控件";
                 btnSelectProcess.Visible = true;
-                txtPattern.Text = "";
+                txtContent.Text = "";
                 SelectControlClass();
             }
             else
             {
                 txtName.Text = Rule.CreateDefaultName(AppName, RuleNams.窗口标题);
                 btnSelectProcess.Text = "选择应用程序";
-                txtPattern.Text = AppName;
+                txtContent.Text = AppName;
                 btnSelectProcess.Visible = false;
             }
         }
@@ -103,6 +108,8 @@ namespace SmartIme
         private static bool mouseClicked = false;
 
         private Form selectForm; // 添加字段引用
+
+        string selectWindowProcessName;
 
         private void SelectControlClass()
         {
@@ -168,11 +175,10 @@ namespace SmartIme
                     MessageBox.Show($"选择控件的窗口不是目标窗口，请重新选择;【{selectWindowProcessName}】！=【{AppName}】");
                     return;
                 }
-                txtPattern.Text = selectedControlClass;
+                txtContent.Text = selectedControlClass;
             }
             return;
         }
-        string selectWindowProcessName;
         private void OnMouseClick(object sender, MouseEventArgs e)
         {
             // 获取鼠标位置下的窗口句柄
@@ -419,7 +425,7 @@ namespace SmartIme
             {
                 if (listBox.SelectedItem != null)
                 {
-                    txtPattern.Text = listBox.SelectedItem.ToString();
+                    txtContent.Text = listBox.SelectedItem.ToString();
                     processForm.Close();
                 }
             };
@@ -465,7 +471,7 @@ namespace SmartIme
             {
                 if (listBox.SelectedItem != null)
                 {
-                    txtPattern.Text = listBox.SelectedItem.ToString();
+                    txtContent.Text = listBox.SelectedItem.ToString();
                     titleForm.Close();
                 }
             };
@@ -497,7 +503,7 @@ namespace SmartIme
 
         private void BtnOk_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtName.Text) || string.IsNullOrEmpty(txtPattern.Text))
+            if (string.IsNullOrEmpty(txtName.Text) || string.IsNullOrEmpty(txtContent.Text))
             {
                 MessageBox.Show("请填写规则名称和匹配模式", "输入错误", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -517,7 +523,10 @@ namespace SmartIme
                 type = RuleType.Program;
             }
 
-            CreatedRule = new Rule(txtName.Text, type, txtPattern.Text, cmbIme.Text);
+            // 获取选中的匹配模式
+            RuleMatchPattern matchPattern = (RuleMatchPattern)cmbMatchPattern.SelectedItem;
+
+            CreatedRule = new Rule(txtName.Text, type, matchPattern, txtContent.Text, cmbIme.Text);
             DialogResult = DialogResult.OK;
             Close();
         }

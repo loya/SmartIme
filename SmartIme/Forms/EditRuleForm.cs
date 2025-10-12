@@ -17,18 +17,18 @@ namespace SmartIme
         {
             InitializeComponent();
             EditedRule = rule;
-            
+
             // 初始化表单数据
-            txtName.Text = rule.Name;
-            txtPattern.Text = rule.Pattern;
-            
+            txtName.Text = rule.RuleName;
+            txtPattern.Text = rule.MatchContent;
+
             // 初始化输入法列表
             cmbIme.Items.AddRange(imeList.ToArray());
             cmbIme.SelectedItem = rule.InputMethod;
-            
+
             // 初始化规则类型
             cmbType.Items.AddRange(new object[] { "程序名称", "窗口标题", "控件类型" });
-            cmbType.SelectedIndex = (int)rule.Type;
+            cmbType.SelectedIndex = (int)rule.RuleType;
         }
 
         private void BtnOk_Click(object sender, EventArgs e)
@@ -40,13 +40,13 @@ namespace SmartIme
             }
 
             // 更新规则
-            EditedRule.Name = txtName.Text;
-            EditedRule.Type = (RuleType)cmbType.SelectedIndex;
-            EditedRule.Pattern = txtPattern.Text;
+            EditedRule.RuleName = txtName.Text;
+            EditedRule.RuleType = (RuleType)cmbType.SelectedIndex;
+            EditedRule.MatchContent = txtPattern.Text;
             EditedRule.InputMethod = cmbIme.Text;
-            
+
             // 更新优先级
-            switch (EditedRule.Type)
+            switch (EditedRule.RuleType)
             {
                 case RuleType.Control:
                     EditedRule.Priority = 3;

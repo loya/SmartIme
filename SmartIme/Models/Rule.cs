@@ -13,13 +13,31 @@ namespace SmartIme.Models
         窗口标题,
         控件
     };
+    /// <summary>
+    /// 规则匹配模式
+    /// </summary>
+    public enum RuleMatchPattern
+    {
+        等于,
+        包含
+    }
 
     public class Rule : ICloneable
     {
-        public string Name { get; set; }
+        public string RuleName { get; set; }
         public string AppName { get; set; } = string.Empty;
-        public RuleType Type { get; set; }
-        public string Pattern { get; set; }
+        /// <summary>
+        /// 规则类型，程序名称、窗口标题、控件类型
+        /// </summary>
+        public RuleType RuleType { get; set; }
+        /// <summary>
+        /// 匹配内容，程序名称、窗口标题、控件类型
+        /// </summary>
+        public string MatchContent { get; set; }
+        /// <summary>
+        /// 匹配模式，等于、包含
+        /// </summary>
+        public RuleMatchPattern MatchPattern { get; set; }
         public string InputMethod { get; set; }
         /// <summary>
         /// 优先级，数字越大优先级越高   
@@ -30,15 +48,16 @@ namespace SmartIme.Models
         {
         }
 
-        public Rule(string name, RuleType type, string pattern, string inputMethod)
+        public Rule(string ruleName, RuleType ruleType, RuleMatchPattern matchPattern, string matchContent, string inputMethod)
         {
-            Name = name;
-            Type = type;
-            Pattern = pattern;
+            RuleName = ruleName;
+            RuleType = ruleType;
+            MatchPattern = matchPattern;
+            MatchContent = matchContent;
             InputMethod = inputMethod;
 
             // 设置优先级
-            switch (type)
+            switch (ruleType)
             {
                 case RuleType.Control:
                     Priority = 3;
@@ -54,7 +73,7 @@ namespace SmartIme.Models
 
         public override string ToString()
         {
-            return $"{Name} -（{Type}：{Pattern}）-> [{InputMethod}]";
+            return $"{RuleName} -（{RuleType}：{MatchContent}）-> [{InputMethod}]";
         }
 
         public static string CreateDefaultName(string appName, RuleNams ruleNams)
@@ -66,10 +85,11 @@ namespace SmartIme.Models
         {
             return new Rule
             {
-                Name = this.Name,
+                RuleName = this.RuleName,
                 AppName = this.AppName,
-                Type = this.Type,
-                Pattern = this.Pattern,
+                RuleType = this.RuleType,
+                MatchPattern = this.MatchPattern,
+                MatchContent = this.MatchContent,
                 InputMethod = this.InputMethod,
                 Priority = this.Priority
             };

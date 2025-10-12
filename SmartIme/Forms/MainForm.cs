@@ -410,7 +410,7 @@ namespace SmartIme
                 if (matchedRule != null)
                 {
                     string targetIme = matchedRule.InputMethod;
-                    lblCurrentIme.Text = "当前输入法：" + targetIme + " (规则：" + matchedRule.Name + ")";
+                    lblCurrentIme.Text = "当前输入法：" + targetIme + " (规则：" + matchedRule.RuleName + ")";
 
                     var inputLanguages = InputLanguage.InstalledInputLanguages;
                     foreach (InputLanguage lang in inputLanguages)
@@ -527,7 +527,7 @@ namespace SmartIme
 
                 var newGroup = new AppRuleGroup(appName, displayName, mainModule?.FileName);
 
-                var defaultRule = new Rule(Rule.CreateDefaultName(appName, RuleNams.程序名称), RuleType.Program, appName, cmbDefaultIme.Text);
+                var defaultRule = new Rule(Rule.CreateDefaultName(appName, RuleNams.程序名称), RuleType.Program, RuleMatchPattern.等于, appName, cmbDefaultIme.Text);
                 newGroup.AddRule(defaultRule);
 
                 var list = AppRuleGroups.ToList();

@@ -13,7 +13,7 @@ namespace SmartIme.Utilities
         /// </summary>
         public static void AddRuleNodeToGroup(TreeNode groupNode, Rule rule)
         {
-            Color ruleColor = rule.Type switch
+            Color ruleColor = rule.RuleType switch
             {
                 RuleType.Program => Color.DarkSeaGreen,
                 RuleType.Title => Color.DarkCyan,
