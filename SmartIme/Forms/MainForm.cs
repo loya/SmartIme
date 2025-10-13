@@ -11,17 +11,13 @@ namespace SmartIme
     public partial class MainForm : Form
     {
         public BindingList<AppRuleGroup> AppRuleGroups = new();
+        public Font TreeNodefont;
+
         private readonly int _monitorInterval = 50; // 监测间隔，单位毫秒
         private CancellationTokenSource _cancellationTokenSource = new();
         private NotifyIcon _trayIcon;
         private ContextMenuStrip _trayMenu;
         private readonly List<string> _whitelistedApps = new List<string>();
-
-        private readonly JsonSerializerOptions _options = new()
-        {
-            WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
 
         // 全局AppSettings字段
         private AppSettings _appSettings;
@@ -80,7 +76,7 @@ namespace SmartIme
             this.Icon = Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico") != null ?
                 new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico")) :
                 SystemIcons.Application;
-
+            TreeNodefont = new Font(treeApps.Font.FontFamily, 11, FontStyle.Regular);
 
             // 加载保存的应用设置
             loadAppSetting();
@@ -253,8 +249,7 @@ namespace SmartIme
             try
             {
                 string jsonPath = GetRulesJsonPath();
-                string json = JsonSerializer.Serialize(AppRuleGroups, _options);
-                File.WriteAllText(jsonPath, json);
+                AppRuleGroup.SaveGroupsToJson(AppRuleGroups.ToList(), jsonPath, updateTreeView);
                 if (updateTreeView)
                 {
                     UpdateTreeView();
@@ -271,22 +266,11 @@ namespace SmartIme
             try
             {
                 string jsonPath = GetRulesJsonPath();
-                if (File.Exists(jsonPath))
+                var loadedGroups = AppRuleGroup.LoadGroupsFromJson(jsonPath);
+                AppRuleGroups.Clear();
+                foreach (var group in loadedGroups)
                 {
-                    string json = File.ReadAllText(jsonPath);
-                    var loadedGroups = JsonSerializer.Deserialize<List<AppRuleGroup>>(json);
-                    if (loadedGroups != null)
-                    {
-                        AppRuleGroups.Clear();
-                        foreach (var group in loadedGroups)
-                        {
-                            AppRuleGroups.Add(group);
-                        }
-                    }
-                }
-                else
-                {
-                    AppRuleGroups.Clear();
+                    AppRuleGroups.Add(group);
                 }
             }
             catch (Exception ex)
@@ -531,7 +515,7 @@ namespace SmartIme
 
                 var newGroup = new AppRuleGroup(appName, displayName, mainModule?.FileName);
 
-                var defaultRule = new Rule(Rule.CreateDefaultName(appName, RuleNams.程序名称), RuleType.Program, RuleMatchPattern.等于, appName, cmbDefaultIme.Text);
+                var defaultRule = new Rule(Rule.CreateDefaultName(appName, RuleType.程序名称), RuleType.程序名称, RuleMatchPattern.等于, appName, cmbDefaultIme.Text);
                 newGroup.AddRule(defaultRule);
 
                 var list = AppRuleGroups.ToList();
@@ -557,18 +541,25 @@ namespace SmartIme
                 treeApps.Focus();
                 //UpdateTreeView();
 
-                using var editAppRulesForm = new EditAppRulesForm(this, treeApps.SelectedNode, cmbDefaultIme.Items.Cast<string>());
-                editAppRulesForm.ShowDialog(this);
+                using var editAppRulesForm = new EditAppRulesForm(this, treeApps.SelectedNode, cmbDefaultIme.Items.Cast<string>(), true);
+                var dialogResult = editAppRulesForm.ShowDialog(this);
+                if (dialogResult == DialogResult.Cancel)
+                {
+                    _showDeleteConfirm = false;
+                    btnRemoveApp.PerformClick();
+                    _showDeleteConfirm = true;
+                }
             }
         }
 
+        bool _showDeleteConfirm = true;
         private void BtnRemoveApp_Click(object sender, EventArgs e)
         {
             if (treeApps.SelectedNode != null)
             {
                 if (treeApps.SelectedNode.Tag is AppRuleGroup group)
                 {
-                    if (MessageBox.Show("是否删除该应用的所有规则？", "提示", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.Cancel)
+                    if (_showDeleteConfirm && MessageBox.Show("是否删除该应用的所有规则？", "提示", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.Cancel)
                     {
                         return;
                     }
@@ -622,7 +613,7 @@ namespace SmartIme
             treeApps.Nodes.Clear();
 
             //Font boldFont = new Font(treeApps.Font, FontStyle.Bold);
-            Font regularFont = new Font(treeApps.Font.FontFamily, 11, FontStyle.Regular);
+            //Font regularFont = new Font(treeApps.Font.FontFamily, 11, FontStyle.Regular);
             foreach (var group in AppRuleGroups.OrderBy(g => g.AppName))
             {
                 var groupNode = new TreeNode(group.ToString())
@@ -631,16 +622,12 @@ namespace SmartIme
                     //NodeFont = boldFont,
                     ForeColor = Color.DarkOrange
                 };
+                treeApps.Nodes.Add(groupNode);
 
                 foreach (var rule in group.Rules)
                 {
-                    AppHelper.AddRuleNodeToGroup(groupNode, rule);
+                    AppHelper.AddRuleNodeToGroup(groupNode, rule, TreeNodefont);
                 }
-                foreach (TreeNode node in groupNode.Nodes)
-                {
-                    node.NodeFont = regularFont;
-                }
-                treeApps.Nodes.Add(groupNode);
                 groupNode.Expand();
             }
             if (treeApps.Nodes.Count > 0)

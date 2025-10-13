@@ -11,13 +11,15 @@ namespace SmartIme.Utilities
         /// <summary>
         /// Adds a rule node to the specified group node.
         /// </summary>
-        public static void AddRuleNodeToGroup(TreeNode groupNode, Rule rule)
+        public static void AddRuleNodeToGroup(TreeNode ruleGroupNode, Rule rule, Font font
+            )
         {
+
             Color ruleColor = rule.RuleType switch
             {
-                RuleType.Program => Color.DarkSeaGreen,
-                RuleType.Title => Color.DarkCyan,
-                RuleType.Control => Color.DeepSkyBlue,
+                RuleType.程序名称 => Color.DarkSeaGreen,
+                RuleType.窗口标题 => Color.DarkCyan,
+                RuleType.控件 => Color.DeepSkyBlue,
                 _ => Color.Black
             };
 
@@ -25,8 +27,9 @@ namespace SmartIme.Utilities
             {
                 Tag = rule,
                 ForeColor = ruleColor,
+                NodeFont = font
             };
-            groupNode.Nodes.Add(ruleNode);
+            ruleGroupNode.Nodes.Add(ruleNode);
         }
 
         /// <summary>

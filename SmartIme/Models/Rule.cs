@@ -1,18 +1,14 @@
+using System.Text.Json.Serialization;
+
 namespace SmartIme.Models
 {
     public enum RuleType
     {
-        Program,    // 基于程序名称
-        Title,      // 基于窗口标题
-        Control     // 基于控件类型
+        程序名称,    // 基于程序名称
+        窗口标题,      // 基于窗口标题
+        控件     // 基于控件类型
     }
 
-    public enum RuleNams
-    {
-        程序名称,
-        窗口标题,
-        控件
-    };
     /// <summary>
     /// 规则匹配模式
     /// </summary>
@@ -29,6 +25,7 @@ namespace SmartIme.Models
         /// <summary>
         /// 规则类型，程序名称、窗口标题、控件类型
         /// </summary>
+        [JsonConverter(typeof(SmartIme.Utilities.EnumJsonConverter<RuleType>))]
         public RuleType RuleType { get; set; }
         /// <summary>
         /// 匹配内容，程序名称、窗口标题、控件类型
@@ -37,6 +34,7 @@ namespace SmartIme.Models
         /// <summary>
         /// 匹配模式，等于、包含
         /// </summary>
+        [JsonConverter(typeof(SmartIme.Utilities.EnumJsonConverter<RuleMatchPattern>))]
         public RuleMatchPattern MatchPattern { get; set; }
         public string InputMethod { get; set; }
         /// <summary>
@@ -59,13 +57,13 @@ namespace SmartIme.Models
             // 设置优先级
             switch (ruleType)
             {
-                case RuleType.Control:
+                case RuleType.控件:
                     Priority = 3;
                     break;
-                case RuleType.Title:
+                case RuleType.窗口标题:
                     Priority = 2;
                     break;
-                case RuleType.Program:
+                case RuleType.程序名称:
                     Priority = 1;
                     break;
             }
@@ -76,7 +74,7 @@ namespace SmartIme.Models
             return $"{RuleName} -（{MatchPattern}：{MatchContent}）-> [{InputMethod}]";
         }
 
-        public static string CreateDefaultName(string appName, RuleNams ruleNams)
+        public static string CreateDefaultName(string appName, RuleType ruleNams)
         {
             return $"{appName}【{ruleNams}】";
         }

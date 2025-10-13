@@ -38,18 +38,20 @@ namespace SmartIme
             // 
             // lstRules
             // 
+            lstRules.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             lstRules.FormattingEnabled = true;
             lstRules.ItemHeight = 17;
-            lstRules.Location = new Point(14, 41);
+            lstRules.Location = new Point(16, 43);
             lstRules.Margin = new Padding(4);
             lstRules.Name = "lstRules";
-            lstRules.Size = new Size(419, 276);
+            lstRules.Size = new Size(419, 378);
             lstRules.TabIndex = 0;
             lstRules.DoubleClick += LstRules_DoubleClick;
             // 
             // btnAddRule
             // 
-            btnAddRule.Location = new Point(14, 327);
+            btnAddRule.Anchor = AnchorStyles.Bottom;
+            btnAddRule.Location = new Point(14, 432);
             btnAddRule.Margin = new Padding(4);
             btnAddRule.Name = "btnAddRule";
             btnAddRule.Size = new Size(88, 33);
@@ -60,7 +62,8 @@ namespace SmartIme
             // 
             // btnRemoveRule
             // 
-            btnRemoveRule.Location = new Point(108, 327);
+            btnRemoveRule.Anchor = AnchorStyles.Bottom;
+            btnRemoveRule.Location = new Point(108, 432);
             btnRemoveRule.Margin = new Padding(4);
             btnRemoveRule.Name = "btnRemoveRule";
             btnRemoveRule.Size = new Size(88, 33);
@@ -71,8 +74,9 @@ namespace SmartIme
             // 
             // btnOK
             // 
+            btnOK.Anchor = AnchorStyles.Bottom;
             btnOK.DialogResult = DialogResult.OK;
-            btnOK.Location = new Point(252, 327);
+            btnOK.Location = new Point(252, 432);
             btnOK.Margin = new Padding(4);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(88, 33);
@@ -83,8 +87,9 @@ namespace SmartIme
             // 
             // btnCancel
             // 
+            btnCancel.Anchor = AnchorStyles.Bottom;
             btnCancel.DialogResult = DialogResult.Cancel;
-            btnCancel.Location = new Point(346, 327);
+            btnCancel.Location = new Point(346, 432);
             btnCancel.Margin = new Padding(4);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(88, 33);
@@ -108,7 +113,7 @@ namespace SmartIme
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(448, 377);
+            ClientSize = new Size(448, 482);
             Controls.Add(label1);
             Controls.Add(btnCancel);
             Controls.Add(btnOK);

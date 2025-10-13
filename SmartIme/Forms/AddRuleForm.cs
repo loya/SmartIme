@@ -33,7 +33,7 @@ namespace SmartIme
             {
                 AppName = appName;
                 txtContent.Text = appName;
-                txtName.Text = Rule.CreateDefaultName(appName, RuleNams.程序名称);
+                txtName.Text = Rule.CreateDefaultName(appName, RuleType.程序名称);
             }
         }
 
@@ -45,16 +45,16 @@ namespace SmartIme
             // 根据规则类型设置对应的单选按钮和按钮文本
             switch (editRule.RuleType)
             {
-                case RuleType.Program:
+                case RuleType.程序名称:
                     radioProgram.Checked = true;
                     btnSelectProcess.Visible = false;
                     break;
-                case RuleType.Title:
+                case RuleType.窗口标题:
                     radioTitle.Checked = true;
                     btnSelectProcess.Text = "选择窗口标题";
                     btnSelectProcess.Visible = true;
                     break;
-                case RuleType.Control:
+                case RuleType.控件:
                     radioControl.Checked = true;
                     btnSelectProcess.Text = "选择窗口控件";
                     btnSelectProcess.Visible = true;
@@ -113,7 +113,7 @@ namespace SmartIme
 
             if (radioTitle.Checked)
             {
-                txtName.Text = Rule.CreateDefaultName(AppName, RuleNams.窗口标题);
+                txtName.Text = Rule.CreateDefaultName(AppName, RuleType.窗口标题);
                 btnSelectProcess.Text = "选择窗口标题";
                 btnSelectProcess.Visible = true;
 
@@ -132,7 +132,7 @@ namespace SmartIme
             }
             else if (radioControl.Checked)
             {
-                txtName.Text = Rule.CreateDefaultName(AppName, RuleNams.控件);
+                txtName.Text = Rule.CreateDefaultName(AppName, RuleType.控件);
                 btnSelectProcess.Text = "选择窗口控件";
                 btnSelectProcess.Visible = true;
                 txtContent.Text = "";
@@ -140,7 +140,7 @@ namespace SmartIme
             }
             else
             {
-                txtName.Text = Rule.CreateDefaultName(AppName, RuleNams.窗口标题);
+                txtName.Text = Rule.CreateDefaultName(AppName, RuleType.窗口标题);
                 btnSelectProcess.Text = "选择应用程序";
                 txtContent.Text = AppName;
                 btnSelectProcess.Visible = false;
@@ -558,7 +558,7 @@ namespace SmartIme
             return titles;
         }
 
-        private void SetRuleName(RuleNams ruleNam)
+        private void SetRuleName(RuleType ruleNam)
         {
             txtName.Text = $"{AppName} 【{ruleNam}】";
         }
@@ -574,15 +574,15 @@ namespace SmartIme
             RuleType type;
             if (radioTitle.Checked)
             {
-                type = RuleType.Title;
+                type = RuleType.窗口标题;
             }
             else if (radioControl.Checked)
             {
-                type = RuleType.Control;
+                type = RuleType.控件;
             }
             else
             {
-                type = RuleType.Program;
+                type = RuleType.程序名称;
             }
 
             // 获取选中的匹配模式
