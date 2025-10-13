@@ -5,11 +5,11 @@ namespace SmartIme
 {
     public partial class EditAppRulesForm : Form
     {
-        private TreeNode appRuleGroupNode;
-        private readonly AppRuleGroup originalAppRuleGroup;
-        private readonly AppRuleGroup tempAppRuleGroup;
-        private readonly IEnumerable<string> inputMethods;
-        private MainForm mainForm { get; }
+        private TreeNode _appRuleGroupNode;
+        private readonly AppRuleGroup _originalAppRuleGroup;
+        private readonly AppRuleGroup _currentEditAppRuleGroup;
+        private readonly IEnumerable<string> _inputMethods;
+        private MainForm MainForm { get; }
         private bool _isModify = false;
 
         public EditAppRulesForm(MainForm mainForm, TreeNode selectedNode, IEnumerable<string> inputMethods)
@@ -35,24 +35,24 @@ namespace SmartIme
             // 将 group.Clone() 的返回值强制转换为 AppRuleGroup 类型
             if (selectedNode.Tag is AppRuleGroup group)
             {
-                appRuleGroupNode = selectedNode;
-                this.originalAppRuleGroup = group;
-                this.tempAppRuleGroup = (AppRuleGroup)group.Clone();
+                _appRuleGroupNode = selectedNode;
+                this._originalAppRuleGroup = group;
+                this._currentEditAppRuleGroup = (AppRuleGroup)group.Clone();
             }
             else if (selectedNode.Tag is Rule rule && selectedNode.Parent != null)
             {
                 if (selectedNode.Parent.Tag is AppRuleGroup parentGroup)
                 {
-                    appRuleGroupNode = selectedNode.Parent;
-                    this.originalAppRuleGroup = parentGroup;
-                    this.tempAppRuleGroup = parentGroup;
+                    _appRuleGroupNode = selectedNode.Parent;
+                    this._originalAppRuleGroup = parentGroup;
+                    this._currentEditAppRuleGroup = parentGroup;
                 }
             }
 
-            this.inputMethods = inputMethods;
-            this.mainForm = mainForm;
+            this._inputMethods = inputMethods;
+            this.MainForm = mainForm;
             // 设置窗口标题
-            this.Text = $"编辑 {tempAppRuleGroup.DisplayName} 的规则";
+            this.Text = $"编辑 {_currentEditAppRuleGroup.DisplayName} 的规则";
 
             // 加载规则列表
             RefreshRulesList();
@@ -61,25 +61,25 @@ namespace SmartIme
         private void RefreshRulesList()
         {
             lstRules.Items.Clear();
-            //foreach (var rule in tempAppRuleGroup.Rules)
+            //foreach (var rule in _currentEditAppRuleGroup.Rules)
             //{
             //    lstRules.Items.Add(rule);
             //}
-            lstRules.Items.AddRange(tempAppRuleGroup.Rules.Select(r => r).OrderByDescending(t => t.Priority).ToArray());
+            lstRules.Items.AddRange(_currentEditAppRuleGroup.Rules.Select(r => r).OrderByDescending(t => t.Priority).ToArray());
         }
 
         private void BtnAddRule_Click(object sender, EventArgs e)
         {
-            using var addRuleForm = new AddRuleForm(inputMethods, 0, tempAppRuleGroup.AppName);
+            using var addRuleForm = new AddRuleForm(_inputMethods, 0, _currentEditAppRuleGroup.AppName);
             if (addRuleForm.ShowDialog(this) == DialogResult.OK)
             {
                 var rule = addRuleForm.CreatedRule;
                 if (rule != null)
                 {
-                    //int index = tempAppRuleGroup.Rules.FindIndex(t => t.Priority <= rule.Priority);
-                    //tempAppRuleGroup.InsertRule(index, rule);
-                    tempAppRuleGroup.AddRule(rule);
-                    tempAppRuleGroup.Rules = tempAppRuleGroup.Rules
+                    //int index = _currentEditAppRuleGroup.Rules.FindIndex(t => t.Priority <= rule.Priority);
+                    //_currentEditAppRuleGroup.InsertRule(index, rule);
+                    _currentEditAppRuleGroup.AddRule(rule);
+                    _currentEditAppRuleGroup.Rules = _currentEditAppRuleGroup.Rules
                         .OrderByDescending(t => t.Priority).ThenBy(t => t.RuleName).ToList();
                     RefreshRulesList();
                     _isModify = true;
@@ -93,7 +93,7 @@ namespace SmartIme
             {
                 if (lstRules.SelectedItem is Rule rule)
                 {
-                    tempAppRuleGroup.RemoveRule(rule);
+                    _currentEditAppRuleGroup.RemoveRule(rule);
                     RefreshRulesList();
                     _isModify = true;
                 }
@@ -106,12 +106,12 @@ namespace SmartIme
             {
                 if (lstRules.SelectedItem is Rule rule)
                 {
-                    using var addRuleForm = new AddRuleForm(inputMethods, rule);
+                    using var addRuleForm = new AddRuleForm(_inputMethods, rule);
                     if (addRuleForm.ShowDialog(this) == DialogResult.OK)
                     {
                         if (addRuleForm.CreatedRule != null)
                         {
-                            rule = addRuleForm.CreatedRule;
+                            _currentEditAppRuleGroup.Rules[lstRules.SelectedIndex] = addRuleForm.CreatedRule;
                             RefreshRulesList();
                             _isModify = true;
                         }
@@ -125,13 +125,13 @@ namespace SmartIme
             if (_isModify)
             {
                 // 将修改应用到 mainForm.AppRuleGroups 中
-                this.originalAppRuleGroup.Rules = [.. this.tempAppRuleGroup.Rules];
-                if (this.originalAppRuleGroup.Rules.Count == 0)
+                this._originalAppRuleGroup.Rules = [.. this._currentEditAppRuleGroup.Rules];
+                if (this._originalAppRuleGroup.Rules.Count == 0)
                 {
                     var result = MessageBox.Show("当前应用的规则列表为空，是否删除该应用？", "删除应用", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (result == DialogResult.Yes)
                     {
-                        mainForm.AppRuleGroups.Remove(this.originalAppRuleGroup);
+                        MainForm.AppRuleGroups.Remove(this._originalAppRuleGroup);
                     }
                     else
                     {
@@ -140,19 +140,19 @@ namespace SmartIme
                         return;
                     }
                 }
-                mainForm.SaveRulesToJson(false);
-                if (originalAppRuleGroup.Rules.Count != 0)
+                MainForm.SaveRulesToJson(false);
+                if (_originalAppRuleGroup.Rules.Count != 0)
                 {
-                    appRuleGroupNode.Nodes.Clear();
-                    foreach (var rule in originalAppRuleGroup.Rules)
+                    _appRuleGroupNode.Nodes.Clear();
+                    foreach (var rule in _originalAppRuleGroup.Rules)
                     {
-                        AppHelper.AddRuleNodeToGroup(appRuleGroupNode, rule);
+                        AppHelper.AddRuleNodeToGroup(_appRuleGroupNode, rule);
                     }
-                    appRuleGroupNode.Expand();
+                    _appRuleGroupNode.Expand();
                 }
                 else
                 {
-                    appRuleGroupNode.Remove();
+                    _appRuleGroupNode.Remove();
                 }
                 _isModify = false;
             }

@@ -284,6 +284,10 @@ namespace SmartIme
                         }
                     }
                 }
+                else
+                {
+                    AppRuleGroups.Clear();
+                }
             }
             catch (Exception ex)
             {
@@ -564,6 +568,10 @@ namespace SmartIme
             {
                 if (treeApps.SelectedNode.Tag is AppRuleGroup group)
                 {
+                    if (MessageBox.Show("是否删除该应用的所有规则？", "提示", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) == DialogResult.Cancel)
+                    {
+                        return;
+                    }
                     AppRuleGroups.Remove(group);
                     SaveRulesToJson(false);
                     treeApps.Nodes.Remove(treeApps.SelectedNode);

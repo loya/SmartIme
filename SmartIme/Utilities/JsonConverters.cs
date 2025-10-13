@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using System.Drawing;
 
 namespace SmartIme.Utilities
 {
@@ -121,4 +116,47 @@ namespace SmartIme.Utilities
             }
         }
     }
+
+    public class EnumJsonConverter<T> : JsonConverter<T> where T : struct, Enum
+    {
+        public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.String)
+            {
+                // 解析为字符串
+                string enumString = reader.GetString();
+                if (Enum.TryParse<T>(enumString, true, out T result))
+                {
+                    return result;
+                }
+
+                // 如果字符串解析失败，尝试解析为数字
+                if (int.TryParse(enumString, out int numericValue))
+                {
+                    if (Enum.IsDefined(typeof(T), numericValue))
+                    {
+                        return (T)(object)numericValue;
+                    }
+                }
+            }
+            else if (reader.TokenType == JsonTokenType.Number)
+            {
+                int numericValue = reader.GetInt32();
+                if (Enum.IsDefined(typeof(T), numericValue))
+                {
+                    return (T)(object)numericValue;
+                }
+            }
+
+            // 如果解析失败，返回默认值（通常是枚举的第一个值）
+            return default(T);
+        }
+
+        public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+        {
+            // 将枚举值写为字符串格式
+            writer.WriteStringValue(value.ToString());
+        }
+    }
+
 }

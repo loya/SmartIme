@@ -73,7 +73,7 @@ namespace SmartIme.Models
 
         public override string ToString()
         {
-            return $"{RuleName} -（{RuleType}：{MatchContent}）-> [{InputMethod}]";
+            return $"{RuleName} -（{MatchPattern}：{MatchContent}）-> [{InputMethod}]";
         }
 
         public static string CreateDefaultName(string appName, RuleNams ruleNams)
