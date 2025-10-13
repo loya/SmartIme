@@ -178,10 +178,10 @@ namespace SmartIme
             // btnHintColorSettings
             // 
             btnHintColorSettings.Anchor = AnchorStyles.Bottom;
-            btnHintColorSettings.Location = new Point(405, 463);
+            btnHintColorSettings.Location = new Point(405, 475);
             btnHintColorSettings.Margin = new Padding(4);
             btnHintColorSettings.Name = "btnHintColorSettings";
-            btnHintColorSettings.Size = new Size(93, 44);
+            btnHintColorSettings.Size = new Size(93, 32);
             btnHintColorSettings.TabIndex = 11;
             btnHintColorSettings.Text = "提示设置";
             btnHintColorSettings.UseVisualStyleBackColor = true;
@@ -233,7 +233,7 @@ namespace SmartIme
             chkAlwayShowHint.AutoSize = true;
             chkAlwayShowHint.Checked = true;
             chkAlwayShowHint.CheckState = CheckState.Checked;
-            chkAlwayShowHint.Location = new Point(85, 475);
+            chkAlwayShowHint.Location = new Point(85, 481);
             chkAlwayShowHint.Name = "chkAlwayShowHint";
             chkAlwayShowHint.Size = new Size(231, 21);
             chkAlwayShowHint.TabIndex = 20;

@@ -10,6 +10,7 @@ namespace SmartIme
 {
     public partial class MainForm : Form
     {
+        private GlobalKeyboardLayoutWatcher _watcher;
         public BindingList<AppRuleGroup> AppRuleGroups = new();
         public Font TreeNodefont;
 
@@ -127,6 +128,24 @@ namespace SmartIme
             SetupTrayIcon();
             //SetupMonitor();
             _ = MonitorSystemAsync(_cancellationTokenSource.Token);
+
+
+            _watcher = new GlobalKeyboardLayoutWatcher();
+            _watcher.KeyboardLayoutChanged += (newLayout) =>
+            {
+                // 在这里更新UI，显示新的输入法信息
+                // newLayout 是键盘布局的句柄，你可以通过 InputLanguage.FromHkl(newLayout) 获取更多信息
+                foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
+                {
+                    // 比较 InputLanguage 对象的 Handle 与给定的 HKL
+                    if (lang.Handle == newLayout)
+                    {
+                        Debug.WriteLine($"布局: {lang.LayoutName} 文化区域: {lang.Culture.Name}");
+                        break;
+                    }
+                }
+
+            };
 
         }
 
@@ -381,8 +400,6 @@ namespace SmartIme
                 //Debug.WriteLine($"前次窗口: {lastActiveApp} {lastClassName}");
                 _lastActiveApp = processName;
                 _lastClassName = controlName;
-                Debug.WriteLine("last App:" + processName);
-                Debug.WriteLine("last ClassName:" + _lastClassName);
 
                 windowTitle = WinApi.GetWindowText(hWnd);
                 lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
@@ -405,7 +422,6 @@ namespace SmartIme
                     {
                         if (lang.LayoutName == targetIme)
                         {
-                            Debug.WriteLine("dangqian ime:" + InputLanguage.CurrentInputLanguage.LayoutName);
                             // if (InputLanguage.CurrentInputLanguage.LayoutName != targetIme)
                             // {
                             InputLanguage.CurrentInputLanguage = lang;
@@ -753,9 +769,6 @@ namespace SmartIme
 
         private void ShowFloatingHint(Color color, string imeName)
         {
-            Debug.WriteLine("chagne color Process Name:" + _changeColorProcessName);
-            Debug.WriteLine("last Active App:" + _lastActiveApp);
-
             _hintForm?.Close();
             _hintForm?.Dispose();
             _hintForm = null;
@@ -801,7 +814,6 @@ namespace SmartIme
             _hintForm = new FloatingHintForm(color, imeName, backColor, _appSettings.HintOpacity, _appSettings.HintFont, textColor);
             _hintForm.Location = displayPos;
             _hintForm.Show();
-            Debug.WriteLine($"{DateTime.Now:T}  ShowFloatingHint:{imeName}\n");
             // _currentHintForm = hintForm;
         }
 
@@ -912,7 +924,6 @@ namespace SmartIme
             {
                 return;
             }
-            Debug.WriteLine("activeProcessName:" + activeProcessName);
             //if (imeName != currentImeName && !string.IsNullOrEmpty(currentImeName))
             // 
             if (true)

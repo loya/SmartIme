@@ -1,3 +1,4 @@
+using SmartIme.Models;
 using SmartIme.Utilities;
 using System.ComponentModel;
 using System.Drawing.Drawing2D;

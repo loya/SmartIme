@@ -1,7 +1,7 @@
 using SmartIme.Utilities;
 using System.Text.Json;
 
-namespace SmartIme
+namespace SmartIme.Models
 {
     /// <summary>
     /// Manages application settings using a JSON file (AppSettings.json) instead of the legacy Settings.settings system.
@@ -82,6 +82,8 @@ namespace SmartIme
             string json = JsonSerializer.Serialize(this, _options);
             File.WriteAllText(SettingsPath, json);
         }
+
+
         #endregion
 
     }
