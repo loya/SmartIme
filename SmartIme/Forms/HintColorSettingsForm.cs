@@ -2,15 +2,15 @@ using SmartIme.Models;
 using SmartIme.Utilities;
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
-using System.Linq;
 
 namespace SmartIme.Forms
 {
     public partial class HintColorSettingsForm : Form
     {
         private ColorDialog _colorDialog;
-        private PictureBox picChinesePreview;
-        private PictureBox picEnglishPreview;
+        // private PictureBox picChinesePreview;
+        // private PictureBox picEnglishPreview;
+        private List<PictureBox> picPreviews = new List<PictureBox>();
         private AppSettings _appSettings;
         private BindingList<ImeColorItem> _imeColorItems;
 
@@ -26,7 +26,7 @@ namespace SmartIme.Forms
             }
         }
 
-        public Dictionary<string, Color> ImeColors
+        public List<ImeColor> ImeColors
         {
             get => _appSettings.ImeColors;
             set
@@ -112,8 +112,9 @@ namespace SmartIme.Forms
             {
                 _imeColorItems.Add(new ImeColorItem()
                 {
-                    ImeName = item.Key,
-                    Color = item.Value,
+                    LayoutName = item.LayoutName,
+                    HintText = item.HintText,
+                    Color = item.Color,
                 });
             }
 
@@ -127,39 +128,58 @@ namespace SmartIme.Forms
 
         private void InitializePreviewImages()
         {
-            // 创建中文预览图像
-            picChinesePreview = new PictureBox
+            int count = 0;
+            foreach (var item in _imeColorItems)
             {
-                Location = new Point(20, 40),
-                BorderStyle = BorderStyle.None,
-                Font = HintFont
-            };
-            picChinesePreview.Paint += (sender, e) =>
-            {
-                var chineseItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "中文");
-                if (chineseItem != null)
+                PictureBox picPreview = new PictureBox()
                 {
-                    DrawPreviewImage(picChinesePreview, e.Graphics, "中文", chineseItem.Color);
-                }
-            };
-            this.Controls.Add(picChinesePreview);
+                    Location = new Point(20 + (count == 0 ? 0 : (picPreviews[count - 1].Width + 20)), 40),
+                    // Location = new Point(20 + (int)(count * ((_appSettings.ImeColors[count].HintText.Length + 1) * 2 * HintFont.Size + 20)), 40),
+                    BorderStyle = BorderStyle.None,
+                    Font = HintFont
+                };
+                picPreview.Paint += (sender, e) =>
+                {
+                    DrawPreviewImage(picPreview, e.Graphics, item.HintText, item.Color);
+                };
+                picPreviews.Add(picPreview);
+                this.Controls.Add(picPreview);
+                count++;
+            }
 
-            // 创建英文预览图像
-            picEnglishPreview = new PictureBox
-            {
-                Location = new Point(190, 40),
-                BorderStyle = BorderStyle.None,
-                Font = HintFont
-            };
-            picEnglishPreview.Paint += (sender, e) =>
-            {
-                var englishItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "英文");
-                if (englishItem != null)
-                {
-                    DrawPreviewImage(picEnglishPreview, e.Graphics, "English", englishItem.Color);
-                }
-            };
-            this.Controls.Add(picEnglishPreview);
+            // 创建中文预览图像
+            // picChinesePreview = new PictureBox
+            // {
+            //     Location = new Point(20, 40),
+            //     BorderStyle = BorderStyle.None,
+            //     Font = HintFont
+            // };
+            // picChinesePreview.Paint += (sender, e) =>
+            // {
+            //     var chineseItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "中文");
+            //     if (chineseItem != null)
+            //     {
+            //         DrawPreviewImage(picChinesePreview, e.Graphics, "中文", chineseItem.Color);
+            //     }
+            // };
+            // this.Controls.Add(picChinesePreview);
+
+            // // 创建英文预览图像
+            // picEnglishPreview = new PictureBox
+            // {
+            //     Location = new Point(190, 40),
+            //     BorderStyle = BorderStyle.None,
+            //     Font = HintFont
+            // };
+            // picEnglishPreview.Paint += (sender, e) =>
+            // {
+            //     var englishItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "英文");
+            //     if (englishItem != null)
+            //     {
+            //         DrawPreviewImage(picEnglishPreview, e.Graphics, "English", englishItem.Color);
+            //     }
+            // };
+            // this.Controls.Add(picEnglishPreview);
 
             // 加载默认预览图像
             // UpdatePreviewImages();
@@ -217,8 +237,12 @@ namespace SmartIme.Forms
                 g.DrawString(text, HintFont, textBrush, ellipeWidth + 20, 3);
             }
 
-            picEnglishPreview.Left = picChinesePreview.Width + 30;
-            var w = picChinesePreview.Width + picEnglishPreview.Width + 60;
+            // picEnglishPreview.Left = picChinesePreview.Width + 30;
+            for (int i = 1; i < picPreviews.Count; i++)
+            {
+                picPreviews[i].Location = new Point(40 + (picPreviews[i - 1].Width), 40);
+            }
+            var w = picPreviews.Sum(pic => pic.Width) + 60;
             this.Width = w >= this.Width ? w : this.MinimumSize.Width;
             this.Height = 450 + (int)pictureBox.Height + 0;
             //this.panel1.Height = 400 + (int)FloatingHintFont.Size;
@@ -227,28 +251,34 @@ namespace SmartIme.Forms
 
         private void UpdatePreviewImages()
         {
+            for (int i = 0; i < picPreviews.Count; i++)
+            {
+                picPreviews[i].ForeColor = TexColorSameHintColor ? _imeColorItems[i].Color : HintTextColor;
+                picPreviews[i].Invalidate(); // 触发重绘
+            }
+
             // 更新中文预览图像
-            var chineseItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "中文");
-            if (chineseItem != null)
-            {
-                // picChinesePreview.BackColor = FloatingHintBackColor;
-                //     picChinesePreview.BackColor = Color.FromArgb(150 - (int)FloatingHintOpacity,
-                //    FloatingHintBackColor.R, FloatingHintBackColor.G, FloatingHintBackColor.B);
+            // var chineseItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "中文");
+            // if (chineseItem != null)
+            // {
+            //     // picChinesePreview.BackColor = FloatingHintBackColor;
+            //     //     picChinesePreview.BackColor = Color.FromArgb(150 - (int)FloatingHintOpacity,
+            //     //    FloatingHintBackColor.R, FloatingHintBackColor.G, FloatingHintBackColor.B);
 
-                // picChinesePreview.Font = FloatingHintFont;
-                picChinesePreview.ForeColor = TexColorSameHintColor ? chineseItem.Color : HintTextColor;
-                picChinesePreview.Invalidate(); // 触发重绘
-            }
+            //     // picChinesePreview.Font = FloatingHintFont;
+            //     picChinesePreview.ForeColor = TexColorSameHintColor ? chineseItem.Color : HintTextColor;
+            //     picChinesePreview.Invalidate(); // 触发重绘
+            // }
 
-            // 更新英文预览图像
-            var englishItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "英文");
-            if (englishItem != null)
-            {
-                // picEnglishPreview.BackColor = FloatingHintBackColor;
-                // picEnglishPreview.Font = FloatingHintFont;
-                picEnglishPreview.ForeColor = TexColorSameHintColor ? englishItem.Color : HintTextColor;
-                picEnglishPreview.Invalidate(); // 触发重绘
-            }
+            // // 更新英文预览图像
+            // var englishItem = _imeColorItems.FirstOrDefault(item => item.ImeName == "英文");
+            // if (englishItem != null)
+            // {
+            //     // picEnglishPreview.BackColor = FloatingHintBackColor;
+            //     // picEnglishPreview.Font = FloatingHintFont;
+            //     picEnglishPreview.ForeColor = TexColorSameHintColor ? englishItem.Color : HintTextColor;
+            //     picEnglishPreview.Invalidate(); // 触发重绘
+            // }
 
         }
 
@@ -257,14 +287,26 @@ namespace SmartIme.Forms
             // 添加输入法列
             var imeColumn = new DataGridViewTextBoxColumn
             {
-                Name = nameof(ImeColorItem.ImeName),
-                HeaderText = "输入法",
+                Name = nameof(ImeColorItem.LayoutName),
+                HeaderText = "键盘布局",
                 ReadOnly = true,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                //AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
                 MinimumWidth = 60,
-                DataPropertyName = nameof(ImeColorItem.ImeName)
+                DataPropertyName = nameof(ImeColorItem.LayoutName)
             };
             dgvHintColors.Columns.Add(imeColumn);
+
+            // 添加提示文本列
+            var hintColumn = new DataGridViewTextBoxColumn
+            {
+                Name = nameof(ImeColorItem.HintText),
+                HeaderText = "提示",
+                ReadOnly = false,
+                //AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                MinimumWidth = 60,
+                DataPropertyName = nameof(ImeColorItem.HintText)
+            };
+            dgvHintColors.Columns.Add(hintColumn);
 
             // 添加颜色预览列
             var colorPreviewColumn = new DataGridViewTextBoxColumn
@@ -273,7 +315,8 @@ namespace SmartIme.Forms
                 HeaderText = "颜色预览",
                 Width = 100,
                 ReadOnly = true,
-                DataPropertyName = nameof(ImeColorItem.Color)
+                DataPropertyName = nameof(ImeColorItem.Color),
+
             };
             colorPreviewColumn.DefaultCellStyle.Padding = new Padding(10);
             dgvHintColors.Columns.Add(colorPreviewColumn);
@@ -351,23 +394,23 @@ namespace SmartIme.Forms
             }
         }
 
-        private void LoadColorSettings()
-        {
-            foreach (var item in _imeColorItems)
-            {
-                if (ImeColors != null && ImeColors.TryGetValue(item.ImeName, out Color color))
-                {
-                    item.Color = color;
-                }
-                else
-                {
-                    // 设置默认颜色
-                    item.Color = GetDefaultColorForIme(item.ImeName);
-                }
-            }
-            dgvHintColors.Refresh();
-            // UpdatePreviewImages();
-        }
+        // private void LoadColorSettings()
+        // {
+        //     foreach (var item in _imeColorItems)
+        //     {
+        //         if (ImeColors != null && ImeColors.TryGetValue(item.ImeName, out Color color))
+        //         {
+        //             item.Color = color;
+        //         }
+        //         else
+        //         {
+        //             // 设置默认颜色
+        //             item.Color = GetDefaultColorForIme(item.ImeName);
+        //         }
+        //     }
+        //     dgvHintColors.Refresh();
+        //     // UpdatePreviewImages();
+        // }
 
         private Color GetDefaultColorForIme(string imeName)
         {
@@ -450,7 +493,8 @@ namespace SmartIme.Forms
                 if (_colorDialog.ShowDialog() == DialogResult.OK)
                 {
                     item.Color = _colorDialog.Color;
-                    ImeColors[item.ImeName] = item.Color;
+                    // ImeColors[item.ImeName] = item.Color;
+                    ImeColors.FirstOrDefault(x => x.LayoutName == item.LayoutName).Color = item.Color;
                     dgvHintColors.Refresh();
                     UpdatePreviewImages();
                 }
@@ -460,11 +504,11 @@ namespace SmartIme.Forms
         private void BtnOK_Click(object sender, EventArgs e)
         {
             // 保存颜色设置
-            ImeColors = new Dictionary<string, Color>();
-            foreach (var item in _imeColorItems)
-            {
-                ImeColors[item.ImeName] = item.Color;
-            }
+            // ImeColors = new Dictionary<string, Color>();
+            // foreach (var item in _imeColorItems)
+            // {
+            //     ImeColors[item.ImeName] = item.Color;
+            // }
 
             // 保存悬浮提示窗设置
             SaveFloatingHintSettings();
@@ -496,7 +540,7 @@ namespace SmartIme.Forms
             lblOpacityValue.Text = $"{trackOpacity.Value}%";
 
             // 设置字体预览
-            lblFontPreview.Text = $"{HintFont.Name}, {HintFont.Size}pt";
+            lblFontPreview.Text = $"{HintFont.Name}, {HintFont.Size:f2}pt,  {HintFont.Style}";
             //lblFontPreview.Font = FloatingHintFont;
             lblFontPreview.Top = label4.Top - (lblFontPreview.Height - label4.Height) / 2;
 
@@ -545,7 +589,7 @@ namespace SmartIme.Forms
             if (fontDialog.ShowDialog() == DialogResult.OK)
             {
                 HintFont = fontDialog.Font;
-                lblFontPreview.Text = $"{HintFont.Name}, {HintFont.Size}pt";
+                lblFontPreview.Text = $"{HintFont.Name}, {HintFont.Size:f2}pt, {HintFont.Style}";
                 // lblFontPreview.Font = FloatingHintFont;
                 lblFontPreview.Top = label4.Top - (lblFontPreview.Height - label4.Height) / 2;
             }
@@ -561,20 +605,39 @@ namespace SmartIme.Forms
                 lblTextColor.Text = convertColorName(HintTextColor);
             }
         }
+
+        private void dgvHintColors_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == 1)
+            {
+                _appSettings.ImeColors[e.RowIndex].HintText = _imeColorItems[e.RowIndex].HintText;
+            }
+        }
     }
 
     public class ImeColorItem : INotifyPropertyChanged
     {
         private string _imeName;
         private Color _color;
+        private string _hintText;
 
-        public string ImeName
+        public string LayoutName
         {
             get => _imeName;
             set
             {
                 _imeName = value;
                 OnPropertyChanged("ImeName");
+            }
+        }
+
+        public string HintText
+        {
+            get => _hintText;
+            set
+            {
+                _hintText = value;
+                OnPropertyChanged("HintText");
             }
         }
 

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 
 namespace SmartIme.Utilities
@@ -212,7 +211,7 @@ namespace SmartIme.Utilities
 
                 IntPtr hwnd = WinApi.GetForegroundWindow();
                 string newInputMethod = GetCurrentInputMethod(hwnd);
-                string newConversionMode = GetCurrentConversionMode(hwnd);
+                // string newConversionMode = GetCurrentConversionMode(hwnd);
 
                 // 调试输出
 
@@ -248,7 +247,7 @@ namespace SmartIme.Utilities
                     //}
 
                     currentInputMethod = newInputMethod;
-                    currentConversionMode = (newInputMethod == "英文") ? "" : newConversionMode;
+                    //currentConversionMode = (newInputMethod == "英文") ? "" : newConversionMode;
 
                     return true;
                 }
@@ -302,6 +301,14 @@ namespace SmartIme.Utilities
 
                 // 获取语言ID
                 uint langId = (uint)(keyboardLayout.ToInt64() & 0xFFFF);
+                var lanIdStr = "0x" + langId.ToString("X4");
+                string newConversionMode = GetCurrentConversionMode(foregroundWindow);
+                //如果是中文，判断中文模式
+                if (langId == 0x0804)
+                {
+                    lanIdStr += newConversionMode;
+                }
+                return lanIdStr;
 
                 StringBuilder langName = new StringBuilder(256);
                 int result = WinApi.GetLocaleInfo(langId, WinApi.LOCALE_SLANGUAGE, langName, langName.Capacity);
@@ -313,7 +320,7 @@ namespace SmartIme.Utilities
                 {
                     var lang = GetInputMethodNameById(langId, foregroundWindow);
 
-                    Debug.WriteLine($"{lang}");
+                    //Debug.WriteLine($"{lang}");
                     if (!string.IsNullOrEmpty(lang))
                     {
                         return lang;

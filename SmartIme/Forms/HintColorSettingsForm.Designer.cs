@@ -69,7 +69,7 @@ namespace SmartIme.Forms
             // btnOK
             // 
             btnOK.Anchor = AnchorStyles.Bottom;
-            btnOK.Location = new Point(121, 321);
+            btnOK.Location = new Point(137, 321);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(75, 30);
             btnOK.TabIndex = 1;
@@ -97,7 +97,7 @@ namespace SmartIme.Forms
             groupBox1.Location = new Point(12, 100);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new Padding(5);
-            groupBox1.Size = new Size(380, 207);
+            groupBox1.Size = new Size(413, 207);
             groupBox1.TabIndex = 17;
             groupBox1.TabStop = false;
             groupBox1.Text = "提示窗设置";
@@ -141,7 +141,7 @@ namespace SmartIme.Forms
             // btnBackColor
             // 
             btnBackColor.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBackColor.Location = new Point(299, 29);
+            btnBackColor.Location = new Point(332, 29);
             btnBackColor.Name = "btnBackColor";
             btnBackColor.Size = new Size(75, 30);
             btnBackColor.TabIndex = 4;
@@ -152,7 +152,7 @@ namespace SmartIme.Forms
             // btnTextColor
             // 
             btnTextColor.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnTextColor.Location = new Point(299, 165);
+            btnTextColor.Location = new Point(332, 165);
             btnTextColor.Name = "btnTextColor";
             btnTextColor.Size = new Size(75, 30);
             btnTextColor.TabIndex = 14;
@@ -202,7 +202,7 @@ namespace SmartIme.Forms
             // 
             lblOpacityValue.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblOpacityValue.AutoSize = true;
-            lblOpacityValue.Location = new Point(340, 82);
+            lblOpacityValue.Location = new Point(373, 82);
             lblOpacityValue.Name = "lblOpacityValue";
             lblOpacityValue.Size = new Size(33, 17);
             lblOpacityValue.TabIndex = 8;
@@ -211,7 +211,7 @@ namespace SmartIme.Forms
             // btnFont
             // 
             btnFont.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnFont.Location = new Point(299, 120);
+            btnFont.Location = new Point(332, 120);
             btnFont.Name = "btnFont";
             btnFont.Size = new Size(75, 30);
             btnFont.TabIndex = 11;
@@ -239,7 +239,7 @@ namespace SmartIme.Forms
             // btnCancel
             // 
             btnCancel.Anchor = AnchorStyles.Bottom;
-            btnCancel.Location = new Point(202, 321);
+            btnCancel.Location = new Point(218, 321);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(75, 30);
             btnCancel.TabIndex = 2;
@@ -251,6 +251,7 @@ namespace SmartIme.Forms
             // 
             dgvHintColors.AllowUserToAddRows = false;
             dgvHintColors.AllowUserToDeleteRows = false;
+            dgvHintColors.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
             dgvHintColors.BackgroundColor = SystemColors.InactiveBorder;
             dgvHintColors.BorderStyle = BorderStyle.None;
             dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -272,13 +273,12 @@ namespace SmartIme.Forms
             dgvHintColors.DefaultCellStyle = dataGridViewCellStyle2;
             dgvHintColors.Location = new Point(12, 3);
             dgvHintColors.Name = "dgvHintColors";
-            dgvHintColors.ReadOnly = true;
             dgvHintColors.RowHeadersVisible = false;
-            dgvHintColors.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
             dgvHintColors.ShowCellToolTips = false;
-            dgvHintColors.Size = new Size(380, 86);
+            dgvHintColors.Size = new Size(420, 86);
             dgvHintColors.TabIndex = 0;
             dgvHintColors.CellClick += DgvHintColors_CellClick;
+            dgvHintColors.CellEndEdit += dgvHintColors_CellEndEdit;
             // 
             // panel1
             // 
@@ -287,23 +287,23 @@ namespace SmartIme.Forms
             panel1.Controls.Add(btnCancel);
             panel1.Controls.Add(groupBox1);
             panel1.Controls.Add(btnOK);
-            panel1.Location = new Point(0, 58);
+            panel1.Location = new Point(0, 97);
             panel1.Margin = new Padding(0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(404, 363);
+            panel1.Size = new Size(437, 363);
             panel1.TabIndex = 18;
             // 
             // HintColorSettingsForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(404, 421);
+            ClientSize = new Size(437, 460);
             Controls.Add(label1);
             Controls.Add(panel1);
             Font = new Font("微软雅黑", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
             MaximizeBox = false;
             MinimizeBox = false;
-            MinimumSize = new Size(420, 460);
+            MinimumSize = new Size(450, 460);
             Name = "HintColorSettingsForm";
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;

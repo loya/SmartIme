@@ -19,7 +19,8 @@ namespace SmartIme.Models
         public Font HintFont { get; set; }
         public Color? HintBackColor { get; set; }
         public Color? HintTextColor { get; set; }
-        public Dictionary<string, Color> ImeColors { get; set; }
+        // public Dictionary<string, Color> ImeColors { get; set; }
+        public List<ImeColor> ImeColors { get; set; }
         public bool AlwayShowHint { get; set; }
 
         #region 方法
@@ -48,11 +49,12 @@ namespace SmartIme.Models
                     WindowSize = Size.Empty,
                     WindowLocation = Point.Empty,
                     WindowState = FormWindowState.Normal,
-                    ImeColors = new Dictionary<string, Color>()
-                    {
-                        { "中文",Color.Red },
-                        { "英文", Color.Lime},
-                    }
+                    // ImeColors = new Dictionary<string, Color>()
+                    // {
+                    //     { "中文",Color.Red },
+                    //     { "英文", Color.Lime},
+                    // },
+                    ImeColors = SetDefaultImeColors()
 
                 };
                 settings.Save();
@@ -63,11 +65,7 @@ namespace SmartIme.Models
             settings = JsonSerializer.Deserialize<AppSettings>(json, _options);
             if (settings.ImeColors == null || settings.ImeColors.Count == 0)
             {
-                settings.ImeColors = new Dictionary<string, Color>()
-                    {
-                        { "中文",Color.Red },
-                        { "英文", Color.Lime},
-                    };
+                settings.ImeColors = SetDefaultImeColors();
             }
             if (settings.HintFont == null)
             {
@@ -83,8 +81,49 @@ namespace SmartIme.Models
             File.WriteAllText(SettingsPath, json);
         }
 
+        private static List<ImeColor> SetDefaultImeColors()
+        {
+            List<ImeColor> imeColors = new List<ImeColor>();
+            foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
+            {
+                imeColors.Add(new ImeColor()
+                {
+                    LayoutName = lang.LayoutName,
+                    LangID = string.Format($"0x{lang.Handle & 0xFFFF:X4}"),
+                    Color = (lang.Handle & 0xFFFF) switch
+                    {
+                        0x0804 => Color.Red,
+                        0x0404 => Color.Red,
+                        0x0409 => Color.Lime,
+                        0x0809 => Color.Lime,
+                        _ => Color.White
+                    },
+                    HintText = (lang.Handle & 0xFFFF) switch
+                    {
+                        0x0804 => "中文",
+                        0x0404 => "中文(繁体)",
+                        0x0409 => "英文",
+                        0x0809 => "英文",
+                        0x0411 => "日语",
+                        0x0412 => "韩语",
+                        _ => lang.LayoutName
+                    },
+                });
+            }
+            ;
+            return imeColors;
+        }
 
         #endregion
 
+    }
+
+    public class ImeColor()
+    {
+        public string LayoutName { get; set; }
+        public string LangID { get; set; }
+
+        public Color Color { get; set; }
+        public string HintText { get; set; }
     }
 }
