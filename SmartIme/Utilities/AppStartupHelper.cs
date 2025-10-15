@@ -1,8 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32.TaskScheduler;
 using System.Diagnostics;
-using System.IO;
-using System.Windows.Forms;
-using Microsoft.Win32.TaskScheduler;
 
 namespace SmartIme.Utilities
 {
@@ -140,12 +137,18 @@ namespace SmartIme.Utilities
                     // 设置任务以最高权限运行（管理员权限）
                     taskDefinition.Principal.RunLevel = TaskRunLevel.Highest;
                     taskDefinition.Principal.LogonType = TaskLogonType.InteractiveToken;
+                    taskDefinition.Settings.RestartCount = 3;
+                    taskDefinition.Settings.RestartInterval = TimeSpan.FromSeconds(60);
 
                     // 设置任务在用户登录时触发
                     LogonTrigger logonTrigger = new LogonTrigger();
                     logonTrigger.Enabled = true;
                     // 设置延迟启动，避免系统启动时资源竞争
-                    logonTrigger.Delay = TimeSpan.FromSeconds(2000);
+                    logonTrigger.Delay = TimeSpan.FromSeconds(60);
+
+                    //BootTrigger bootTrigger = new BootTrigger();
+                    //bootTrigger.Enabled = true;
+                    //bootTrigger.Delay = TimeSpan.FromSeconds(2);
                     taskDefinition.Triggers.Add(logonTrigger);
 
                     // 设置任务操作：启动程序

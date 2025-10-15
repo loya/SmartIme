@@ -3,6 +3,10 @@ using SmartIme.Utilities.TSF;
 
 public class TSFWapper
 {
+    /// <summary>
+    /// 获取当前系统支持的语言列表
+    /// </summary>
+    /// <returns></returns>
     public static short[] GetLangIDs()
     {
         List<short> langIDs = new List<short>();
@@ -24,6 +28,12 @@ public class TSFWapper
         return langIDs.ToArray();
     }
 
+
+    /// <summary>
+    /// 获取指定语言的输入法列表
+    /// </summary>
+    /// <param name="langID"></param>
+    /// <returns></returns>
     public static string[] GetInputMethodList(short langID)
     {
         List<string> imeList = new List<string>();
@@ -66,9 +76,10 @@ public class TSFWapper
         return imeList.ToArray();
     }
 
-    ///
-    /// 获取当前输入法
-    ///
+    /// <summary>
+    /// 获取当前系统的语言
+    /// </summary>
+    /// <param name="lang"></param>
     public static void GetCurrentLang(out string[] lang)
     {
         List<short> langIDs = new List<short>();

@@ -90,7 +90,6 @@ namespace SmartIme
             // LoadCursorColorConfig();
 
             // 绑定事件处理程序
-            btnSwitchIme.Click += BtnSwitchIme_Click;
             btnAddApp.Click += BtnAddApp_Click;
             btnRemoveApp.Click += BtnRemoveApp_Click;
             this.FormClosing += MainForm_FormClosing;
@@ -140,7 +139,7 @@ namespace SmartIme
                     // 比较 InputLanguage 对象的 Handle 与给定的 HKL
                     if (lang.Handle == newLayout)
                     {
-                        Debug.WriteLine($"langId:{newLayout} 布局: {lang.LayoutName} 文化区域: {lang.Culture.Name}");
+                        // Debug.WriteLine($"langId:{newLayout} 布局: {lang.LayoutName} 文化区域: {lang.Culture.Name}");
                         break;
                     }
                 }
@@ -327,16 +326,14 @@ namespace SmartIme
         private bool MonitorInputMathChange()
         {
             var imeSwitched = CaretHelper.MonitorInputMethodSwitch(out string langIdStr, out _changeColorProcessName);
+
+
             if (imeSwitched && !string.IsNullOrEmpty(langIdStr))
             {
-                Debug.WriteLine($"\n\r监测输入法切换: {langIdStr} 进程: {_changeColorProcessName}");
+                Debug.WriteLine($"\n\r{DateTime.Now}:监测输入法切换: {langIdStr} 进程: {_changeColorProcessName}");
                 this.lblLog.Text = DateTime.Now.ToLongTimeString() + " --[输入法切换] " + langIdStr + " 进程: " + _changeColorProcessName;
                 _lastActiveApp = _changeColorProcessName;
                 ChangeCursorColorByIme(langIdStr);
-            }
-            else
-            {
-
             }
             return imeSwitched;
         }
@@ -351,7 +348,11 @@ namespace SmartIme
             {
                 var process = System.Diagnostics.Process.GetProcessById((int)processId);
                 string processName = process.ProcessName;
-                if (processName == "explorer") { return; }
+                //if (processName == "explorer")
+                //{
+                //    _lastActiveApp = "";
+                //    return;
+                //}
                 string controlName = null;
                 controlName = AppHelper.GetFocusedControlName();
                 string[] strings = new string[] { "menu", "popup", "bar" };
@@ -427,7 +428,9 @@ namespace SmartIme
                             // {
                             InputLanguage.CurrentInputLanguage = lang;
                             IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
-                            WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
+                            //WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
+                            Thread.Sleep(100);
+                            WinApi.PostMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                             // }
 
                             //ChangeCursorColorByIme(targetIme);
@@ -488,6 +491,10 @@ namespace SmartIme
 
         private void BtnSwitchIme_Click(object sender, EventArgs e)
         {
+            TestForm testForm = new TestForm();
+            testForm.ShowDialog();
+            return;
+
             IntPtr hWnd = WinApi.GetForegroundWindow();
             IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
 
@@ -781,9 +788,22 @@ namespace SmartIme
             {
                 return;
             }
+            var controlName = AppHelper.GetFocusedControlName();
+            ////if (string.IsNullOrEmpty(controlName))
+            ////{
+            ////    return;
+            ////}
+            string[] strings = new string[] { "TrayNotifyWnd", "menu", "popup", "bar", "afx" };
+            //Debug.WriteLine("lastcontrolName:" + _lastClassName);
+            //Debug.WriteLine("curcontrolName:" + controlName);
+            if (strings.Any(s => controlName.Contains(s, StringComparison.CurrentCultureIgnoreCase)))
+            {
+                return;
+            }
 
 
             // 检查是否在白名单中
+            Debug.WriteLine($"changcolorapp:{_changeColorProcessName} | lastApp:{_lastActiveApp}");
             if (_whitelistedApps.Any(app => app == _changeColorProcessName || app == _lastActiveApp))
             {
                 return;
@@ -803,7 +823,6 @@ namespace SmartIme
 
 
             Point displayPos = CaretHelper.GetBestFloatingHintPosition();
-
             // 验证和调整坐标
             displayPos = AppHelper.ValidateAndAdjustPosition(displayPos);
 
@@ -825,7 +844,7 @@ namespace SmartIme
             {
                 g.Clear(Color.Transparent);
 
-                if (_currentImeName == "中文(英)")
+                if (_currentImeName.Contains("(英)"))
                 {
                     g.Clear(Color.Transparent);
 
@@ -920,17 +939,18 @@ namespace SmartIme
             //    _currentImeName = langIdStr;
             //    return;
             //}
-            string activeProcessName = AppHelper.GetForegroundProcessName();
-            if (activeProcessName == "explorer")
-            {
-                return;
-            }
+
+            //string activeProcessName = AppHelper.GetForegroundProcessName();
+            //if (activeProcessName == "explorer")
+            //{
+            //    return;
+            //}
             //if (langIdStr != currentImeName && !string.IsNullOrEmpty(currentImeName))
             // 
             if (!string.IsNullOrEmpty(langIdStr))
             {
                 _currentImeName = langIdStr;
-                //因为中文设置的langIdStr有两种："0x0804" 和 "0x0804(英)"
+                //因为中文设置的langIdStr有两种："0x0804" 和 "0x0804(英)"所有用startsWith比较
                 var imeColor = _appSettings.ImeColors.FirstOrDefault(t => langIdStr.StartsWith(t.LangID));
                 ChangeCursorColor(imeColor.Color, langIdStr.Replace(imeColor.LangID, imeColor.HintText));
 

@@ -65,7 +65,7 @@ namespace SmartIme
             btnSwitchIme.TabIndex = 1;
             btnSwitchIme.Text = "切换输入法";
             btnSwitchIme.UseVisualStyleBackColor = true;
-            btnSwitchIme.Visible = false;
+            btnSwitchIme.Click += BtnSwitchIme_Click;
             // 
             // treeApps
             // 

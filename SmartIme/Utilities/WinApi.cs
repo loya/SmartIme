@@ -12,6 +12,9 @@ namespace SmartIme.Utilities
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern nint SendMessage(nint hWnd, uint Msg, nint wParam, nint lParam);
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern bool PostMessage(nint hWnd, uint Msg, nint wParam, nint lParam);
+
         // Window and Process APIs
         [DllImport("user32.dll")]
         public static extern nint GetForegroundWindow();
@@ -21,6 +24,12 @@ namespace SmartIme.Utilities
 
         [DllImport("user32.dll")]
         public static extern nint GetKeyboardLayout(uint idThread);
+
+        [DllImport("user32.dll")]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern bool IsWindowEnabled(IntPtr hWnd);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern int GetWindowText(nint hWnd, StringBuilder lpString, int nMaxCount);
@@ -66,6 +75,10 @@ namespace SmartIme.Utilities
 
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(nint hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
+            int X, int Y, int cx, int cy, uint uFlags);
 
         [DllImport("user32.dll")]
         public static extern bool IsIconic(nint hWnd);
@@ -124,6 +137,14 @@ namespace SmartIme.Utilities
 
         [DllImport("user32.dll")]
         public static extern uint GetWindowThreadProcessId(nint hWnd, IntPtr lpdwProcessId);
+        [DllImport("kernel32.dll")]
+        public static extern uint GetCurrentThreadId();
+
+        [DllImport("user32.dll")]
+        public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+        [DllImport("user32.dll")]
+        public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
+
 
         [DllImport("gdi32.dll")]
         public static extern nint GetStockObject(int fnObject);
@@ -145,6 +166,8 @@ namespace SmartIme.Utilities
         public const int PS_SOLID = 0;
         public const int NULL_BRUSH = 5;
         public const int WH_MOUSE_LL = 14;
+        public const byte VK_MENU = 0x12; // ALT 键
+        public const int KEYEVENTF_KEYUP = 0x0002;
         public const int WM_MOUSEMOVE = 0x0200;
         public const int WM_LBUTTONDOWN = 0x0201;
         public const int WM_LBUTTONUP = 0x0202;
@@ -166,6 +189,12 @@ namespace SmartIme.Utilities
         public const uint WM_IME_CONTROL = 0x0283;
         public const int IMC_GETOPENSTATUS = 0x0005;
         public const int IMC_GETCONVERSIONMODE = 0x0001;
+
+        public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        public static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+        public const uint SWP_NOMOVE = 0x0002;
+        public const uint SWP_NOSIZE = 0x0001;
+        public const uint SWP_SHOWWINDOW = 0x0040;
 
         // Delegates
         public delegate nint HookProc(int nCode, nint wParam, nint lParam);

@@ -83,6 +83,7 @@ namespace SmartIme.Utilities
                 //if (hWnd != IntPtr.Zero)
                 //{
                 element = automation.GetFocusedElement();
+
                 var automationId = string.IsNullOrEmpty(element.CurrentAutomationId) ? null : element.CurrentAutomationId;
                 var classname = string.IsNullOrEmpty(element.CurrentClassName) ? null : element.CurrentClassName;
                 var name = element.CurrentName;
@@ -201,6 +202,11 @@ namespace SmartIme.Utilities
             }
         }
 
+        /// <summary>
+        /// 验证并调整坐标
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
         public static Point ValidateAndAdjustPosition(Point position)
         {
             // 获取屏幕边界
@@ -298,6 +304,101 @@ namespace SmartIme.Utilities
             LogToFile($"最终调整坐标: {adjustedPosition}");
             return adjustedPosition;
         }
+
+        public static bool TryGetValidForegroundWindow(out IntPtr hWnd)
+        {
+            hWnd = GetForegroundWindow();
+            if (hWnd == IntPtr.Zero) return false;
+
+            // 检查窗口是否可见且启用
+            if (!WinApi.IsWindowVisible(hWnd) || !WinApi.IsWindowEnabled(hWnd)) return false;
+
+            // 可选：读取窗口标题，确认非系统内部窗口
+            var title = WinApi.GetWindowText(hWnd);
+            if (string.IsNullOrWhiteSpace(title))
+                return false;
+
+            // todo 可选：获取所属进程ID，避免操作系统服务窗口
+            // GetWindowThreadProcessId(hWnd, out uint pid);
+            // if (IsSystemProcess(pid)) return false;
+
+            return true;
+        }
+
+        private static bool IsSystemProcess(uint pid)
+        {
+            // 简化判断：排除常见系统PID范围
+            return pid < 1000;
+        }
+
+
+        /// <summary>
+        /// 强制将窗口置顶到前台
+        /// </summary>
+        /// <param name="hWnd"></param>
+        public static void ForceForegroundWindow(IntPtr hWnd)
+        {
+            IntPtr foreHwnd = GetForegroundWindow();
+            uint foreThread = GetWindowThreadProcessId(foreHwnd, IntPtr.Zero);
+            uint appThread = WinApi.GetCurrentThreadId();
+
+            // 将当前线程与前台线程的输入队列临时连接
+            WinApi.AttachThreadInput(appThread, foreThread, true);
+            SetForegroundWindow(hWnd);
+            AttachThreadInput(appThread, foreThread, false);
+        }
+
+        /// <summary>
+        /// 尝试将窗口强制置顶到前台。
+        /// </summary>
+        public static void BringWindowToFront(IntPtr hWnd)
+        {
+            if (hWnd == IntPtr.Zero)
+                return;
+
+            // 如果窗口被最小化，先恢复
+            ShowWindow(hWnd, SW_RESTORE);
+
+            // 尝试使用 AttachThreadInput 提升前台权限
+            IntPtr foreHwnd = GetForegroundWindow();
+            uint foreThread = GetWindowThreadProcessId(foreHwnd, IntPtr.Zero);
+            uint appThread = GetCurrentThreadId();
+
+            bool attached = false;
+            try
+            {
+                if (foreThread != appThread)
+                {
+                    attached = AttachThreadInput(appThread, foreThread, true);
+                }
+
+                // 尝试直接置顶
+                if (!SetForegroundWindow(hWnd))
+                {
+                    // 如果失败，尝试模拟 ALT 键
+                    keybd_event(VK_MENU, 0, 0, 0);
+                    SetForegroundWindow(hWnd);
+                    keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
+                }
+            }
+            finally
+            {
+                if (attached)
+                {
+                    AttachThreadInput(appThread, foreThread, false);
+                }
+            }
+
+            // 如果还是没置顶，强制用 SetWindowPos 物理置顶
+            SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+            SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+            // 再次尝试获取焦点
+            SetForegroundWindow(hWnd);
+        }
+
 
     }
 

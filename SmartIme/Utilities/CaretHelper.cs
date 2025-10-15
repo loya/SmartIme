@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace SmartIme.Utilities
@@ -16,6 +17,7 @@ namespace SmartIme.Utilities
             }
 
             Point cursorPos = Cursor.Position;
+
             return new Point(cursorPos.X + 15, cursorPos.Y - 40);
         }
 
@@ -39,9 +41,6 @@ namespace SmartIme.Utilities
             return TryGetCaretPositionWithRetry(hWnd);
         }
 
-
-
-
         private static Point? TryGetCaretPositionWithRetry(IntPtr hWnd)
         {
             System.Threading.Thread.Sleep(30);
@@ -52,16 +51,17 @@ namespace SmartIme.Utilities
                 return caretPos;
             }
 
-            // 如果GetGUIThreadInfo失败，回退到原来的GetCaretPos方法
+            //如果GetGUIThreadInfo失败，回退到原来的GetCaretPos方法
             for (int i = 0; i < 5; i++)
             {
                 if (WinApi.GetCaretPos(out Point caretPos2))
                 {
-                    if (caretPos2.X >= 0 && caretPos2.Y >= 0)
+                    if (caretPos2.X > 0 && caretPos2.Y > 0)
                     {
                         Point? screenPos = ConvertClientToScreen(hWnd, caretPos2);
                         if (screenPos.HasValue)
                         {
+                            Debug.WriteLine("screenPoint:" + caretPos);
                             return screenPos;
                         }
                     }
@@ -70,9 +70,11 @@ namespace SmartIme.Utilities
                 System.Threading.Thread.Sleep(30);
             }
 
-            return null;
-        }
+            caretPos = GetCaretPositionUsingUIAuto(hWnd);
+            Debug.WriteLine("UIAPoint:" + caretPos);
 
+            return caretPos;
+        }
 
         private static Point? GetCaretPositionUsingGUIThreadInfo(IntPtr hWnd)
         {
@@ -209,21 +211,24 @@ namespace SmartIme.Utilities
             {
                 var processNameTemp = AppHelper.GetForegroundProcessName();
 
+
                 IntPtr hwnd = WinApi.GetForegroundWindow();
+
                 string newInputMethod = GetCurrentInputMethod(hwnd);
-                // string newConversionMode = GetCurrentConversionMode(hwnd);
+
+                //string newConversionMode = GetCurrentConversionMode(hwnd);
+                //Debug.WriteLine(newConversionMode);
 
                 // 调试输出
 
                 //string winTitle = WinApi.GetWindowText(WinApi.GetForegroundWindow());
                 processName = AppHelper.GetForegroundProcessName();
-                if (processName == "explorer")
-                {
-                    // 如果是资源管理器，直接返回不处理
-                    newImeName = "";
-                    return false;
-                }
-
+                //if (processName == "explorer")
+                //{
+                //    // 如果是资源管理器，直接返回不处理
+                //    newImeName = "";
+                //    return false;
+                //}
                 if (!string.IsNullOrEmpty(newInputMethod) && newInputMethod != currentInputMethod)
                 {
                     newImeName = newInputMethod;
@@ -292,11 +297,10 @@ namespace SmartIme.Utilities
                 if (foregroundWindow == IntPtr.Zero) return "";
                 //打印foregroundWindow窗口名称
                 string windowTitle = WinApi.GetWindowText(foregroundWindow);
-                //Debug.WriteLine($"{DateTime.Now} {windowTitle}");
 
+                //todo bug：notepad获取的keyboardlayout不变
                 uint threadId = WinApi.GetWindowThreadProcessId(foregroundWindow, out uint processId);
                 IntPtr keyboardLayout = WinApi.GetKeyboardLayout(threadId);
-
                 if (keyboardLayout == IntPtr.Zero) return "";
 
                 // 获取语言ID
@@ -369,6 +373,62 @@ namespace SmartIme.Utilities
         internal static void SetCaretColor(Color color)
         {
             //todo: 实现插入符颜色更改功能
+        }
+
+        private static Point? GetCaretPositionUsingUIAuto(IntPtr hwnd)
+        {
+            var point = Point.Empty;
+            try
+            {
+
+                using (var automation = new FlaUI.UIA3.UIA3Automation())
+                {
+                    var element = automation.FocusedElement();
+                    if (element == null)
+                        return point;
+                    var text2 = element.Patterns.Text2.PatternOrDefault;
+
+                    if (text2 != null)
+                    {
+                        var caretRange = text2.GetCaretRange(out bool isActive);
+                        if (caretRange != null)
+                        {
+                            var rects = caretRange.GetBoundingRectangles(); // Rectangle[]
+                            var union = UnionRects(rects);
+                            if (union.HasValue && union != Rectangle.Empty)
+                                point = new Point(union.Value.X, union.Value.Y + union.Value.Height);
+                            return point;
+                        }
+                    }
+                    var text = element.Patterns.Text.PatternOrDefault;
+                    if (text != null)
+                    {
+                        var ranges = text.GetSelection();
+                        if (ranges != null && ranges.Length > 0)
+                        {
+                            var rects = ranges[0].GetBoundingRectangles();
+                            var union = UnionRects(rects);
+                            if (union.HasValue && union != Rectangle.Empty)
+                                point = new Point(union.Value.X, union.Value.Y + union.Value.Height);
+                            return point;
+                        }
+                    }
+                    return point;
+                }
+            }
+            catch
+            {
+                throw;
+            }
+
+        }
+
+        private static Rectangle? UnionRects(Rectangle[] rects)
+        {
+            if (rects == null || rects.Length == 0) return null;
+            Rectangle r = rects[0];
+            for (int i = 1; i < rects.Length; i++) r = Rectangle.Union(r, rects[i]);
+            return r;
         }
     }
 }

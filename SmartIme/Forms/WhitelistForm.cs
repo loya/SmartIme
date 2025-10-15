@@ -8,7 +8,7 @@ namespace SmartIme
     public partial class WhitelistForm : Form
     {
 
-        private readonly BindingList<WhitelistApp> whitelistedApps = new BindingList<WhitelistApp>();
+        private BindingList<WhitelistApp> whitelistedApps = new BindingList<WhitelistApp>();
         private readonly MainForm mainForm;
         private readonly JsonSerializerOptions options = new()
         {
@@ -57,8 +57,10 @@ namespace SmartIme
         {
             try
             {
+                var list = whitelistedApps.OrderBy(t => t.DisplayName).ToList();
+
                 string jsonPath = mainForm.GetWhitelistJsonPath();
-                string json = JsonSerializer.Serialize(whitelistedApps.ToList(), options);
+                string json = JsonSerializer.Serialize(list, options);
                 File.WriteAllText(jsonPath, json);
             }
             catch (Exception ex)
@@ -115,7 +117,9 @@ namespace SmartIme
                         DisplayName = appTitle,
                         Path = appPath
                     });
+
                     SaveWhitelist();
+                    LoadWhitelist();
                 }
                 else
                 {

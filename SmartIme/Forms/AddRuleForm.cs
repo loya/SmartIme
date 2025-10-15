@@ -226,7 +226,10 @@ namespace SmartIme
                 selectedControlClass = null;
                 var r = selectForm.ShowDialog();
                 hook.MouseClick -= OnMouseClick;
-                WinApi.SetForegroundWindow(this.Handle); // 恢复主窗口的焦点
+                // Thread.Sleep(1000);
+                var mainFormHandle = Process.GetCurrentProcess().MainWindowHandle;
+                // AppHelper.ForceForegroundWindow(mainFormHandle);
+                AppHelper.BringWindowToFront(mainFormHandle);
                 if (r == DialogResult.Cancel)
                 {
 
@@ -264,12 +267,13 @@ namespace SmartIme
             if (e.Button == MouseButtons.Left && !mouseClicked)
             {
                 // 使用ControlHelper获取焦点控件类名
-                Thread.Sleep(500); // 等待100毫秒，确保焦点已经切换
+                Thread.Sleep(1000); // 等待100毫秒，确保焦点已经切换
                 selectWindowProcessName = AppHelper.GetForegroundProcessName();
                 selectedControlClass = AppHelper.GetFocusedControlName();
                 mouseClicked = true;
-                selectForm.Close();
+
                 selectForm.DialogResult = DialogResult.OK;
+                selectForm.Close();
                 //if (selectWindowProcessName != AppName)
                 //{
                 //    MessageBox.Show($"选择控件的窗口不是目标窗口，请重新选择;【{selectWindowProcessName}】！=【{AppName}】");

@@ -25,6 +25,9 @@
     <Compile Update="Forms\PromptDialog.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\TestForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\WhitelistForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -11,6 +11,12 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="setting\**" />
+    <EmbeddedResource Remove="setting\**" />
+    <None Remove="setting\**" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <Content Include="app.manifest">
@@ -23,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
     <PackageReference Include="Interop.UIAutomationClient" Version="10.19041.0" />
     <PackageReference Include="TaskScheduler" Version="2.12.2" />
   </ItemGroup>
@@ -35,10 +42,6 @@
     <EmbeddedResource Update="Forms\WhitelistForm.resx">
       <DependentUpon>WhitelistForm.cs</DependentUpon>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="setting\" />
   </ItemGroup>
 
 </Project>
