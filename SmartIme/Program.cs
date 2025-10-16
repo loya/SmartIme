@@ -34,11 +34,15 @@ namespace SmartIme
                     Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings"));
                 }
 
-                // 处理命令行参数
-                bool startMinimized = args.Length > 0 && args.Contains("-minimized", StringComparer.OrdinalIgnoreCase);
-
-
                 var mainForm = new MainForm();
+                
+                // 检查是否需要启动时最小化 - 优先检查命令行参数，然后检查设置
+                bool startMinimized = args.Length > 0 && args.Contains("-minimized", StringComparer.OrdinalIgnoreCase);
+                if (!startMinimized)
+                {
+                    // 如果没有命令行参数，则检查设置
+                    startMinimized = mainForm.AppSettings.StartMinimized;
+                }
 
                 // 如果指定了-minimized参数，则启动时最小化到托盘
                 if (startMinimized)

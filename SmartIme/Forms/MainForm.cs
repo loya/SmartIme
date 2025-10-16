@@ -23,6 +23,9 @@ namespace SmartIme
         // 全局AppSettings字段
         private AppSettings _appSettings;
 
+        // 公共属性以访问_appSettings
+        public AppSettings AppSettings => _appSettings;
+
         // 光标颜色配置
         // private Dictionary<string, Color> _imeColors = new();
         private string _currentImeName = "";
@@ -199,6 +202,17 @@ namespace SmartIme
                 startupItem.Checked = AppStartupHelper.IsAppSetToStartup();
             };
             _trayMenu.Items.Add(startupItem);
+
+            // 添加启动最小化菜单项
+            var startMinimizedItem = new ToolStripMenuItem("启动最小化");
+            startMinimizedItem.CheckOnClick = true;
+            startMinimizedItem.Checked = _appSettings.StartMinimized;
+            startMinimizedItem.Click += (s, e) =>
+            {
+                _appSettings.StartMinimized = startMinimizedItem.Checked;
+                _appSettings.Save();
+            };
+            _trayMenu.Items.Add(startMinimizedItem);
 
             _trayMenu.Items.Add("-");
 

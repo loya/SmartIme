@@ -15,6 +15,7 @@ namespace SmartIme.Models
         public double HintOpacity { get; set; }
         public bool TextColorSameHintColor { get; set; }
         public int DefaultIme { get; set; }
+        public bool StartMinimized { get; set; }
 
         public Font HintFont { get; set; }
         public Color? HintBackColor { get; set; }
@@ -46,6 +47,7 @@ namespace SmartIme.Models
                     HintTextColor = Color.White,
                     TextColorSameHintColor = false,
                     DefaultIme = 0,
+                    StartMinimized = false,
                     WindowSize = Size.Empty,
                     WindowLocation = Point.Empty,
                     WindowState = FormWindowState.Normal,
