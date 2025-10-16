@@ -1,5 +1,6 @@
 using Interop.UIAutomationClient;
 using SmartIme.Models;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using static SmartIme.Utilities.WinApi;
@@ -43,59 +44,38 @@ namespace SmartIme.Utilities
             IUIAutomationElement element = null;
             try
             {
-                // // 获取鼠标位置
-                // Point mousePos;
-                // GetCursorPos(out mousePos);
 
-                // // 尝试获取焦点控件
-                // IntPtr hFocus = GetFocus();
-                // IntPtr hWnd;
 
-                // if (hFocus != IntPtr.Zero)
-                // {
-                //     // 使用焦点控件
-                //     hWnd = hFocus;
-                // }
-                // else
-                // {
-                //     // 如果没有焦点控件，使用鼠标下的窗口
-                //     hWnd = WindowFromPoint(mousePos);
-
-                //     // 尝试获取更精确的子控件
-                //     IntPtr hParent = GetActiveWindow();
-                //     if (hParent != IntPtr.Zero)
-                //     {
-                //         // 将屏幕坐标转换为窗口客户区坐标
-                //         POINT clientPoint = new POINT { x = mousePos.X, y = mousePos.Y };
-                //         ScreenToClient(hParent, ref clientPoint);
-
-                //         // 获取指定坐标下的子控件
-                //         IntPtr hChild = ChildWindowFromPointEx(hParent,
-                //             new Point(clientPoint.x, clientPoint.y), CWP_SKIPINVISIBLE);
-
-                //         if (hChild != IntPtr.Zero && hChild != hParent)
-                //         {
-                //             hWnd = hChild;
-                //         }
-                //     }
-                // }
-
-                //if (hWnd != IntPtr.Zero)
-                //{
                 element = automation.GetFocusedElement();
 
                 var automationId = string.IsNullOrEmpty(element.CurrentAutomationId) ? null : element.CurrentAutomationId;
                 var classname = string.IsNullOrEmpty(element.CurrentClassName) ? null : element.CurrentClassName;
                 var name = element.CurrentName;
-                return ((string.IsNullOrEmpty(name) ? "" : $"{name}:") +
-                    (string.IsNullOrEmpty(classname) ? "" : $"{classname}:") +
-                    (string.IsNullOrEmpty(automationId) ? "" : $"{automationId}")).TrimEnd(':');
+                var className = ((string.IsNullOrEmpty(name) ? "" : $"{name}:") +
+                        (string.IsNullOrEmpty(classname) ? "" : $"{classname}:") +
+                        (string.IsNullOrEmpty(automationId) ? "" : $"{automationId}")).TrimEnd(':');
+                if (!string.IsNullOrEmpty(className))
+                {
+                    return className;
+                }
 
-                // 获取控件类名
-                //var windowText = new StringBuilder(256);
-                //GetClassName(hWnd, windowText, windowText.Capacity);
-                //return windowText.ToString();
-                //}
+                // 获取鼠标位置
+                GetCursorPos(out Point mousePos);
+
+                // 尝试获取焦点控件
+                var hWnd = GetGlobalFocusWindow();
+
+                if (hWnd != IntPtr.Zero)
+                {
+                    className = GetWindowClassName(hWnd);
+                    if (!string.IsNullOrEmpty(className))
+                    {
+                        return className;
+                    }
+                }
+                return string.Empty;
+
+
             }
             catch (Exception ex)
             {

@@ -367,20 +367,21 @@ namespace SmartIme
                 //    _lastActiveApp = "";
                 //    return;
                 //}
-                string controlName = null;
-                controlName = AppHelper.GetFocusedControlName();
+                string controlName = AppHelper.GetFocusedControlName();
+
+                string windowTitle = process.MainWindowTitle;
+                // Debug.WriteLine($"\n\r{DateTime.Now}:监测窗口切换: {processName}| {windowTitle}| {controlName}");
                 string[] strings = new string[] { "menu", "popup", "bar" };
                 if (strings.Any(s => controlName.Contains(s, StringComparison.CurrentCultureIgnoreCase)))
                 {
                     return;
                 }
 
-                string windowTitle = process.MainWindowTitle;
 
                 Rule matchedRule = FindMatchingRule(processName, windowTitle, controlName);
                 if (processName == _lastActiveApp)
                 {
-                    controlName = AppHelper.GetFocusedControlName();
+                    // controlName = AppHelper.GetFocusedControlName();
 
                     if (controlName == _lastClassName)
                     {
@@ -403,7 +404,12 @@ namespace SmartIme
                 else
                 {
                     // 切换窗口立即关闭提示窗
-                    if (processName != _lastActiveApp) { _hintForm?.Close(); _hintForm = null; }
+                    if (processName != _lastActiveApp)
+                    {
+                        _hintForm?.Close();
+                        _hintForm?.Dispose();
+                        _hintForm = null;
+                    }
 
                     isAppChagned = true;
                 }
@@ -417,7 +423,7 @@ namespace SmartIme
                 _lastActiveApp = processName;
                 _lastClassName = controlName;
 
-                windowTitle = WinApi.GetWindowText(hWnd);
+                // windowTitle = WinApi.GetWindowText(hWnd);
                 lblLog.Text = DateTime.Now.ToLongTimeString() + " --[焦点控件] " + controlName ?? processName ?? windowTitle;
 
                 if (string.IsNullOrEmpty(controlName))
@@ -803,10 +809,12 @@ namespace SmartIme
                 return;
             }
             var controlName = AppHelper.GetFocusedControlName();
+
             ////if (string.IsNullOrEmpty(controlName))
             ////{
             ////    return;
             ////}
+
             string[] strings = new string[] { "TrayNotifyWnd", "menu", "popup", "bar", "afx" };
             //Debug.WriteLine("lastcontrolName:" + _lastClassName);
             //Debug.WriteLine("curcontrolName:" + controlName);
@@ -845,10 +853,14 @@ namespace SmartIme
             // 根据SameHintColor设置决定提示窗文本颜色
             Color textColor = _appSettings.TextColorSameHintColor ? color : _appSettings.HintTextColor.Value;
 
+            _hintForm?.Close();
+            _hintForm?.Dispose();
+            _hintForm = null;
             _hintForm = new FloatingHintForm(color, imeName, backColor, _appSettings.HintOpacity, _appSettings.HintFont, textColor);
             _hintForm.Location = displayPos;
             _hintForm.Show();
             // _currentHintForm = hintForm;
+
         }
 
         private void UpdateTrayIconColor(Color color)

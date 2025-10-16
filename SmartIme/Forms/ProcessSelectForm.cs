@@ -58,11 +58,11 @@ namespace SmartIme.Forms
             this.Controls.Add(btnSelect);
             this.Controls.Add(btnCancel);
 
-            processes = Process.GetProcesses()
-                .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
+            processes = [.. Process.GetProcesses().DistinctBy(p => p.ProcessName)
+                // .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
                 .Where(p => existingApps == null || !existingApps.Contains(p.ProcessName))
-                .OrderBy(p => p.ProcessName)
-                .ToArray();
+                
+                .OrderBy(p => p.ProcessName)];
 
             foreach (var process in processes)
             {
@@ -76,7 +76,7 @@ namespace SmartIme.Forms
                 {
                     try
                     {
-                        lstProcesses.Items.Add($"{process.ProcessName} - {process.MainWindowTitle}");
+                        lstProcesses.Items.Add($"{process.ProcessName} ");
                     }
                     catch
                     {
