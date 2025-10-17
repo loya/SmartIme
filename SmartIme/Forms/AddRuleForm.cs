@@ -140,7 +140,7 @@ namespace SmartIme
             }
             else
             {
-                txtName.Text = Rule.CreateDefaultName(AppName, RuleType.窗口标题);
+                txtName.Text = Rule.CreateDefaultName(AppName, RuleType.程序名称);
                 btnSelectProcess.Text = "选择应用程序";
                 txtContent.Text = AppName;
                 btnSelectProcess.Visible = false;

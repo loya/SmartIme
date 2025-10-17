@@ -83,7 +83,7 @@ namespace SmartIme
             TreeNodefont = new Font(treeApps.Font.FontFamily, 11, FontStyle.Regular);
 
             // 加载保存的应用设置
-            loadAppSetting();
+            LoadAppSetting();
 
             InitializeImeList();
             CheckForIllegalCrossThreadCalls = false;
@@ -131,23 +131,23 @@ namespace SmartIme
             //SetupMonitor();
             _ = MonitorSystemAsync(_cancellationTokenSource.Token);
 
+            //测试代码
+            // _watcher = new GlobalKeyboardLayoutWatcher();
+            // _watcher.KeyboardLayoutChanged += (newLayout) =>
+            // {
+            //     // 在这里更新UI，显示新的输入法信息
+            //     // newLayout 是键盘布局的句柄，你可以通过 InputLanguage.FromHkl(newLayout) 获取更多信息
+            //     foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
+            //     {
+            //         // 比较 InputLanguage 对象的 Handle 与给定的 HKL
+            //         if (lang.Handle == newLayout)
+            //         {
+            //             // Debug.WriteLine($"langId:{newLayout} 布局: {lang.LayoutName} 文化区域: {lang.Culture.Name}");
+            //             break;
+            //         }
+            //     }
 
-            _watcher = new GlobalKeyboardLayoutWatcher();
-            _watcher.KeyboardLayoutChanged += (newLayout) =>
-            {
-                // 在这里更新UI，显示新的输入法信息
-                // newLayout 是键盘布局的句柄，你可以通过 InputLanguage.FromHkl(newLayout) 获取更多信息
-                foreach (InputLanguage lang in InputLanguage.InstalledInputLanguages)
-                {
-                    // 比较 InputLanguage 对象的 Handle 与给定的 HKL
-                    if (lang.Handle == newLayout)
-                    {
-                        // Debug.WriteLine($"langId:{newLayout} 布局: {lang.LayoutName} 文化区域: {lang.Culture.Name}");
-                        break;
-                    }
-                }
-
-            };
+            // };
 
         }
 
@@ -159,7 +159,7 @@ namespace SmartIme
         /// Loads application settings from AppSettings.json file using the new settings system.
         /// Previously, settings were stored in the legacy Properties.Settings system which has been migrated.
         /// </summary>
-        public void loadAppSetting()
+        public void LoadAppSetting()
         {
             // 加载AppSettings并保存为全局字段
             _appSettings = AppSettings.Load();
@@ -800,6 +800,8 @@ namespace SmartIme
             _hintForm?.Close();
             _hintForm?.Dispose();
             _hintForm = null;
+            // Debug.WriteLine($"changcolorapp:{_changeColorProcessName} | lastApp:{_lastActiveApp}");
+
             if (string.IsNullOrEmpty(_changeColorProcessName) || string.IsNullOrEmpty(_lastActiveApp))
             {
                 return;
@@ -815,17 +817,16 @@ namespace SmartIme
             ////    return;
             ////}
 
-            string[] strings = new string[] { "TrayNotifyWnd", "menu", "popup", "bar", "afx" };
-            //Debug.WriteLine("lastcontrolName:" + _lastClassName);
-            //Debug.WriteLine("curcontrolName:" + controlName);
-            if (strings.Any(s => controlName.Contains(s, StringComparison.CurrentCultureIgnoreCase)))
+            string[] strings = ["TrayNotifyWnd", "menu", "popup", "afx"];
+            // Debug.WriteLine("lastcontrolName:" + _lastClassName);
+            // Debug.WriteLine("curcontrolName:" + controlName);
+            if (strings.Any(s => controlName.Contains(s, StringComparison.OrdinalIgnoreCase)))
             {
                 return;
             }
 
 
             // 检查是否在白名单中
-            Debug.WriteLine($"changcolorapp:{_changeColorProcessName} | lastApp:{_lastActiveApp}");
             if (_whitelistedApps.Any(app => app == _changeColorProcessName || app == _lastActiveApp))
             {
                 return;
@@ -842,6 +843,7 @@ namespace SmartIme
             //    currentHintForm.Dispose();
             //    currentHintForm = null;
             //}
+            // Debug.WriteLine($"changcolorapp:{_changeColorProcessName} | lastApp:{_lastActiveApp}");
 
 
             Point displayPos = CaretHelper.GetBestFloatingHintPosition();

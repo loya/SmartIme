@@ -44,7 +44,7 @@ namespace SmartIme.Forms
             };
 
 
-            lstProcesses = new ListBox
+            lstProcesses = new CustomListBox
             {
                 Left = 0,
                 Top = 0,
@@ -61,15 +61,15 @@ namespace SmartIme.Forms
             processes = [.. Process.GetProcesses().DistinctBy(p => p.ProcessName)
                 // .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
                 .Where(p => existingApps == null || !existingApps.Contains(p.ProcessName))
-                
+
                 .OrderBy(p => p.ProcessName)];
 
             foreach (var process in processes)
             {
                 try
                 {
-                    //lstProcesses.Items.Add($"{process.ProcessName} - {process.MainModule?.ModuleName}");
-                    lstProcesses.Items.Add($"{process.ProcessName} - {process.MainWindowTitle}");
+                    // lstProcesses.Items.Add($"{process.ProcessName} - {process.MainModule?.ModuleName}");
+                    lstProcesses.Items.Add($"{process.ProcessName} - {process.MainWindowTitle} ({process.MainModule?.FileName})");
 
                 }
                 catch
@@ -91,11 +91,11 @@ namespace SmartIme.Forms
                 btnSelect.Width = (this.ClientSize.Width - 60) / 2;
                 btnSelect.Left = 20;
                 btnSelect.Top = this.ClientSize.Height - btnSelect.Height - 16;
-                
+
                 btnCancel.Width = (this.ClientSize.Width - 60) / 2;
                 btnCancel.Left = btnSelect.Right + 20;
                 btnCancel.Top = this.ClientSize.Height - btnCancel.Height - 16;
-                
+
                 lstProcesses.Width = this.ClientSize.Width;
                 lstProcesses.Height = btnSelect.Top;
             };

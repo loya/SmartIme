@@ -17,7 +17,7 @@ namespace SmartIme
 
         private void InitializeComponent()
         {
-            listWhitelist = new ListBox();
+            listWhitelist = new CustomListBox();
             btnAddApp = new Button();
             btnRemoveApp = new Button();
             btnClose = new Button();
@@ -125,7 +125,7 @@ namespace SmartIme
 
         #endregion
 
-        private System.Windows.Forms.ListBox listWhitelist;
+        private CustomListBox listWhitelist;
         private System.Windows.Forms.Button btnAddApp;
         private System.Windows.Forms.Button btnRemoveApp;
         private System.Windows.Forms.Button btnClose;
