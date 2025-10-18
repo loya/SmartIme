@@ -16,9 +16,9 @@ namespace SmartIme
             {
                 // 提示用户需要管理员权限
                 var result = MessageBox.Show(
-                    "此应用程序需要管理员权限才能正常工作。\n\n单击“是”将以管理员权限重新启动应用程序。\n\n单击“否”将退出应用程序。", 
-                    "需要管理员权限", 
-                    MessageBoxButtons.YesNo, 
+                    "此应用程序需要管理员权限才能正常工作。\n\n单击“是”将以管理员权限重新启动应用程序。\n\n单击“否”将退出应用程序。",
+                    "需要管理员权限",
+                    MessageBoxButtons.YesNo,
                     MessageBoxIcon.Warning);
 
                 if (result == DialogResult.Yes)
@@ -58,7 +58,7 @@ namespace SmartIme
                 }
 
                 var mainForm = new MainForm();
-                
+
                 // 检查是否需要启动时最小化 - 优先检查命令行参数，然后检查设置
                 bool startMinimized = args.Length > 0 && args.Contains("-minimized", StringComparer.OrdinalIgnoreCase);
                 if (!startMinimized)
@@ -68,13 +68,13 @@ namespace SmartIme
                 }
 
                 // 如果指定了-minimized参数，则启动时最小化到托盘
-                if (startMinimized)
-                {
-                    mainForm.WindowState = FormWindowState.Minimized;
-                    mainForm.ShowInTaskbar = false;
-                    // mainForm.Hide();
-                }
+                // if (startMinimized)
+                // {
+                //     mainForm.WindowState = FormWindowState.Minimized;
+                //     mainForm.ShowInTaskbar = false;
+                // }
 
+                mainForm.StartMinimized = startMinimized; ;
                 Application.Run(mainForm);
             }
             finally

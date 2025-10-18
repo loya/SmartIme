@@ -156,7 +156,7 @@ namespace SmartIme
                     _appRuleGroupNode.Nodes.Clear();
                     foreach (var rule in _originalEditAppRuleGroup.Rules)
                     {
-                        AppHelper.AddRuleNodeToGroup(_appRuleGroupNode, rule, MainForm.TreeNodefont);
+                        AppHelper.AddRuleNodeToGroup(_appRuleGroupNode, rule, MainForm._treeNodefont);
                     }
                     _appRuleGroupNode.Expand();
                 }

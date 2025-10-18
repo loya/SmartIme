@@ -10,10 +10,10 @@ namespace SmartIme
 {
     public partial class MainForm : Form
     {
-        private GlobalKeyboardLayoutWatcher _watcher;
+        private bool? _startMinimized;
+        bool _firstShow = true;
         public BindingList<AppRuleGroup> AppRuleGroups = new();
-        public Font TreeNodefont;
-
+        public Font _treeNodefont;
         private readonly int _monitorInterval = 50; // 监测间隔，单位毫秒
         private CancellationTokenSource _cancellationTokenSource = new();
         private NotifyIcon _trayIcon;
@@ -40,7 +40,7 @@ namespace SmartIme
         private string _lastClassName = string.Empty;
 
         private FormWindowState _lastWindowState;
-        // private bool _InputMethodChanged = false;
+        bool _showDeleteConfirm = true;
 
         #region 属性
 
@@ -55,9 +55,23 @@ namespace SmartIme
         }
         public string SettingsDir => Path.Combine(AppDirectory, "settings");
 
+        public bool StartMinimized
+        {
+            get
+            {
+                if (_startMinimized == null)
+                {
+                    _startMinimized = _appSettings.StartMinimized;
+                }
+                return _startMinimized.Value;
+            }
+            set => _startMinimized = value;
+        }
+
         #endregion
 
         #region 获取设置文件路径方法
+
 
 
         public string GetRulesJsonPath()
@@ -80,7 +94,7 @@ namespace SmartIme
             this.Icon = Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico") != null ?
                 new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico")) :
                 SystemIcons.Application;
-            TreeNodefont = new Font(treeApps.Font.FontFamily, 11, FontStyle.Regular);
+            _treeNodefont = new Font(treeApps.Font.FontFamily, 11, FontStyle.Regular);
 
             // 加载保存的应用设置
             LoadAppSetting();
@@ -105,7 +119,7 @@ namespace SmartIme
                 else
                 {
                     _lastWindowState = this.WindowState;
-                    this.ShowInTaskbar = true;
+                    // this.ShowInTaskbar = true;
                 }
             };
             treeApps.KeyPress += (s, e) =>
@@ -243,6 +257,23 @@ namespace SmartIme
             };
         }
 
+        // protected override CreateParams CreateParams
+        // {
+        //     get
+        //     {
+        //         const int WS_EX_TOOLWINDOW = 0x00000080;
+        //         CreateParams cp = base.CreateParams;
+        //         cp.ExStyle |= WS_EX_TOOLWINDOW;
+        //         return cp;
+        //     }
+        // }
+        // protected override void OnShown(EventArgs e)
+        // {
+        //     base.OnShown(e);
+
+        // }
+
+
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             // 保存设置 to the new AppSettings.json file
@@ -267,13 +298,7 @@ namespace SmartIme
             // SaveCursorColorConfig();
 
             settings.Save();
-
-            //monitorTimer.Stop();
-            // 修复 SYSLIB0006: 不再使用 thread.Abort()，改为安全地请求线程停止
-            // if (thread != null && thread.IsAlive)
-            // {
-            //     thread.Interrupt();
-            // }
+            _trayIcon?.Dispose();
         }
 
         public void SaveRulesToJson(bool updateTreeView = true)
@@ -596,7 +621,7 @@ namespace SmartIme
             }
         }
 
-        bool _showDeleteConfirm = true;
+
         private void BtnRemoveApp_Click(object sender, EventArgs e)
         {
             if (treeApps.SelectedNode != null)
@@ -670,7 +695,7 @@ namespace SmartIme
 
                 foreach (var rule in group.Rules)
                 {
-                    AppHelper.AddRuleNodeToGroup(groupNode, rule, TreeNodefont);
+                    AppHelper.AddRuleNodeToGroup(groupNode, rule, _treeNodefont);
                 }
                 groupNode.Expand();
             }
@@ -1058,6 +1083,23 @@ namespace SmartIme
         {
             //this._alwayShowHint = chkAlwayShowHint.Checked;
             _appSettings.AlwayShowHint = chkAlwayShowHint.Checked;
+        }
+
+
+        protected override void SetVisibleCore(bool value)
+        {
+            // 防止窗口在启动时闪现
+            if (!IsHandleCreated && _firstShow && _appSettings.StartMinimized)
+            {
+                CreateHandle();
+                _firstShow = false;
+                value = false;
+            }
+            // else
+            // {
+            //     value = true;
+            // }
+            base.SetVisibleCore(value);
         }
     }
 }
