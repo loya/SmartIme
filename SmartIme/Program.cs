@@ -11,6 +11,29 @@ namespace SmartIme
         [STAThread]
         static void Main(string[] args)
         {
+            // 检查是否以管理员权限运行
+            if (!AdminHelper.IsAdministrator())
+            {
+                // 提示用户需要管理员权限
+                var result = MessageBox.Show(
+                    "此应用程序需要管理员权限才能正常工作。\n\n单击“是”将以管理员权限重新启动应用程序。\n\n单击“否”将退出应用程序。", 
+                    "需要管理员权限", 
+                    MessageBoxButtons.YesNo, 
+                    MessageBoxIcon.Warning);
+
+                if (result == DialogResult.Yes)
+                {
+                    // 以管理员权限重新启动
+                    AdminHelper.RestartAsAdministrator();
+                    return;
+                }
+                else
+                {
+                    // 用户选择不以管理员权限运行，则退出程序
+                    return;
+                }
+            }
+
             // 检查应用程序是否已经在运行
             bool createdNew;
             _mutex = new Mutex(true, MutexName, out createdNew);
