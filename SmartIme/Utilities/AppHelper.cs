@@ -80,7 +80,7 @@ namespace SmartIme.Utilities
             catch (Exception ex)
             {
                 // 忽略所有异常，返回空字符串
-                AppHelper.LogToFile($"GetFocusedControlName 异常: {ex.Message}", "error", true);
+                AppHelper.LogToFile($"GetFocusedControlName 异常: {ex.Message}({ex.TargetSite})", "error", true);
                 return string.Empty;
             }
             finally
@@ -167,9 +167,11 @@ namespace SmartIme.Utilities
 
         public static void LogToFile(string message, string level = "info", bool foceDebug = false)
         {
-#if !DEBUG && !foceDebug
+#if !DEBUG
             return; // 非调试模式下不记录日志
 #endif
+            if (foceDebug == false && level != "error")
+                return;
             try
             {
                 string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "position_debug.log");

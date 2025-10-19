@@ -416,9 +416,11 @@ namespace SmartIme.Utilities
                     return point;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                AppHelper.LogToFile($"{ex.Message}({ex.TargetSite})", "error", true);
+                return Point.Empty;
+                // throw;
             }
 
         }
