@@ -6,7 +6,9 @@ namespace SmartIme.Forms
     {
         private ListBox lstProcesses;
         private Button btnSelect;
+        private TextBox txtFilter; // 过滤输入框
         private readonly Process[] processes;
+        private Process[] filteredProcesses; // 过滤后的进程数组
         public Process SelectedProcess { get; private set; }
         public string SelectedProcessDisplayName { get; private set; }
 
@@ -19,6 +21,17 @@ namespace SmartIme.Forms
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+
+            // 创建过滤输入框
+            txtFilter = new TextBox
+            {
+                Left = 20,
+                Top = 10,
+                Width = this.ClientSize.Width - 40,
+                Height = 25,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+            txtFilter.TextChanged += TxtFilter_TextChanged;
 
             btnSelect = new Button
             {
@@ -47,13 +60,14 @@ namespace SmartIme.Forms
             lstProcesses = new CustomListBox
             {
                 Left = 0,
-                Top = 0,
+                Top = txtFilter.Bottom + 10, // 调整位置以适应过滤框
                 Width = this.ClientSize.Width,
-                Height = this.ClientSize.Height - btnSelect.Height - 16, // 留出按钮和底部间距
+                Height = this.ClientSize.Height - btnSelect.Height - txtFilter.Height - 30 - 16, // 调整高度
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
             };
             lstProcesses.DoubleClick += (s, e) => btnSelect.PerformClick();
 
+            this.Controls.Add(txtFilter);
             this.Controls.Add(lstProcesses);
             this.Controls.Add(btnSelect);
             this.Controls.Add(btnCancel);
@@ -64,7 +78,35 @@ namespace SmartIme.Forms
 
                 .OrderBy(p => p.ProcessName)];
 
-            foreach (var process in processes)
+            filteredProcesses = processes; // 初始时显示所有进程
+
+            PopulateProcessList();
+
+            // 添加窗体大小变化时调整按钮宽度和位置
+            this.Resize += (s, e) =>
+            {
+                txtFilter.Width = this.ClientSize.Width - 40;
+                
+                btnSelect.Width = (this.ClientSize.Width - 60) / 2;
+                btnSelect.Left = 20;
+                btnSelect.Top = this.ClientSize.Height - btnSelect.Height - 16;
+
+                btnCancel.Width = (this.ClientSize.Width - 60) / 2;
+                btnCancel.Left = btnSelect.Right + 20;
+                btnCancel.Top = this.ClientSize.Height - btnCancel.Height - 16;
+
+                lstProcesses.Width = this.ClientSize.Width;
+                lstProcesses.Top = txtFilter.Bottom + 10;
+                lstProcesses.Height = btnSelect.Top - lstProcesses.Top;
+            };
+        }
+
+        // 填充进程列表
+        private void PopulateProcessList()
+        {
+            lstProcesses.Items.Clear();
+            
+            foreach (var process in filteredProcesses)
             {
                 try
                 {
@@ -84,28 +126,32 @@ namespace SmartIme.Forms
                     }
                 }
             }
+        }
 
-            // 添加窗体大小变化时调整按钮宽度和位置
-            this.Resize += (s, e) =>
+        // 过滤输入框文本变化事件
+        private void TxtFilter_TextChanged(object sender, EventArgs e)
+        {
+            string filterText = txtFilter.Text.ToLower();
+            
+            if (string.IsNullOrWhiteSpace(filterText))
             {
-                btnSelect.Width = (this.ClientSize.Width - 60) / 2;
-                btnSelect.Left = 20;
-                btnSelect.Top = this.ClientSize.Height - btnSelect.Height - 16;
-
-                btnCancel.Width = (this.ClientSize.Width - 60) / 2;
-                btnCancel.Left = btnSelect.Right + 20;
-                btnCancel.Top = this.ClientSize.Height - btnCancel.Height - 16;
-
-                lstProcesses.Width = this.ClientSize.Width;
-                lstProcesses.Height = btnSelect.Top;
-            };
+                filteredProcesses = processes;
+            }
+            else
+            {
+                filteredProcesses = processes.Where(p => 
+                    p.ProcessName.ToLower().Contains(filterText) || 
+                    (p.MainWindowTitle?.ToLower().Contains(filterText) ?? false)).ToArray();
+            }
+            
+            PopulateProcessList();
         }
 
         private void BtnSelect_Click(object sender, EventArgs e)
         {
             if (lstProcesses.SelectedIndex >= 0)
             {
-                SelectedProcess = processes[lstProcesses.SelectedIndex];
+                SelectedProcess = filteredProcesses[lstProcesses.SelectedIndex];
                 SelectedProcessDisplayName = lstProcesses.SelectedItem.ToString();
 
                 // 弹出对话框让用户修改显示名称
