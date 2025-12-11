@@ -220,8 +220,9 @@ namespace SmartIme.Utilities
                 //Debug.WriteLine(newConversionMode);
 
                 // 调试输出
+                // string winTitle = WinApi.GetWindowText(WinApi.GetForegroundWindow());
+                // Debug.WriteLine($"监测输入法切换: {newInputMethod}  {winTitle}");
 
-                //string winTitle = WinApi.GetWindowText(WinApi.GetForegroundWindow());
                 processName = AppHelper.GetForegroundProcessName();
                 //if (processName == "explorer")
                 //{

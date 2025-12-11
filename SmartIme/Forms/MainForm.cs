@@ -369,7 +369,7 @@ namespace SmartIme
 
             if (imeSwitched && !string.IsNullOrEmpty(langIdStr))
             {
-                Debug.WriteLine($"\n\r{DateTime.Now}:监测输入法切换: {langIdStr} 进程: {_changeColorProcessName}");
+                // Debug.WriteLine($"\n\r{DateTime.Now}:监测输入法切换: {langIdStr} 进程: {_changeColorProcessName}");
                 this.lblLog.Text = DateTime.Now.ToLongTimeString() + " --[输入法切换] " + langIdStr + " 进程: " + _changeColorProcessName;
                 _lastActiveApp = _changeColorProcessName;
                 ChangeCursorColorByIme(langIdStr);
