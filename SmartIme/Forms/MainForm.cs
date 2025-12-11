@@ -15,7 +15,7 @@ namespace SmartIme
         public BindingList<AppRuleGroup> AppRuleGroups = new();
         public Font _treeNodefont;
         private readonly int _monitorInterval = 50; // 监测间隔，单位毫秒
-        private CancellationTokenSource _cancellationTokenSource = new();
+        private readonly CancellationTokenSource _cancelMonitorSystem = new();
         private NotifyIcon _trayIcon;
         private ContextMenuStrip _trayMenu;
         private readonly List<string> _whitelistedApps = new List<string>();
@@ -71,8 +71,6 @@ namespace SmartIme
         #endregion
 
         #region 获取设置文件路径方法
-
-
 
         public string GetRulesJsonPath()
         {
@@ -143,7 +141,7 @@ namespace SmartIme
             UpdateTreeView();
             SetupTrayIcon();
             //SetupMonitor();
-            _ = MonitorSystemAsync(_cancellationTokenSource.Token);
+            _ = MonitorSystemAsync(_cancelMonitorSystem.Token);
 
             //测试代码
             // _watcher = new GlobalKeyboardLayoutWatcher();
@@ -237,7 +235,7 @@ namespace SmartIme
                 this.Activate();
             });
 
-            _trayMenu.Items.Add("退出", null, (s, e) => this.Close());
+            _trayMenu.Items.Add("退出", null, (s, e) => btnExit.PerformClick());
 
             _trayIcon = new NotifyIcon
             {
@@ -276,6 +274,18 @@ namespace SmartIme
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            // 如果是用户点击关闭按钮，则最小化到托盘而不是退出程序
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true; // 取消关闭操作
+                this.WindowState = FormWindowState.Minimized; // 最小化窗口
+                this.Hide(); // 隐藏窗口
+                return; // 直接返回，不执行下面的保存操作
+            }
+
+            // 停止监测系统
+            _cancelMonitorSystem.Cancel();
+
             // 保存设置 to the new AppSettings.json file
             var settings = _appSettings;
             settings.DefaultIme = cmbDefaultIme.SelectedIndex;
@@ -474,7 +484,7 @@ namespace SmartIme
                             InputLanguage.CurrentInputLanguage = lang;
                             IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
                             //WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
-                            Thread.Sleep(100);
+                            //Thread.Sleep(50);
                             WinApi.PostMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, lang.Handle);
                             // }
 
@@ -543,7 +553,7 @@ namespace SmartIme
             IntPtr hWnd = WinApi.GetForegroundWindow();
             IntPtr imeWnd = WinApi.ImmGetDefaultIMEWnd(hWnd);
 
-            WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, (IntPtr)0x0029, IntPtr.Zero);
+            WinApi.SendMessage(imeWnd, WinApi.WM_INPUTLANGCHANGEREQUEST, 0x0029, IntPtr.Zero);
 
             _ = WinApi.GetWindowThreadProcessId(hWnd, out uint threadId);
             IntPtr hkl = WinApi.GetKeyboardLayout(threadId);
@@ -708,7 +718,8 @@ namespace SmartIme
 
         private void BtnExit_Click(object sender, EventArgs e)
         {
-            this.Close();
+            //this.Close();
+            Application.Exit();
         }
 
         private void BtnWhitelist_Click(object sender, EventArgs e)
@@ -845,7 +856,7 @@ namespace SmartIme
             string[] strings = ["TrayNotifyWnd", "menu", "popup", "afx"];
             // Debug.WriteLine("lastcontrolName:" + _lastClassName);
             // Debug.WriteLine("curcontrolName:" + controlName);
-            if (strings.Any(s => controlName.Contains(s, StringComparison.OrdinalIgnoreCase)))
+            if (controlName.Length < 10 && strings.Any(s => controlName.Contains(s, StringComparison.OrdinalIgnoreCase)))
             {
                 return;
             }

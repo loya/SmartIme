@@ -14,7 +14,7 @@ namespace SmartIme.Forms
         private readonly Color _textColor; // 文字颜色
         private int formWidth = 100;
         private int _formHeight = 35;
-        
+
         // 修复：恢复CreateParams方法以确保窗口样式正确
         protected override CreateParams CreateParams
         {
@@ -30,7 +30,7 @@ namespace SmartIme.Forms
                 // cp.ExStyle |= WS_EX_NOACTIVATE; // 窗口不激活
 
                 cp.ExStyle |= WS_EX_NOACTIVATE | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT;
-                
+
                 // 添加WS_EX_COMPOSITED以减少闪烁，但要注意它可能影响透明效果
                 // 我们需要权衡点击穿透和减少闪烁的需求
                 return cp;
@@ -58,6 +58,7 @@ namespace SmartIme.Forms
             this._textColor = Color.White;
             InitializeForm();
         }
+        protected override bool ShowWithoutActivation => true;
 
         private void InitializeForm()
         {
@@ -70,10 +71,10 @@ namespace SmartIme.Forms
             // this.TopMost = true;
             this.BackColor = _backColor; // 设置背景色为黑色
             this.Opacity = 0;
-            
+
             // 预计算窗体尺寸以避免在Paint事件中调整大小
             CalculateFormSize();
-            
+
             this.Size = new Size(formWidth, _formHeight);
             this.ClientSize = new Size(formWidth, _formHeight);
 
@@ -126,7 +127,7 @@ namespace SmartIme.Forms
 
             // 圆宽度
             int ellipeWidth = (int)_font.Size;
-            
+
             // 使用实际的窗体高度而不是_formHeight变量
             int actualHeight = this.Height;
 
