@@ -73,6 +73,10 @@ namespace SmartIme
             sf.LineAlignment = StringAlignment.Center;//垂直居中
             try
             {
+                if (e.Index < 0 || e.Index >= Items.Count) //索引无效
+                {
+                    return;
+                }
                 var item = Items[e.Index];
 
                 SizeF size = g.MeasureString(item.ToString(), e.Font); //获取项文本尺寸

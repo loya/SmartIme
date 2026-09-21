@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace SmartIme.Forms
 {
@@ -7,8 +7,11 @@ namespace SmartIme.Forms
         private ListBox lstProcesses;
         private Button btnSelect;
         private TextBox txtFilter; // 过滤输入框
-        private readonly Process[] processes;
+        private CheckBox chkShowAllProcesses; // 显示所有进程复选框
+        private Button btnRefresh; // 刷新按钮
+        private Process[] processes;
         private Process[] filteredProcesses; // 过滤后的进程数组
+        private IEnumerable<string> existingApps; // 保存已存在的应用程序列表
         public Process SelectedProcess { get; private set; }
         public string SelectedProcessDisplayName { get; private set; }
 
@@ -16,7 +19,7 @@ namespace SmartIme.Forms
         {
             this.ShowInTaskbar = false;
             this.Text = "选择应用程序";
-            this.Size = new Size(400, 500);
+            this.Size = new Size(400, 500); // 恢复窗体宽度为400
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -27,11 +30,35 @@ namespace SmartIme.Forms
             {
                 Left = 20,
                 Top = 10,
-                Width = this.ClientSize.Width - 40,
+                Width = 200, // 减小初始宽度以适应400px窗体
                 Height = 25,
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
             txtFilter.TextChanged += TxtFilter_TextChanged;
+
+            // 创建显示所有进程复选框
+            chkShowAllProcesses = new CheckBox
+            {
+                Text = "所有进程",
+                Left = 230, // 调整位置
+                Top = 14,
+                //Width = 70, // 减小宽度
+                Height = 20,
+				AutoSize = true,
+                Checked = false // 默认不选择
+            };
+            chkShowAllProcesses.CheckedChanged += ChkShowAllProcesses_CheckedChanged;
+
+            // 创建刷新按钮
+            btnRefresh = new Button
+            {
+                Text = "刷 新",
+                Left = 310, // 调整位置
+                Top = 10,
+                Width = 60, // 减小宽度
+                Height = 25
+            };
+            btnRefresh.Click += BtnRefresh_Click;
 
             btnSelect = new Button
             {
@@ -68,25 +95,28 @@ namespace SmartIme.Forms
             lstProcesses.DoubleClick += (s, e) => btnSelect.PerformClick();
 
             this.Controls.Add(txtFilter);
+            this.Controls.Add(chkShowAllProcesses);
+            this.Controls.Add(btnRefresh);
             this.Controls.Add(lstProcesses);
             this.Controls.Add(btnSelect);
             this.Controls.Add(btnCancel);
 
-            processes = [.. Process.GetProcesses().DistinctBy(p => p.ProcessName)
-                // .Where(p => !string.IsNullOrEmpty(p.MainWindowTitle))
-                .Where(p => existingApps == null || !existingApps.Contains(p.ProcessName))
+            // 保存现有的应用程序列表
+            this.existingApps = existingApps;
 
-                .OrderBy(p => p.ProcessName)];
-
-            filteredProcesses = processes; // 初始时显示所有进程
-
-            PopulateProcessList();
+            // 获取进程列表
+            RefreshProcessList();
 
             // 添加窗体大小变化时调整按钮宽度和位置
             this.Resize += (s, e) =>
             {
-                txtFilter.Width = this.ClientSize.Width - 40;
+                // 调整过滤框宽度，为复选框和按钮留出空间
+                txtFilter.Width = Math.Max(80, this.ClientSize.Width - 140);
                 
+                // 调整复选框和按钮位置
+                chkShowAllProcesses.Left = txtFilter.Right + 10;
+                btnRefresh.Left = Math.Min(chkShowAllProcesses.Right + 10, this.ClientSize.Width - btnRefresh.Width - 10);
+
                 btnSelect.Width = (this.ClientSize.Width - 60) / 2;
                 btnSelect.Left = 20;
                 btnSelect.Top = this.ClientSize.Height - btnSelect.Height - 16;
@@ -169,6 +199,68 @@ namespace SmartIme.Forms
                     }
                 }
             }
+        }
+
+        // 刷新进程列表
+        private void RefreshProcessList()
+        {
+            try
+            {
+                var processList = Process.GetProcesses().DistinctBy(p => p.ProcessName);
+
+                // 根据复选框状态决定是否过滤可见窗口进程
+                if (!chkShowAllProcesses.Checked)
+                {
+                    processList = processList.Where(p => !string.IsNullOrEmpty(p.MainWindowTitle)); // 只显示有可见窗口的进程
+                }
+
+                // 过滤已存在的应用程序
+                if (existingApps != null)
+                {
+                    processList = processList.Where(p => !existingApps.Contains(p.ProcessName));
+                }
+
+                processes = [.. processList.OrderBy(p => p.ProcessName)];
+                filteredProcesses = processes; // 重置过滤后的进程列表
+
+                // 应用当前的过滤文本
+                ApplyFilter();
+
+                PopulateProcessList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"刷新进程列表时发生错误: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // 应用过滤文本
+        private void ApplyFilter()
+        {
+            string filterText = txtFilter.Text.ToLower();
+
+            if (string.IsNullOrWhiteSpace(filterText))
+            {
+                filteredProcesses = processes;
+            }
+            else
+            {
+                filteredProcesses = processes.Where(p =>
+                    p.ProcessName.ToLower().Contains(filterText) ||
+                    (p.MainWindowTitle?.ToLower().Contains(filterText) ?? false)).ToArray();
+            }
+        }
+
+        // 显示所有进程复选框状态改变事件
+        private void ChkShowAllProcesses_CheckedChanged(object sender, EventArgs e)
+        {
+            RefreshProcessList();
+        }
+
+        // 刷新按钮点击事件
+        private void BtnRefresh_Click(object sender, EventArgs e)
+        {
+            RefreshProcessList();
         }
     }
 }
