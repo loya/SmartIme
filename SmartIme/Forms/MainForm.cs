@@ -2,8 +2,6 @@ using SmartIme.Forms;
 using SmartIme.Models;
 using SmartIme.Utilities;
 using System.ComponentModel;
-using System.Drawing;
-using System.Windows.Forms;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
@@ -679,24 +677,7 @@ namespace SmartIme
 
         private void TreeApps_DoubleClick(object sender, EventArgs e)
         {
-            if (treeApps.SelectedNode != null)
-            {
-                treeApps.SelectedNode.Expand();
-                //if (treeApps.SelectedNode.Tag is AppRuleGroup group)
-                //{
-                //}
-                //else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
-                //{
-                //    if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
-                //    {
-                //        treeApps.SelectedNode = treeApps.SelectedNode.Parent;
-                //        treeApps.Focus();
-                //    }
-                //}
 
-                using var editAppRulesForm = new EditAppRulesForm(this, treeApps.SelectedNode, cmbDefaultIme.Items.Cast<string>());
-                editAppRulesForm.ShowDialog(this);
-            }
         }
 
         private void UpdateTreeView()
@@ -1395,6 +1376,45 @@ namespace SmartIme
             //     value = true;
             // }
             base.SetVisibleCore(value);
+        }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+        private void treeApps_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+
+            if (e.Button == MouseButtons.Right)
+            {
+                return;
+            }
+            if (treeApps.SelectedNode != null)
+            {
+                treeApps.SelectedNode.Expand();
+                //if (treeApps.SelectedNode.Tag is AppRuleGroup group)
+                //{
+                //}
+                //else if (treeApps.SelectedNode.Tag is Rule rule && treeApps.SelectedNode.Parent != null)
+                //{
+                //    if (treeApps.SelectedNode.Parent.Tag is AppRuleGroup parentGroup)
+                //    {
+                //        treeApps.SelectedNode = treeApps.SelectedNode.Parent;
+                //        treeApps.Focus();
+                //    }
+                //}
+
+                using var editAppRulesForm = new EditAppRulesForm(this, treeApps.SelectedNode, cmbDefaultIme.Items.Cast<string>());
+                editAppRulesForm.ShowDialog(this);
+            }
+        }
+
+        private void editToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using var editAppRulesForm = new EditAppRulesForm(this, treeApps.SelectedNode, cmbDefaultIme.Items.Cast<string>());
+            editAppRulesForm.ShowDialog(this);
         }
     }
 }

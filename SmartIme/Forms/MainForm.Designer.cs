@@ -25,9 +25,18 @@ namespace SmartIme
 
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             lblCurrentIme = new Label();
             btnSwitchIme = new Button();
             treeApps = new TreeView();
+            treeContextMenu = new ContextMenuStrip(components);
+            editToolStripMenuItem = new ToolStripMenuItem();
+            deleteToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator2 = new ToolStripSeparator();
+            enableSelectedToolStripMenuItem = new ToolStripMenuItem();
+            disableSelectedToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator1 = new ToolStripSeparator();
+            toggleSelectedToolStripMenuItem = new ToolStripMenuItem();
             btnAddApp = new Button();
             btnRemoveApp = new Button();
             cmbDefaultIme = new ComboBox();
@@ -42,6 +51,7 @@ namespace SmartIme
             btnCollapseAll = new Button();
             btnRefresh = new Button();
             chkAlwayShowHint = new CheckBox();
+            treeContextMenu.SuspendLayout();
             SuspendLayout();
             // 
             // lblCurrentIme
@@ -71,9 +81,8 @@ namespace SmartIme
             // treeApps
             // 
             treeApps.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            treeApps.ContextMenuStrip = treeContextMenu;
             treeApps.Font = new Font("微软雅黑", 12F, FontStyle.Bold, GraphicsUnit.Point, 134);
-            // 使用 StateImageList 模拟三态复选框，禁用内置 CheckBoxes
-            treeApps.CheckBoxes = false;
             treeApps.HotTracking = true;
             treeApps.Location = new Point(23, 145);
             treeApps.Margin = new Padding(4);
@@ -81,25 +90,61 @@ namespace SmartIme
             treeApps.ShowNodeToolTips = true;
             treeApps.Size = new Size(533, 278);
             treeApps.TabIndex = 2;
-            treeApps.DoubleClick += TreeApps_DoubleClick;
             treeApps.AfterCheck += TreeApps_AfterCheck;
             treeApps.NodeMouseClick += TreeApps_NodeMouseClick;
+            treeApps.NodeMouseDoubleClick += treeApps_NodeMouseDoubleClick;
+            treeApps.DoubleClick += TreeApps_DoubleClick;
             // 
             // treeContextMenu
             // 
-            treeContextMenu = new ContextMenuStrip();
-            enableSelectedToolStripMenuItem = new ToolStripMenuItem();
-            disableSelectedToolStripMenuItem = new ToolStripMenuItem();
-            toolStripSeparator1 = new ToolStripSeparator();
-            toggleSelectedToolStripMenuItem = new ToolStripMenuItem();
+            treeContextMenu.Items.AddRange(new ToolStripItem[] { editToolStripMenuItem, deleteToolStripMenuItem, toolStripSeparator2, enableSelectedToolStripMenuItem, disableSelectedToolStripMenuItem, toolStripSeparator1, toggleSelectedToolStripMenuItem });
+            treeContextMenu.Name = "treeContextMenu";
+            treeContextMenu.Size = new Size(181, 148);
+            // 
+            // editToolStripMenuItem
+            // 
+            editToolStripMenuItem.Name = "editToolStripMenuItem";
+            editToolStripMenuItem.Size = new Size(180, 22);
+            editToolStripMenuItem.Text = "编辑";
+            editToolStripMenuItem.Click += editToolStripMenuItem_Click;
+            // 
+            // deleteToolStripMenuItem
+            // 
+            deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+            deleteToolStripMenuItem.Size = new Size(180, 22);
+            deleteToolStripMenuItem.Text = "移除";
+            deleteToolStripMenuItem.Click += BtnRemoveApp_Click;
+            // 
+            // toolStripSeparator2
+            // 
+            toolStripSeparator2.Name = "toolStripSeparator2";
+            toolStripSeparator2.Size = new Size(177, 6);
+            // 
+            // enableSelectedToolStripMenuItem
+            // 
+            enableSelectedToolStripMenuItem.Name = "enableSelectedToolStripMenuItem";
+            enableSelectedToolStripMenuItem.Size = new Size(180, 22);
             enableSelectedToolStripMenuItem.Text = "启用所选规则";
-            disableSelectedToolStripMenuItem.Text = "禁用所选规则";
-            toggleSelectedToolStripMenuItem.Text = "切换启用状态";
             enableSelectedToolStripMenuItem.Click += EnableSelectedToolStripMenuItem_Click;
+            // 
+            // disableSelectedToolStripMenuItem
+            // 
+            disableSelectedToolStripMenuItem.Name = "disableSelectedToolStripMenuItem";
+            disableSelectedToolStripMenuItem.Size = new Size(180, 22);
+            disableSelectedToolStripMenuItem.Text = "禁用所选规则";
             disableSelectedToolStripMenuItem.Click += DisableSelectedToolStripMenuItem_Click;
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(177, 6);
+            // 
+            // toggleSelectedToolStripMenuItem
+            // 
+            toggleSelectedToolStripMenuItem.Name = "toggleSelectedToolStripMenuItem";
+            toggleSelectedToolStripMenuItem.Size = new Size(180, 22);
+            toggleSelectedToolStripMenuItem.Text = "切换启用状态";
             toggleSelectedToolStripMenuItem.Click += ToggleSelectedToolStripMenuItem_Click;
-            treeContextMenu.Items.AddRange(new ToolStripItem[] { enableSelectedToolStripMenuItem, disableSelectedToolStripMenuItem, toolStripSeparator1, toggleSelectedToolStripMenuItem });
-            treeApps.ContextMenuStrip = treeContextMenu;
             // 
             // btnAddApp
             // 
@@ -288,6 +333,7 @@ namespace SmartIme
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "输入法智能切换助手";
+            treeContextMenu.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -305,5 +351,8 @@ namespace SmartIme
         private ToolStripMenuItem disableSelectedToolStripMenuItem;
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripMenuItem toggleSelectedToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator2;
+        private ToolStripMenuItem deleteToolStripMenuItem;
+        private ToolStripMenuItem editToolStripMenuItem;
     }
 }
