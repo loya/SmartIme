@@ -30,14 +30,13 @@ namespace SmartIme.Utilities
                 ForeColor = ruleColor,
                 NodeFont = font
             };
-            // 保持节点的选中状态与规则启用状态一致
+            // 使用 StateImageIndex 表示启用状态：0=unchecked,1=checked
             try
             {
-                ruleNode.Checked = rule.Enabled;
+                ruleNode.StateImageIndex = rule.Enabled ? 1 : 0;
             }
             catch
             {
-                // 忽略任何检查设置引发的异常
             }
             ruleGroupNode.Nodes.Add(ruleNode);
         }

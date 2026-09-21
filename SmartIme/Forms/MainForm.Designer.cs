@@ -72,7 +72,8 @@ namespace SmartIme
             // 
             treeApps.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             treeApps.Font = new Font("微软雅黑", 12F, FontStyle.Bold, GraphicsUnit.Point, 134);
-            treeApps.CheckBoxes = true;
+            // 使用 StateImageList 模拟三态复选框，禁用内置 CheckBoxes
+            treeApps.CheckBoxes = false;
             treeApps.HotTracking = true;
             treeApps.Location = new Point(23, 145);
             treeApps.Margin = new Padding(4);
@@ -82,6 +83,23 @@ namespace SmartIme
             treeApps.TabIndex = 2;
             treeApps.DoubleClick += TreeApps_DoubleClick;
             treeApps.AfterCheck += TreeApps_AfterCheck;
+            treeApps.NodeMouseClick += TreeApps_NodeMouseClick;
+            // 
+            // treeContextMenu
+            // 
+            treeContextMenu = new ContextMenuStrip();
+            enableSelectedToolStripMenuItem = new ToolStripMenuItem();
+            disableSelectedToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator1 = new ToolStripSeparator();
+            toggleSelectedToolStripMenuItem = new ToolStripMenuItem();
+            enableSelectedToolStripMenuItem.Text = "启用所选规则";
+            disableSelectedToolStripMenuItem.Text = "禁用所选规则";
+            toggleSelectedToolStripMenuItem.Text = "切换启用状态";
+            enableSelectedToolStripMenuItem.Click += EnableSelectedToolStripMenuItem_Click;
+            disableSelectedToolStripMenuItem.Click += DisableSelectedToolStripMenuItem_Click;
+            toggleSelectedToolStripMenuItem.Click += ToggleSelectedToolStripMenuItem_Click;
+            treeContextMenu.Items.AddRange(new ToolStripItem[] { enableSelectedToolStripMenuItem, disableSelectedToolStripMenuItem, toolStripSeparator1, toggleSelectedToolStripMenuItem });
+            treeApps.ContextMenuStrip = treeContextMenu;
             // 
             // btnAddApp
             // 
@@ -282,5 +300,10 @@ namespace SmartIme
         private Button btnCollapseAll;
         private Button btnRefresh;
         private CheckBox chkAlwayShowHint;
+        private ContextMenuStrip treeContextMenu;
+        private ToolStripMenuItem enableSelectedToolStripMenuItem;
+        private ToolStripMenuItem disableSelectedToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripMenuItem toggleSelectedToolStripMenuItem;
     }
 }

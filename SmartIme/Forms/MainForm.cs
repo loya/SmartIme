@@ -2,6 +2,8 @@ using SmartIme.Forms;
 using SmartIme.Models;
 using SmartIme.Utilities;
 using System.ComponentModel;
+using System.Drawing;
+using System.Windows.Forms;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
@@ -92,6 +94,13 @@ namespace SmartIme
         public MainForm()
         {
             InitializeComponent();
+            // 初始化 StateImageList（未选中、已选中、部分选中）
+            CreateStateImageList();
+            // 根据右键位置动态控制右键菜单项可用状态
+            if (treeContextMenu != null)
+            {
+                treeContextMenu.Opening += TreeContextMenu_Opening;
+            }
             this.Icon = Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico") != null ?
                 new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("SmartIme.appIcon.ico")) :
                 SystemIcons.Application;
@@ -711,6 +720,19 @@ namespace SmartIme
                 {
                     AppHelper.AddRuleNodeToGroup(groupNode, rule, _treeNodefont);
                 }
+                // 设置组节点的 StateImageIndex：0=none,1=all,2=partial
+                try
+                {
+                    int state = 0;
+                    if (group.Rules.Count > 0)
+                    {
+                        bool all = group.Rules.All(r => r.Enabled);
+                        bool any = group.Rules.Any(r => r.Enabled);
+                        state = all ? 1 : (any ? 2 : 0);
+                    }
+                    groupNode.StateImageIndex = state;
+                }
+                catch { }
                 groupNode.Expand();
             }
             if (treeApps.Nodes.Count > 0)
@@ -724,15 +746,257 @@ namespace SmartIme
         {
             if (_suspendTreeCheckEvent) return;
 
-            if (e.Node?.Tag is Models.Rule rule)
+            if (e.Node == null) return;
+
+            // 如果是规则节点，直接设置规则启用状态
+            if (e.Node.Tag is Models.Rule rule)
             {
                 rule.Enabled = e.Node.Checked;
-                try
-                {
-                    SaveRulesToJson(false);
-                }
-                catch { }
+                try { SaveRulesToJson(false); } catch { }
+                return;
             }
+
+            // 如果是组节点，设置该组下所有规则的启用状态
+            if (e.Node.Tag is AppRuleGroup group)
+            {
+                bool enable = e.Node.Checked;
+                foreach (var r in group.Rules)
+                {
+                    r.Enabled = enable;
+                }
+
+                // 更新子节点的复选框，但暂停事件以避免递归触发
+                _suspendTreeCheckEvent = true;
+                foreach (TreeNode child in e.Node.Nodes)
+                {
+                    if (child.Tag is Rule rr)
+                        child.Checked = enable;
+                }
+                _suspendTreeCheckEvent = false;
+
+                try { SaveRulesToJson(false); } catch { }
+                return;
+            }
+        }
+
+        private void TreeApps_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
+        {
+            // 任何右键点击都先选择节点，确保上下文菜单作用于该节点
+            if (e.Node != null)
+            {
+                treeApps.SelectedNode = e.Node;
+            }
+
+            if (e.Button == MouseButtons.Right)
+            {
+                return;
+            }
+
+            // 仅当左键点击且点击在状态图标区域时，才切换状态
+            if (e.Button == MouseButtons.Left && e.Node != null)
+            {
+                var node = e.Node;
+                var clickPoint = new Point(e.X, e.Y);
+                if (!IsClickOnStateImage(node, clickPoint))
+                {
+                    return; // 点击非图标区域，不切换状态
+                }
+
+                if (node.Tag is Rule rule)
+                {
+                    rule.Enabled = !rule.Enabled;
+                    node.StateImageIndex = rule.Enabled ? 1 : 0;
+                    // 更新父组状态
+                    if (node.Parent != null && node.Parent.Tag is AppRuleGroup)
+                    {
+                        UpdateGroupNodeState(node.Parent);
+                    }
+                }
+                else if (node.Tag is AppRuleGroup group)
+                {
+                    // 如果所有规则都启用，则禁用全部；否则启用全部
+                    bool allEnabled = group.Rules.Count > 0 && group.Rules.All(r => r.Enabled);
+                    bool setEnable = !allEnabled;
+                    foreach (var r in group.Rules)
+                    {
+                        r.Enabled = setEnable;
+                    }
+                    _suspendTreeCheckEvent = true;
+                    foreach (TreeNode child in node.Nodes)
+                    {
+                        if (child.Tag is Rule rr)
+                            child.StateImageIndex = rr.Enabled ? 1 : 0;
+                    }
+                    _suspendTreeCheckEvent = false;
+                    UpdateGroupNodeState(node);
+                }
+                try { SaveRulesToJson(false); } catch { }
+            }
+        }
+
+        private bool IsClickOnStateImage(TreeNode node, Point clickPoint)
+        {
+            try
+            {
+                if (node == null || treeApps.StateImageList == null) return false;
+                var imgSize = treeApps.StateImageList.ImageSize.Width;
+                // 节点文本左边的 X 坐标
+                var textLeft = node.Bounds.Left;
+                // 状态图标的区域，留出少量间距
+                var imgRect = new Rectangle(textLeft - imgSize - 4, node.Bounds.Top, imgSize + 4, node.Bounds.Height);
+                return imgRect.Contains(clickPoint);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void TreeContextMenu_Opening(object? sender, CancelEventArgs e)
+        {
+            var node = treeApps.SelectedNode;
+            bool enableItems = node != null && (node.Tag is AppRuleGroup || node.Tag is Rule);
+            // no-op change to ensure patch application context
+
+            enableSelectedToolStripMenuItem.Enabled = enableItems;
+            disableSelectedToolStripMenuItem.Enabled = enableItems;
+            toggleSelectedToolStripMenuItem.Enabled = enableItems;
+        }
+        private void UpdateGroupNodeState(TreeNode groupNode)
+        {
+            if (groupNode == null || !(groupNode.Tag is AppRuleGroup group)) return;
+            try
+            {
+                int state = 0;
+                if (group.Rules.Count > 0)
+                {
+                    bool all = group.Rules.All(r => r.Enabled);
+                    bool any = group.Rules.Any(r => r.Enabled);
+                    state = all ? 1 : (any ? 2 : 0);
+                }
+                groupNode.StateImageIndex = state;
+            }
+            catch { }
+        }
+
+        private void CreateStateImageList()
+        {
+            try
+            {
+                var il = new ImageList();
+                il.ImageSize = new Size(16, 16);
+                il.ColorDepth = ColorDepth.Depth32Bit;
+
+                // Unchecked
+                var bmp0 = new Bitmap(16, 16);
+                using (var g = Graphics.FromImage(bmp0))
+                {
+                    g.Clear(Color.Transparent);
+                    ControlPaint.DrawCheckBox(g, new Rectangle(1, 1, 14, 14), ButtonState.Normal);
+                }
+
+                // Checked
+                var bmp1 = new Bitmap(16, 16);
+                using (var g = Graphics.FromImage(bmp1))
+                {
+                    g.Clear(Color.Transparent);
+                    ControlPaint.DrawCheckBox(g, new Rectangle(1, 1, 14, 14), ButtonState.Checked);
+                }
+
+                // Indeterminate (partial)
+                var bmp2 = new Bitmap(16, 16);
+                using (var g = Graphics.FromImage(bmp2))
+                {
+                    g.Clear(Color.Transparent);
+                    ControlPaint.DrawCheckBox(g, new Rectangle(1, 1, 14, 14), ButtonState.Normal);
+                    // draw a small filled bar to indicate partial
+                    using var brush = new SolidBrush(Color.FromArgb(160, Color.Gray));
+                    g.FillRectangle(brush, 4, 7, 8, 2);
+                }
+
+                il.Images.Add(bmp0);
+                il.Images.Add(bmp1);
+                il.Images.Add(bmp2);
+
+                treeApps.StateImageList = il;
+            }
+            catch
+            {
+                // 忽略创建状态图像失败
+            }
+        }
+
+        private void EnableSelectedToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            ApplyEnableToSelection(true);
+        }
+
+        private void DisableSelectedToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            ApplyEnableToSelection(false);
+        }
+
+        private void ToggleSelectedToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            var node = treeApps.SelectedNode;
+            if (node == null) return;
+
+            if (node.Tag is AppRuleGroup group)
+            {
+                foreach (var rule in group.Rules)
+                {
+                    rule.Enabled = !rule.Enabled;
+                }
+                _suspendTreeCheckEvent = true;
+                foreach (TreeNode child in node.Nodes)
+                {
+                    if (child.Tag is Rule r)
+                        child.StateImageIndex = r.Enabled ? 1 : 0;
+                }
+                _suspendTreeCheckEvent = false;
+                // 更新组节点的显示状态
+                UpdateGroupNodeState(node);
+            }
+            else if (node.Tag is Rule rule)
+            {
+                rule.Enabled = !rule.Enabled;
+                node.StateImageIndex = rule.Enabled ? 1 : 0;
+                // 更新父组的显示状态
+                if (node.Parent != null)
+                    UpdateGroupNodeState(node.Parent);
+            }
+            try { SaveRulesToJson(false); } catch { }
+        }
+
+        private void ApplyEnableToSelection(bool enable)
+        {
+            var node = treeApps.SelectedNode;
+            if (node == null) return;
+
+            if (node.Tag is AppRuleGroup group)
+            {
+                foreach (var rule in group.Rules)
+                {
+                    rule.Enabled = enable;
+                }
+                _suspendTreeCheckEvent = true;
+                foreach (TreeNode child in node.Nodes)
+                {
+                    if (child.Tag is Rule r)
+                        child.StateImageIndex = enable ? 1 : 0;
+                }
+                _suspendTreeCheckEvent = false;
+                // 更新组节点显示状态
+                UpdateGroupNodeState(node);
+            }
+            else if (node.Tag is Rule rule)
+            {
+                rule.Enabled = enable;
+                node.StateImageIndex = enable ? 1 : 0;
+                if (node.Parent != null)
+                    UpdateGroupNodeState(node.Parent);
+            }
+            try { SaveRulesToJson(false); } catch { }
         }
 
 
