@@ -72,6 +72,7 @@ namespace SmartIme
             // 
             treeApps.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             treeApps.Font = new Font("微软雅黑", 12F, FontStyle.Bold, GraphicsUnit.Point, 134);
+            treeApps.CheckBoxes = true;
             treeApps.HotTracking = true;
             treeApps.Location = new Point(23, 145);
             treeApps.Margin = new Padding(4);
@@ -80,6 +81,7 @@ namespace SmartIme
             treeApps.Size = new Size(533, 278);
             treeApps.TabIndex = 2;
             treeApps.DoubleClick += TreeApps_DoubleClick;
+            treeApps.AfterCheck += TreeApps_AfterCheck;
             // 
             // btnAddApp
             // 

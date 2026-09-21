@@ -73,7 +73,7 @@ namespace SmartIme.Models
             var sortedRules = Rules.OrderByDescending(r => r.Priority).ToList();
 
             // 先检查控件规则
-            foreach (var rule in sortedRules.Where(r => r.RuleType == RuleType.控件))
+            foreach (var rule in sortedRules.Where(r => r.RuleType == RuleType.控件 && r.Enabled))
             {
                 //MessageBox.Show(rule.MatchPattern.ToString(), "模式");
                 bool isMatch = rule.MatchPattern switch
@@ -88,7 +88,7 @@ namespace SmartIme.Models
             }
 
             // 再检查标题规则
-            foreach (var rule in sortedRules.Where(r => r.RuleType == RuleType.窗口标题))
+            foreach (var rule in sortedRules.Where(r => r.RuleType == RuleType.窗口标题 && r.Enabled))
             {
                 bool isMatch = rule.MatchPattern switch
                 {
@@ -102,7 +102,7 @@ namespace SmartIme.Models
             }
 
             // 最后检查程序规则
-            foreach (var rule in sortedRules.Where(r => r.RuleType == RuleType.程序名称))
+            foreach (var rule in sortedRules.Where(r => r.RuleType == RuleType.程序名称 && r.Enabled))
             {
                 bool isMatch = rule.MatchPattern switch
                 {

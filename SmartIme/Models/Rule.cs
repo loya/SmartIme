@@ -20,6 +20,10 @@ namespace SmartIme.Models
 
     public class Rule : ICloneable
     {
+        /// <summary>
+        /// 规则是否启用
+        /// </summary>
+        public bool Enabled { get; set; } = true;
         public string RuleName { get; set; }
         public string AppName { get; set; } = string.Empty;
         /// <summary>
@@ -89,7 +93,8 @@ namespace SmartIme.Models
                 MatchPattern = this.MatchPattern,
                 MatchContent = this.MatchContent,
                 InputMethod = this.InputMethod,
-                Priority = this.Priority
+                Priority = this.Priority,
+                Enabled = this.Enabled
             };
         }
     }

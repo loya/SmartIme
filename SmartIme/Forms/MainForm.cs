@@ -36,6 +36,9 @@ namespace SmartIme
         //改变输入法时的进程名
         private string _changeColorProcessName = "";
 
+        // 用于在更新 TreeView 时暂停 AfterCheck 事件处理
+        private bool _suspendTreeCheckEvent = false;
+
         private string _lastActiveApp = string.Empty;
         private string _lastClassName = string.Empty;
 
@@ -689,6 +692,7 @@ namespace SmartIme
 
         private void UpdateTreeView()
         {
+            _suspendTreeCheckEvent = true;
             treeApps.Nodes.Clear();
 
             //Font boldFont = new Font(treeApps.Font, FontStyle.Bold);
@@ -712,6 +716,22 @@ namespace SmartIme
             if (treeApps.Nodes.Count > 0)
             {
                 treeApps.Nodes[0]?.EnsureVisible();
+            }
+            _suspendTreeCheckEvent = false;
+        }
+
+        private void TreeApps_AfterCheck(object? sender, TreeViewEventArgs e)
+        {
+            if (_suspendTreeCheckEvent) return;
+
+            if (e.Node?.Tag is Models.Rule rule)
+            {
+                rule.Enabled = e.Node.Checked;
+                try
+                {
+                    SaveRulesToJson(false);
+                }
+                catch { }
             }
         }
 
