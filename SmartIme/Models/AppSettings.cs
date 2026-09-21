@@ -36,34 +36,39 @@ namespace SmartIme.Models
         public static AppSettings Load()
         {
             AppSettings settings;
+            settings = new AppSettings
+            {
+                AlwayShowHint = true,
+                HintBackColor = Color.Black,
+                HintOpacity = 0.6,
+                HintFont = (Font)new FontConverter().ConvertFromString("Microsoft YaHei, 12pt"),
+                HintTextColor = Color.White,
+                TextColorSameHintColor = false,
+                DefaultIme = 0,
+                StartMinimized = false,
+                WindowSize = Size.Empty,
+                WindowLocation = Point.Empty,
+                WindowState = FormWindowState.Normal,
+                // ImeColors = new Dictionary<string, Color>()
+                // {
+                //     { "中文",Color.Red },
+                //     { "英文", Color.Lime},
+                // },
+                ImeColors = SetDefaultImeColors()
+
+            };
             if (!File.Exists(SettingsPath))
             {
-                settings = new AppSettings
-                {
-                    AlwayShowHint = true,
-                    HintBackColor = Color.Black,
-                    HintOpacity = 0.6,
-                    HintFont = (Font)new FontConverter().ConvertFromString("Microsoft YaHei, 12pt"),
-                    HintTextColor = Color.White,
-                    TextColorSameHintColor = false,
-                    DefaultIme = 0,
-                    StartMinimized = false,
-                    WindowSize = Size.Empty,
-                    WindowLocation = Point.Empty,
-                    WindowState = FormWindowState.Normal,
-                    // ImeColors = new Dictionary<string, Color>()
-                    // {
-                    //     { "中文",Color.Red },
-                    //     { "英文", Color.Lime},
-                    // },
-                    ImeColors = SetDefaultImeColors()
-
-                };
                 settings.Save();
                 return settings;
             }
 
             string json = File.ReadAllText(SettingsPath);
+            if (string.IsNullOrWhiteSpace(json.Trim()))
+            {
+                settings.Save();
+                return settings;
+            }
             settings = JsonSerializer.Deserialize<AppSettings>(json, _options);
             if (settings.ImeColors == null || settings.ImeColors.Count == 0)
             {
@@ -80,6 +85,11 @@ namespace SmartIme.Models
         public void Save()
         {
             string json = JsonSerializer.Serialize(this, _options);
+            if (string.IsNullOrWhiteSpace(json.Trim()))
+            {
+                MessageBox.Show("Failed to save settings: JSON serialization resulted in empty content.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             File.WriteAllText(SettingsPath, json);
         }
 
